@@ -171,4 +171,4 @@ Drop caveman style and speak normally when / Abandona el modo cavernícola y hab
 
 ## Credits
 
-Created by [Carlos Figueredo](https://github.com/cefigueredo). This personal copy is based on [`unsure-caveman`](https://github.com/cefigueredo/unsure-caveman/tree/607c96187681c08a094d6d4a7fbbfedd3b99a9ce/skills/unsure-caveman) and was inspired by [Julius Brussee's `caveman`](https://github.com/juliusbrussee/caveman).
+Created by [Carlos Figueredo](https://github.com/cefigueredo). This personal copy is based on [`unsure-caveman`](https://github.com/Cefigueredo/unsure-caveman) and was inspired by [Julius Brussee's `caveman`](https://github.com/juliusbrussee/caveman).

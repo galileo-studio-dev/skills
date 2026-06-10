@@ -62,13 +62,13 @@ The directory name matches the `name` field in the skill's YAML frontmatter.
 Install every skill from this repository:
 
 ```bash
-npx skills add https://github.com/cefigueredo/skills
+npx skills add https://github.com/desarrollo-galileo/skills
 ```
 
 Install one skill:
 
 ```bash
-npx skills add https://github.com/cefigueredo/skills --skill <skill-name>
+npx skills add https://github.com/desarrollo-galileo/skills --skill <skill-name>
 ```
 
 For local development, point the skills CLI at this repository's local path
