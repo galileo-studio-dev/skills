@@ -29,7 +29,7 @@ Each skill lives in its own directory:
 skills/
   <skill-name>/
     SKILL.md
-    LICENSE        # Included when supplied by the upstream project
+    LICENSE*       # Included when supplied by the upstream project
     ...            # Optional references, prompts, or supporting files
 ```
 
@@ -51,11 +51,13 @@ The directory name matches the `name` field in the skill's YAML frontmatter.
 | `tdd` | Apply a behavior-focused red-green-refactor workflow. |
 | `test-driven-development` | Enforce test-first implementation and testing discipline. |
 | `code-simplifier` | Refine code for clarity while preserving behavior. |
+| `frontend-design` | Create distinctive, intentional interfaces grounded in a specific brief. |
 | `requesting-code-review` | Request focused technical review before completion. |
 | `receiving-code-review` | Evaluate and apply review feedback with technical rigor. |
 | `verification-before-completion` | Require fresh evidence before claiming work is complete. |
 | `caveman` | Communicate with compact, token-efficient technical language. |
 | `unsure-caveman` | Combine compact responses with explicit confidence and uncertainty. |
+| `webwright` | Automate web tasks with reusable Playwright scripts and screenshot evidence. |
 
 ## Installation
 
