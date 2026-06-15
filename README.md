@@ -23,26 +23,50 @@ to the original author and the exact upstream revision used for the copy.
 
 ## Repository Layout
 
-Each skill lives in its own directory:
+Skills are grouped by company usage category:
 
 ```text
 skills/
-  <skill-name>/
-    SKILL.md
-    LICENSE*       # Included when supplied by the upstream project
-    ...            # Optional references, prompts, or supporting files
+  general/
+    <skill-name>/
+      SKILL.md
+  develop/
+    <skill-name>/
+      SKILL.md
+  legal/
+    # Reserved for approved legal skills
 ```
 
-The directory name matches the `name` field in the skill's YAML frontmatter.
+Each skill may also include an upstream `LICENSE*`, references, prompts, or
+other supporting files. The skill directory name matches the `name` field in
+its YAML frontmatter.
 
 ## Skills
+
+### General
+
+General-purpose skills that are not tied to the company development
+workflow.
 
 | Skill | Purpose |
 | --- | --- |
 | `find-skills` | Discover relevant skills from the agent skills ecosystem. |
+| `grill-me` | Interview the user until a plan or design is fully understood. |
+| `caveman` | Communicate with compact, token-efficient technical language. |
+| `unsure-caveman` | Combine compact responses with explicit confidence and uncertainty. |
+| `webwright` | Automate web tasks with reusable Playwright scripts and screenshot evidence. |
+
+### Develop
+
+Skills approved for the company software delivery workflow. This category
+covers product shaping, planning, implementation, testing, review, and
+verification. Stack-specific skills for Next.js, FastAPI, AWS
+infrastructure, Clerk, Stripe, and Sentry also belong here.
+
+| Skill | Purpose |
+| --- | --- |
 | `problem-statement` | Frame and pressure-test a problem before choosing a solution. |
 | `shaping` | Shape product and engineering work through requirements and solution options. |
-| `grill-me` | Interview the user until a plan or design is fully understood. |
 | `to-prd` | Turn gathered context into a product requirements document. |
 | `to-issues` | Break a plan or PRD into actionable issues. |
 | `writing-plans` | Produce detailed implementation plans for engineering work. |
@@ -55,22 +79,25 @@ The directory name matches the `name` field in the skill's YAML frontmatter.
 | `requesting-code-review` | Request focused technical review before completion. |
 | `receiving-code-review` | Evaluate and apply review feedback with technical rigor. |
 | `verification-before-completion` | Require fresh evidence before claiming work is complete. |
-| `caveman` | Communicate with compact, token-efficient technical language. |
-| `unsure-caveman` | Combine compact responses with explicit confidence and uncertainty. |
-| `webwright` | Automate web tasks with reusable Playwright scripts and screenshot evidence. |
+
+### Legal
+
+Reserved for company-approved legal skills. This category is currently empty.
 
 ## Installation
 
 Install every skill from this repository:
 
 ```bash
-npx skills add https://github.com/desarrollo-galileo/skills
+npx skills add https://github.com/desarrollo-galileo/skills --full-depth
 ```
 
 Install one skill:
 
 ```bash
-npx skills add https://github.com/desarrollo-galileo/skills --skill <skill-name>
+npx skills add https://github.com/desarrollo-galileo/skills \
+  --full-depth \
+  --skill <skill-name>
 ```
 
 For local development, point the skills CLI at this repository's local path
