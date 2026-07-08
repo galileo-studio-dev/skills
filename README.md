@@ -33,6 +33,9 @@ skills/
   develop/
     <skill-name>/
       SKILL.md
+  security/
+    <skill-name>/
+      SKILL.md
   legal/
     # Reserved for approved legal skills
 ```
@@ -79,6 +82,18 @@ infrastructure, Clerk, Stripe, and Sentry also belong here.
 | `requesting-code-review` | Request focused technical review before completion. |
 | `receiving-code-review` | Evaluate and apply review feedback with technical rigor. |
 | `verification-before-completion` | Require fresh evidence before claiming work is complete. |
+
+### Security
+
+Skills approved for security review, static analysis, and secure engineering
+guidance. These skills may depend on local security tooling and must preserve
+their documented approval gates, output boundaries, and redaction rules.
+
+| Skill | Purpose |
+| --- | --- |
+| `semgrep` | Run approved Semgrep security scans with explicit scan-plan approval and SARIF output. |
+| `codeql` | Build and analyze CodeQL databases for deeper data-flow and taint-tracking findings. |
+| `owasp-security` | Apply OWASP Top 10, ASVS, LLM, and agentic security guidance during implementation or review. |
 
 ### Legal
 
