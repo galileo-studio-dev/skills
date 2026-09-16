@@ -62,6 +62,18 @@ Task tool (general-purpose):
     - Documentation complete?
     - No obvious bugs?
 
+    **Company lenses (added in this vendored copy):**
+    - Scope: is the diff limited to the request? No speculative abstractions,
+      one-use helpers, new dependencies, or drive-by cleanups (`scoping-changes`).
+    - Conventions: matches local naming, layout, and idioms; reuses existing
+      helpers (`learning-codebase-conventions`).
+    - Failures: handled at boundaries, no swallowed errors, timeouts and
+      idempotent retries on I/O (`designing-error-handling`).
+    - Data: schema changes follow expand/contract with a rollback plan
+      (`changing-schemas-safely`).
+    - Observability: structured events at boundaries, no secrets or personal
+      data in logs (`instrumenting-for-observability`).
+
     ## Calibration
 
     Categorize issues by actual severity. Not everything is Critical.

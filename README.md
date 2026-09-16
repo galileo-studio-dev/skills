@@ -73,15 +73,25 @@ infrastructure, Clerk, Stripe, and Sentry also belong here.
 | `to-prd` | Turn gathered context into a product requirements document. |
 | `to-issues` | Break a plan or PRD into actionable issues. |
 | `writing-plans` | Produce detailed implementation plans for engineering work. |
+| `using-git-worktrees` | Set up an isolated workspace before feature work or plan execution. |
+| `executing-plans` | Execute a written implementation plan in a separate session with review checkpoints. |
 | `subagent-driven-development` | Execute plans through scoped subagent tasks and reviews. |
 | `dispatching-parallel-agents` | Coordinate independent work across parallel agents. |
-| `tdd` | Apply a behavior-focused red-green-refactor workflow. |
-| `test-driven-development` | Enforce test-first implementation and testing discipline. |
+| `test-driven-development` | Enforce test-first, red-green-refactor implementation and testing discipline. |
+| `systematic-debugging` | Find the root cause before proposing any fix. |
+| `scoping-changes` | Keep every change to the requested scope: minimal diff, no speculative abstractions or dependencies, terse reports. |
+| `learning-codebase-conventions` | Discover and follow the repository's own conventions and helpers before writing code. |
+| `designing-error-handling` | Decide where failures are handled: boundaries, fail-loud bugs, timeouts, idempotent retries, webhooks. |
+| `changing-schemas-safely` | Ship schema and data migrations with expand/contract, backfills, rollback plans, and approval gates. |
+| `instrumenting-for-observability` | Add structured logs, metrics, tracing, and error reporting at boundaries without leaking secrets or personal data. |
 | `code-simplifier` | Refine code for clarity while preserving behavior. |
+| `ponytail` | On-demand lazy mode: build the simplest solution that works, standard library and native features first, with intensity levels. |
 | `frontend-design` | Create distinctive, intentional interfaces grounded in a specific brief. |
+| `terraform-engineer` | Implement Terraform infrastructure as code: modules, remote state, providers, multi-environment workflows, and testing. |
 | `requesting-code-review` | Request focused technical review before completion. |
 | `receiving-code-review` | Evaluate and apply review feedback with technical rigor. |
 | `verification-before-completion` | Require fresh evidence before claiming work is complete. |
+| `finishing-a-development-branch` | Verify tests and choose how to integrate finished work: merge, PR, keep, or discard. |
 
 ### Security
 
@@ -99,24 +109,125 @@ their documented approval gates, output boundaries, and redaction rules.
 
 Reserved for company-approved legal skills. This category is currently empty.
 
-## Installation
+## Installation and Usage
 
-Install every skill from this repository:
+This section follows §18 *Skills aprobadas* of the company software guide
+(chapter *Agentes y prompts*). The guide defines the workflow; this README
+defines the catalog.
+
+### Purpose
+
+- Only skills from this catalog are installed in company repositories.
+- Each copy is reviewed, pinned to an upstream revision, and carries its
+  license and credits.
+- Company hardening lives in each skill's *Company Approval Notes*.
+
+### Installation
+
+The whole catalog:
 
 ```bash
-npx skills add https://github.com/desarrollo-galileo/skills --full-depth
+npx skills add https://github.com/galileo-studio-dev/skills
 ```
 
-Install one skill:
+One skill:
 
 ```bash
-npx skills add https://github.com/desarrollo-galileo/skills \
-  --full-depth \
-  --skill <skill-name>
+npx skills add https://github.com/galileo-studio-dev/skills --skill <skill-name>
 ```
 
-For local development, point the skills CLI at this repository's local path
-if supported by the installed CLI version.
+Useful options of the [Skills CLI](https://skills.sh):
+
+- `-l` lists the available skills without installing.
+- `-g` installs for the user instead of the current project; `-a claude-code`
+  limits the install to one agent; `-y` skips prompts.
+- `npx skills add /path/to/checkout --skill <skill-name>` installs from a
+  local clone, to try a skill before it is merged.
+- `--copy` copies files instead of symlinking them.
+- `npx skills list`, `npx skills update`, and `npx skills remove` manage what
+  is installed; `update` pulls the latest approved versions from this
+  repository.
+
+By hand: copy the whole skill directory, including `LICENSE` and supporting
+files, to `~/.claude/skills/<skill-name>/` (your user) or
+`<project>/.claude/skills/<skill-name>/` (committed, shared with the team).
+
+### Using a skill in a session
+
+Claude Code keeps only each skill's name and description in context and reads
+the full `SKILL.md` when the skill is used.
+
+- **Automatic:** a request that matches the description triggers the skill.
+  `scoping-changes` engages before code is edited, `changing-schemas-safely`
+  when a migration is involved, `verification-before-completion` before any
+  claim of success.
+- **Slash command:** `/<skill-name>` with optional arguments, for example
+  `/grill-me`, `/ponytail ultra`, `/semgrep important only`.
+- **By name in a prompt:** "use the `systematic-debugging` skill on this
+  failure".
+
+Frontmatter controls this: `disable-model-invocation: true` makes a skill
+manual-only, `user-invocable: false` hides it from the slash menu,
+`allowed-tools` pre-approves tools for the skill's turn. To make a skill the
+default in a repository, name it in that project's `CLAUDE.md` and install it
+under `.claude/skills/`.
+
+### Skill map
+
+Phases follow the guide's contract: explore, clarify, plan, implement in
+slices, verify, review, deliver evidence.
+
+| Phase | Skill | Use |
+| --- | --- | --- |
+| Communication | `caveman` | Brief updates and handoffs |
+| Communication | `unsure-caveman` | Brevity with explicit confidence |
+| Discovery | `find-skills` | Search candidate capabilities |
+| Problem | `problem-statement` | Define and pressure-test the problem |
+| Shaping | `shaping` | Negotiate requirements and solution options |
+| Shaping | `grill-me` | Resolve decisions through interview |
+| Spec | `to-prd` | Turn context into a PRD |
+| Plan | `to-issues` | Split into actionable work |
+| Plan | `writing-plans` | Write the detailed plan |
+| Execution | `using-git-worktrees` | Isolated workspace before executing a plan |
+| Execution | `executing-plans` | Execute a plan with review checkpoints |
+| Execution | `subagent-driven-development` | Execute slices with subagents |
+| Execution | `dispatching-parallel-agents` | Parallelize independent work |
+| Implementation | `learning-codebase-conventions` | Match the repository's conventions before writing |
+| Implementation | `scoping-changes` | Keep the diff to the requested scope |
+| Implementation | `designing-error-handling` | Failures at boundaries; timeouts and idempotent I/O |
+| Implementation | `changing-schemas-safely` | Expand/contract migrations with a rollback plan |
+| Implementation | `instrumenting-for-observability` | Structured events without secrets or personal data |
+| Implementation | `frontend-design` | Deliberate, non-templated interfaces |
+| Implementation | `ponytail` | On demand: the simplest solution that works |
+| Testing | `test-driven-development` | Test-first discipline |
+| Debugging | `systematic-debugging` | Root cause before any fix |
+| Quality | `code-simplifier` | Simplify while preserving behavior |
+| Review | `requesting-code-review` | Request a focused review |
+| Review | `receiving-code-review` | Evaluate feedback with rigor |
+| Security | `owasp-security` | Secure implementation and review guidance |
+| Security | `semgrep` | Static analysis scan with approved scan plan |
+| Security | `codeql` | Data-flow and taint analysis |
+| Infrastructure | `terraform-engineer` | Terraform modules, state, and providers |
+| Automation | `webwright` | Browser tasks with reusable scripts and evidence |
+| Closure | `verification-before-completion` | Fresh evidence before claiming done |
+| Closure | `finishing-a-development-branch` | Tests, then merge, PR, keep, or discard |
+
+### Approval gates
+
+The guide requires human approval for deploys, production migrations,
+infrastructure, secrets, destructive commands, and writes outside the
+repository. Skills that reach those actions stop and ask first:
+
+- Infrastructure and state changes: `terraform-engineer`.
+- Migrations and destructive statements on a shared database:
+  `changing-schemas-safely`.
+- Merge, push, or discard a branch: `finishing-a-development-branch`.
+- Installing tooling or dependencies: `codeql`, `semgrep`,
+  `using-git-worktrees`.
+- Scan plans and output locations: `semgrep`, `codeql`.
+
+An agent's report that something was approved is not an approval; a person
+answering is.
 
 ## Versioning and Updates
 
@@ -137,6 +248,29 @@ When updating a skill:
 Company-specific modifications may evolve independently from upstream, but
 their purpose and security implications should remain documented and
 reviewable.
+
+### Adding a skill
+
+When a skill is missing, follow the guide's pipeline; never install from a
+third party directly into a company repository to "try it quickly".
+
+```text
+discover
+  -> inspect the full repository
+  -> review instructions, scripts, and dependencies
+  -> evaluate permissions and network access
+  -> test in a sandbox
+  -> keep license and provenance
+  -> vendor
+  -> approve through a pull request
+  -> publish in this catalog
+```
+
+### Rule of two
+
+Do not turn a procedure into a company skill before observing it at least
+twice in real work. A new skill needs a repeated problem, clear instructions,
+inputs and outputs, evals, failure cases, risks, an owner, and provenance.
 
 ## Security Model
 
