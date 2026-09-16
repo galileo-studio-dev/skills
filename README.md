@@ -90,6 +90,7 @@ infrastructure, Clerk, Stripe, and Sentry also belong here.
 | `terraform-engineer` | Implement Terraform infrastructure as code: modules, remote state, providers, multi-environment workflows, and testing. |
 | `requesting-code-review` | Request focused technical review before completion. |
 | `receiving-code-review` | Evaluate and apply review feedback with technical rigor. |
+| `reviewing-pull-requests` | Review a pull request end to end: independent verification, two-stage review, security pass by risk tier, findings in the PR template format. |
 | `verification-before-completion` | Require fresh evidence before claiming work is complete. |
 | `finishing-a-development-branch` | Verify tests and choose how to integrate finished work: merge, PR, keep, or discard. |
 
@@ -204,6 +205,7 @@ slices, verify, review, deliver evidence.
 | Quality | `code-simplifier` | Simplify while preserving behavior |
 | Review | `requesting-code-review` | Request a focused review |
 | Review | `receiving-code-review` | Evaluate feedback with rigor |
+| Review | `reviewing-pull-requests` | Review a PR end to end and report in the PR template format |
 | Security | `owasp-security` | Secure implementation and review guidance |
 | Security | `semgrep` | Static analysis scan with approved scan plan |
 | Security | `codeql` | Data-flow and taint analysis |
@@ -225,6 +227,7 @@ repository. Skills that reach those actions stop and ask first:
 - Installing tooling or dependencies: `codeql`, `semgrep`,
   `using-git-worktrees`.
 - Scan plans and output locations: `semgrep`, `codeql`.
+- Posting a review or comment to GitHub: `reviewing-pull-requests`.
 
 An agent's report that something was approved is not an approval; a person
 answering is.
