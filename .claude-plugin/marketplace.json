@@ -1,0 +1,11 @@
+{
+  "name": "galileo-skills",
+  "owner": { "name": "Galileo Studio" },
+  "plugins": [
+    {
+      "name": "delivery",
+      "source": "./plugins/delivery",
+      "description": "Implement, review, and deliver an approved plan slice by slice through Worker and Reviewer subagents with test, read-only, and human-approval gates."
+    }
+  ]
+}
