@@ -37,7 +37,12 @@ if [ -z "$cmd" ]; then
 fi
 
 out=$($cmd 2>&1); status=$?
-[ "$status" -eq 0 ] && exit 0
+if [ "$status" -eq 0 ]; then
+  # Say so on the handoff, so the Controller sees the gate ran instead of
+  # inferring it from silence.
+  [ "$event" = "PostToolUse" ] && jq -cn --arg c "delivery gate: verification passed after the Worker handoff (\`$cmd\`)." '{hookSpecificOutput:{hookEventName:"PostToolUse",additionalContext:$c}}'
+  exit 0
+fi
 
 {
   if [ "$event" = "PostToolUse" ]; then
