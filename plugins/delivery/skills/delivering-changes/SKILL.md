@@ -18,7 +18,7 @@ You need a plan with slices (the `writing-plans` format) or a bounded task, the 
 - **Bounded task** — describable in one sentence, a handful of files: treat it as a single slice.
 - **Multi-file work without a plan** — stop. Say so and use `writing-plans` first; this skill does not plan, and the Controller does not spawn Workers to compensate for an ambiguous spec (§3.3).
 
-Confirm with the person before dispatching anything: the slices, the allowed files per slice, the verification command, the tier, and the branch. This is the plan gate (§3.6).
+Confirm with the person before dispatching anything: the slices, the allowed files per slice, the verification command, the tier, and the branch. This is the plan gate (§3.6). When a slice specifies a formula or a scoring rule, run it by hand on the spec's own edge cases before approving: an inconsistency found here costs one line, found in review it costs a cycle.
 
 ## Step 1: Preconditions
 
@@ -44,7 +44,7 @@ When the handoff returns:
 
 - `status` must be `verified` or `blocked`. Anything else goes back.
 - `files_changed` must be within the allowed files. Check `git status --short` yourself; the handoff is a claim.
-- Run the verification command yourself. The Worker's stop gate already ran it, and the handoff gate re-runs it when the Worker returns; you confirm.
+- Run the verification command yourself. The Worker's stop gate already ran it, and the handoff gate re-runs it when the Worker returns and tells you it passed; you confirm.
 - **Scope escape** (files outside the brief, unrequested changes): don't accept the slice. Restore the extra files, or re-dispatch with a narrower brief, or ask the person if the plan was wrong.
 - **`blocked`**: read the reason. A missing input is yours to supply; a plan flaw is the person's decision. Don't fix it by widening the Worker's scope silently.
 
@@ -62,7 +62,7 @@ Never fix a finding yourself. The Controller that edits code has become a Worker
 
 ## Step 4: Next slice
 
-Repeat Steps 2 and 3 for each slice. Run Workers in parallel only when the plan says the slices are independent, they touch different files, each has its own test, and the contracts between them are already defined (§3.7). Two Workers never share a file.
+Repeat Steps 2 and 3 for each slice. Run Workers in parallel only when the plan says the slices are independent, they touch different files, each has its own test, and the contracts between them are already defined (§3.7). Two Workers never share a file, and a Reviewer never runs while a Worker is editing: reviews run the verification command on the tree they see, so a concurrent edit turns their evidence into noise.
 
 ## Step 5: Deliver
 

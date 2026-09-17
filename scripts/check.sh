@@ -45,6 +45,7 @@ green_worker_stop=$(mk SubagentStop delivery:worker '' '' "$tmp/green")
 red_reviewer_stop=$(mk SubagentStop delivery:reviewer '' '' "$tmp/red")
 red_worker_handoff=$(mk PostToolUse '' Agent delivery:worker "$tmp/red")
 red_other_tool=$(mk PostToolUse '' Bash '' "$tmp/red")
+green_worker_handoff=$(mk PostToolUse '' Agent delivery:worker "$tmp/green")
 [ "$(decision gate.sh '{"tool_input":{"command":"git push -u origin x"}}')" = "ask" ] && ok "gate asks for git push" || bad "gate: git push should ask"
 [ "$(decision gate.sh '{"tool_input":{"command":"cd infra && terraform apply tfplan"}}')" = "ask" ] && ok "gate asks for terraform apply" || bad "gate: terraform apply should ask"
 [ -z "$(decision gate.sh '{"tool_input":{"command":"git diff --stat main..HEAD"}}')" ] && ok "gate silent for git diff" || bad "gate: git diff should be silent"
@@ -52,10 +53,13 @@ red_other_tool=$(mk PostToolUse '' Bash '' "$tmp/red")
 [ "$(decision readonly.sh '{"agent_type":"delivery:reviewer","tool_input":{"command":"sed -i s/a/b/ f.py"}}')" = "deny" ] && ok "readonly denies the reviewer sed -i" || bad "readonly: reviewer sed -i should be denied"
 [ -z "$(decision readonly.sh '{"agent_type":"delivery:reviewer","tool_input":{"command":"git diff BASE..HEAD"}}')" ] && ok "readonly allows the reviewer git diff" || bad "readonly: reviewer git diff should pass"
 [ -z "$(decision readonly.sh '{"agent_type":"delivery:worker","tool_input":{"command":"git commit -m x"}}')" ] && ok "readonly ignores the worker" || bad "readonly: worker should be ignored"
+[ -z "$(decision readonly.sh '{"agent_type":"delivery:reviewer","tool_input":{"command":"rm -rf /tmp/gal-red && git archive HEAD | tar -x -C /tmp/gal-red"}}')" ] && ok "readonly allows rm -rf on a temp dir" || bad "readonly: rm -rf /tmp/... should pass"
+[ "$(decision readonly.sh '{"agent_type":"delivery:reviewer","tool_input":{"command":"rm -rf ./build"}}')" = "deny" ] && ok "readonly denies rm -rf inside the tree" || bad "readonly: rm -rf ./build should be denied"
 [ "$(verify "$red_worker_stop")" = "2" ] && ok "verify blocks a red worker" || bad "verify: red worker should exit 2"
 [ "$(verify "$green_worker_stop")" = "0" ] && ok "verify allows a green worker" || bad "verify: green worker should exit 0"
 [ "$(verify "$red_reviewer_stop")" = "0" ] && ok "verify ignores the reviewer" || bad "verify: reviewer should exit 0"
 [ "$(verify "$red_worker_handoff")" = "2" ] && ok "verify flags a red handoff to the controller" || bad "verify: red handoff should exit 2"
 [ "$(verify "$red_other_tool")" = "0" ] && ok "verify ignores other tools" || bad "verify: other tools should exit 0"
+[ "$(printf '%s' "$green_worker_handoff" | "$H/verify.sh" 2>/dev/null | jq -r '.hookSpecificOutput.additionalContext // empty' | grep -c passed)" = "1" ] && ok "verify reports a green handoff to the controller" || bad "verify: green handoff should emit additionalContext"
 
 echo; [ $fail -eq 0 ] && echo "check: PASS" || { echo "check: FAIL"; exit 1; }
