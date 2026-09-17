@@ -1,6 +1,7 @@
 ---
 name: delivering-changes
 description: Runs the implement, review, and deliver stages of an approved plan through Worker and Reviewer subagents with gates between stages. Use when a plan with slices, or a bounded task, is ready to implement and the person wants the whole loop run — each slice built with TDD, reviewed independently, evidence collected, and a pull request prepared — instead of one agent editing code. Not for exploring a problem or writing the plan.
+effort: medium
 ---
 
 # Delivering Changes
@@ -28,7 +29,7 @@ Confirm with the person before dispatching anything: the slices, the allowed fil
 
 ## Step 2: Implement a slice
 
-Record `BASE=$(git rev-parse HEAD)`. Dispatch a `worker` subagent (the `delivery` plugin's agent) with this brief and nothing else:
+Record `BASE=$(git rev-parse HEAD)`. Dispatch a `worker` subagent (the `delivery` plugin's agent) with this brief and nothing else. On Prototype tier pass `model: sonnet` in the dispatch; on Production and Critical tiers let it inherit the session's model.
 
 ```text
 Slice: <id and one-line goal>
@@ -54,7 +55,7 @@ Then commit the slice: `git add <files_changed> && git commit -m "<slice id>: <g
 
 Dispatch a `reviewer` subagent with: the spec or acceptance criteria, the plan slice, `BASE_SHA`/`HEAD_SHA`, the Worker's handoff, the declared risks, and the tier. Nothing else.
 
-- **Critical or Important findings**: dispatch a `worker` with a fix brief (the findings, file and line, allowed files), commit, and re-dispatch the `reviewer` on the delta only.
+- **Critical or Important findings**: dispatch a `worker-high` (the same Worker at high effort) with a fix brief (the findings, file and line, allowed files), commit, and re-dispatch the `reviewer` on the delta only.
 - **Two fix cycles without a clean verdict**: stop and ask the person. This is the architecture or security gate (§3.6), not a reason for a third attempt.
 - **Minor**: record under `remaining_risks`; don't spend a cycle on them.
 
@@ -101,9 +102,18 @@ followed by the branch, the pull request URL if one was opened, and the open que
 | Commit → next slice | No Critical or Important findings | Reviewer verdict |
 | Deliver → push, PR, merge | Person chooses | `finishing-a-development-branch` and the Bash gate (`gate.sh`) |
 
+## Cost policy
+
+An agent loop pays for context × turns, and cache reads cost a tenth of fresh input, so the rules are about context size, turn count, and cache stability:
+
+- Every role runs at `medium` effort, pinned in the agents and in this skill; only the fix cycle runs a `worker-high`. Measured on SWE-bench Pro, `medium` keeps default accuracy at 13–31% fewer tokens, and re-running only failures at higher effort keeps the pass rate at about half the cost.
+- Workers run on Sonnet for Prototype work and inherit the session's model otherwise; the Reviewer inherits. Never change model or effort in the middle of a slice: it re-bills the whole cached context.
+- Briefs carry line ranges when the plan has them; handoffs stay under about 2,000 tokens; reviews return the verdict and Important findings in full and Minor findings as one line each. Everything the Controller receives is re-read on each of its later turns.
+- Judge any change to this loop by cost per verified slice at equal pass rate (`evals/lib/usage.py`), not by token counts.
+
 ## Without the plugin
 
-The skill also runs with generic subagents, but three things degrade: the Worker's stop gate, the Reviewer's read-only guard, and the approval prompt for outward commands. Compensate by running the verification command after every handoff, by stating in the reviewer brief that it must not edit, and by never running push, PR, deploy, or state-changing commands without asking.
+The skill also runs with generic subagents, but four things degrade: the Worker's stop gate, the Reviewer's read-only guard, the approval prompt for outward commands, and the effort pins. Compensate by running the verification command after every handoff, by stating in the reviewer brief that it must not edit, and by never running push, PR, deploy, or state-changing commands without asking.
 
 ## Red flags
 

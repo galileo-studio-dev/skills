@@ -25,7 +25,12 @@ uses it to exercise the delivery hooks.
 
 Each `run.sh` accepts a work directory as its first argument and leaves the
 fixture, the JSON stream, and the report there for inspection. The
-`check.sh` scripts can be rerun on a saved work directory.
+`check.sh` scripts can be rerun on a saved work directory. They end with the
+run's cost, duration, cache-read share, cost per slice, and a per-agent table
+of turns and context × turns from `lib/usage.py`, and write the same numbers
+to `metrics.json`. Judge a change to a skill or to the plugin by cost per
+verified slice at equal pass rate, not by token counts: an agent loop pays
+for context × turns, and cache reads cost a tenth of fresh input.
 
 Prerequisites: `claude` logged in, `jq`, `python3`, and `npx` for the Skills
 CLI, which installs the catalog into the fixture at project scope.

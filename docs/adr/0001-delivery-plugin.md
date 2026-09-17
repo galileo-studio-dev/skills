@@ -16,6 +16,8 @@ Add a `delivery` plugin to the catalog with three executable units:
 
 The Worker preloads only the discipline skills that apply to every slice (`learning-codebase-conventions`, `scoping-changes`, `test-driven-development`, `verification-before-completion`); the situational lenses and `systematic-debugging` load on demand. The Controller stays in the main session so human gates can be asked; it is not forked.
 
+Cost policy (added after the pilot and the September 2026 cost research): every role and the orchestrator run at `medium` effort; a `worker-high` agent exists only for fix cycles; Workers run on Sonnet for Prototype work via the Agent tool's `model` override and inherit otherwise; briefs carry line ranges and roles read by range; handoffs and reviews are size-contracted; the evals report cost, cache-read share and cost per verified slice (`evals/lib/usage.py`), which is the metric changes are judged by. The pilot's ledger drove this: 87% of its tokens were cache reads, the Controller's context × turns was 42% of the run, nested sub-reviewers 25%, and four whole-file reads of a 700-line module happened where line ranges were known.
+
 Planning stages (explore, specify, plan) are not orchestrated yet. Rule of two: they join the loop after the implement/review/deliver slice has been observed working on real tasks.
 
 ## Alternatives
