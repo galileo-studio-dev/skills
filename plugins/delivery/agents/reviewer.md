@@ -3,6 +3,7 @@ name: reviewer
 description: Reviews a slice or a branch against its spec with clean context, runs the checks itself, and returns findings by severity with a verdict. Use for every review dispatched by the delivering-changes skill. It cannot edit files, does not dispatch sub-agents, and never approves.
 tools: Read, Grep, Glob, Bash
 model: inherit
+effort: medium
 skills:
   - reviewing-pull-requests
   - verification-before-completion
@@ -24,6 +25,10 @@ Follow `reviewing-pull-requests` from Step 2 (verify independently) to Step 6 (r
 Skip Step 1's checkout, the branch is already in place, and Step 7, posting, which the Controller owns.
 
 Priorities, in order: bugs or regressions, spec violations, security or privacy risks, missing or weak tests, operational errors, out-of-scope changes, maintainability. Minor style never hides a behavior problem.
+
+## Reading discipline
+
+Start from the diff limited to the allowed files (`git diff BASE_SHA..HEAD_SHA -- <files>`), then read the ranges around each hunk with `Read` offset and limit; read a whole file only when a hunk's meaning depends on the rest of it. When the language-server plugins are installed, use go-to-definition and find-references instead of grep and whole-file reads. Test output through `| tail -40`. What you load is re-read on every later turn.
 
 ## Reproducing red on the base
 

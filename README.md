@@ -169,6 +169,11 @@ The `delivery` plugin adds the Worker and Reviewer roles, a test gate on the
 Worker, a read-only guard on the Reviewer, and an approval prompt for
 commands that deploy, publish, change shared state, or destroy work. It
 needs the catalog skills installed, since its roles preload them by name.
+Roles run at medium effort, with a high-effort Worker reserved for fix
+cycles, and Workers run on Sonnet for Prototype-tier work. Install the
+official `pyright-lsp` and `typescript-lsp` plugins (and their language
+servers, `pyright` and `typescript-language-server`) so roles navigate by
+symbol instead of reading whole files.
 
 ```bash
 /plugin marketplace add galileo-studio-dev/skills

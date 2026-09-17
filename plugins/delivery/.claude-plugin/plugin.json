@@ -1,7 +1,15 @@
 {
   "name": "delivery",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Implement, review, and deliver an approved plan slice by slice through Worker and Reviewer subagents: a test gate on the Worker, a read-only Reviewer, and a human-approval prompt for commands that deploy, publish, change shared state, or destroy work.",
-  "author": { "name": "Galileo Studio" },
-  "keywords": ["delivery", "worker", "reviewer", "tdd", "gates"]
+  "author": {
+    "name": "Galileo Studio"
+  },
+  "keywords": [
+    "delivery",
+    "worker",
+    "reviewer",
+    "tdd",
+    "gates"
+  ]
 }

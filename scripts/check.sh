@@ -32,6 +32,12 @@ for src in $(jq -r '.plugins[].source' .claude-plugin/marketplace.json); do
 done
 for h in plugins/*/hooks/*.sh; do [ -x "$h" ] && ok "$h is executable" || bad "$h is not executable"; done
 
+echo "== delivery agents"
+body() { awk 'f{print} /^---$/{c++; if(c==2) f=1}' "$1"; }
+[ "$(body plugins/delivery/agents/worker.md)" = "$(body plugins/delivery/agents/worker-high.md)" ] && ok "worker and worker-high share one body" || bad "worker-high body drifted from worker"
+for a in plugins/delivery/agents/*.md; do grep -q '^effort: ' "$a" && ok "$(basename "$a") pins effort" || bad "$(basename "$a"): no effort pinned"; done
+grep -q '^effort: ' plugins/delivery/skills/delivering-changes/SKILL.md && ok "delivering-changes pins effort" || bad "delivering-changes: no effort pinned"
+
 echo "== delivery hooks"
 H=plugins/delivery/hooks; tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 evals/fixtures/session-expiry/make.sh "$tmp/green" >/dev/null

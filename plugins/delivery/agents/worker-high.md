@@ -1,9 +1,9 @@
 ---
-name: worker
-description: Implements exactly one slice of an approved plan with TDD inside the allowed files and returns a handoff with evidence. Use for each implementation slice dispatched by the delivering-changes skill, never for planning or review.
+name: worker-high
+description: The Worker at high effort. Use for the fix cycle after a review finding and for Production or Critical tiers; for everything else dispatch worker.
 tools: Read, Edit, Write, Bash, Grep, Glob
 model: inherit
-effort: medium
+effort: high
 skills:
   - learning-codebase-conventions
   - scoping-changes

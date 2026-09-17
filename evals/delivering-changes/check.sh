@@ -23,4 +23,7 @@ w=$(printf '%s\n' "$types" | grep -c '^delivery:worker$'); r=$(printf '%s\n' "$t
 [ "$w" -ge 2 ] && [ "$r" -ge 2 ] && ok "roles dispatched (worker=$w reviewer=$r)" || bad "roles not dispatched as expected (worker=$w reviewer=$r)"
 grep -q '^status: verified' "$work/report.md" && ok "report reports status: verified" || bad "report lacks status: verified"
 
+echo; echo "cost and context (evals/lib/usage.py):"
+python3 "$(dirname "$0")/../lib/usage.py" "$work/stream.jsonl" --slices 2 --out "$work/metrics.json" | sed 's/^/  /' || bad "usage.py could not read the stream"
+
 echo; [ $fail -eq 0 ] && echo "delivering-changes eval: PASS" || { echo "delivering-changes eval: FAIL"; exit 1; }
