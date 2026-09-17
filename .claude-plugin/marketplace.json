@@ -1,6 +1,9 @@
 {
   "name": "galileo-skills",
-  "owner": { "name": "Galileo Studio" },
+  "description": "Galileo Studio's company-approved skills and plugins for Claude Code: the delivery loop (Worker and Reviewer roles with test, read-only and human-approval gates) and its evals.",
+  "owner": {
+    "name": "Galileo Studio"
+  },
   "plugins": [
     {
       "name": "delivery",
