@@ -37,7 +37,7 @@ Acceptance criteria: <from the plan>
 Allowed files: <explicit list>
 Constraints: <what must not change; public names; contracts>
 Expected failing test: <name and what it asserts>
-Verification command: <exact command>
+Verification command: `<exact command>`
 Output: the handoff YAML from your instructions
 ```
 
@@ -45,7 +45,7 @@ When the handoff returns:
 
 - `status` must be `verified` or `blocked`. Anything else goes back.
 - `files_changed` must be within the allowed files. Check `git status --short` yourself; the handoff is a claim.
-- Run the verification command yourself. The Worker's stop gate already ran it, and the handoff gate re-runs it when the Worker returns and tells you it passed; you confirm.
+- Run the verification command yourself. The Worker's stop gate already ran it, and the handoff gate re-runs it when the Worker returns and tells you it passed; you confirm. The gates run the brief's backticked command in the session directory; without one they detect the runner in the project of each changed file. A gate that reports a configuration error did not verify anything. A Worker launched in the background meets the handoff gate only through its stop gate, so run the verification yourself when its notification arrives.
 - **Scope escape** (files outside the brief, unrequested changes): don't accept the slice. Restore the extra files, or re-dispatch with a narrower brief, or ask the person if the plan was wrong.
 - **`blocked`**: read the reason. A missing input is yours to supply; a plan flaw is the person's decision. Don't fix it by widening the Worker's scope silently.
 

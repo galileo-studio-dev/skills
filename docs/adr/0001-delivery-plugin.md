@@ -35,7 +35,7 @@ Planning stages (explore, specify, plan) are not orchestrated yet. Rule of two: 
 
 ## Risks
 
-- Hook portability: the scripts assume `bash` and `jq`; `verify.sh` auto-detects the test command and allows the stop, with a warning, when it finds none.
+- Hook portability: the scripts assume `bash` and `jq`; `verify.sh` runs the brief's backticked `Verification command`, or detects the runner (`scripts/verify`, `make verify`, bun/npm, `uv run pytest`, pytest/unittest, go, cargo) in the nearest project above each changed file. It allows the stop, with a warning, when it finds none or when the command cannot start (exit 126/127, a configuration error rather than a red tree), and it skips `Agent` results that carry no handoff, such as background launches.
 - A Worker that cannot reach green could loop against the gate; Claude Code caps repeated blocks, and the Worker is instructed to save a patch, restore the tree, and report `blocked`.
 - The documentation describes `SubagentStop` as informational (exit 2 not honored). On Claude Code 2.1.273 it does block, which the probe below shows; the `PostToolUse` handoff gate is the layer that holds if that changes.
 - The Reviewer does both review passes itself and has no Agent tool: in the pilot, a Reviewer that dispatched sub-reviewers ended its turn before they returned. This also keeps every review command under the read-only guard.
