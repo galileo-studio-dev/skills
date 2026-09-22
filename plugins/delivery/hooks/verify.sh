@@ -11,8 +11,8 @@
 # The command is the brief's "Verification command: `...`" line when it has
 # one, run in the session cwd. The handoff's own command is not trusted: the
 # Worker would be choosing its gate. Otherwise the command is detected in the
-# nearest project above each file the Worker changed (handoff files_changed,
-# else git status), so a slice in one service does not run another's suite.
+# nearest project above each changed file (handoff files_changed plus git
+# status), so a slice in one service does not run another's suite.
 # A command that cannot start (exit 126/127) is a gate configuration problem,
 # reported as such; it does not block, like a project with no command at all.
 # Other agents and tools pass through untouched.
@@ -43,7 +43,7 @@ else
   transcript=$(field '.agent_transcript_path')
   if [ -f "$transcript" ]; then
     [ -z "$handoff" ] && handoff=$(jq -rs "[.[] | select(.type==\"assistant\")] | last | .message.content | $text" "$transcript" 2>/dev/null)
-    brief=$(jq -rs "[.[] | select(.type==\"user\")] | first | .message.content | $text" "$transcript" 2>/dev/null)
+    brief=$(jq -rn "first(inputs | select(.type==\"user\")) | .message.content | $text" "$transcript" 2>/dev/null)
   fi
 fi
 
@@ -62,15 +62,16 @@ detect() {
   fi
 }
 
-# Nearest directory at or above $1 with a verification command, not above the
-# enclosing git root (or the session cwd outside git).
-project_root() {
-  local d=$1 limit
+# "<dir>\t<command>" for the nearest directory at or above $1 with a
+# verification command, not above the enclosing git root (or the session cwd
+# outside git).
+find_job() {
+  local d=$1 limit c
   while [ ! -d "$d" ]; do d=$(dirname "$d"); done
   d=$(cd "$d" && pwd -P)
   limit=$(git -C "$d" rev-parse --show-toplevel 2>/dev/null || echo "$cwd")
   while :; do
-    [ -n "$(detect "$d")" ] && { echo "$d"; return; }
+    c=$(detect "$d"); [ -n "$c" ] && { printf '%s\t%s\n' "$d" "$c"; return; }
     { [ "$d" = "$limit" ] || [ "$d" = "/" ]; } && return
     d=$(dirname "$d")
   done
@@ -88,18 +89,17 @@ else
     f && /^[[:space:]]*-[[:space:]]/ { sub(/^[[:space:]]*-[[:space:]]*/, ""); gsub(/^["'\'']|["'\'']$/, ""); print }')
   paths=""
   while IFS= read -r f; do
-    [ -z "$f" ] && continue
     case "$f" in /*) p=$f ;; *) p=$cwd/$f ;; esac
-    { [ -e "$p" ] || [ -d "$(dirname "$p")" ]; } && paths=$paths$p$'\n'
+    [ -n "$f" ] && [ -e "$p" ] && paths=$paths$p$'\n'
   done <<< "$files"
-  if [ -z "$paths" ] && top=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null); then
-    paths=$(git -C "$cwd" status --porcelain --untracked-files=all | cut -c4- | sed 's/.* -> //' | sed "s|^|$top/|")
+  # files_changed is the Worker's claim; the tree's own changes are gated too
+  # (the Controller starts each slice from a clean tree).
+  if top=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null); then
+    paths=$paths$(git -C "$cwd" status --porcelain --untracked-files=all | cut -c4- | sed -e 's/.* -> //' -e "s|^|$top/|")
   fi
   [ -z "$paths" ] && paths=$cwd/.
-  roots=$(while IFS= read -r p; do [ -n "$p" ] && project_root "$(dirname "$p")"; done <<< "$paths" | sort -u)
-  while IFS= read -r r; do
-    [ -n "$r" ] && jobs=$jobs$r$'\t'$(detect "$r")$'\n'
-  done <<< "$roots"
+  jobs=$(while IFS= read -r p; do [ -n "$p" ] && dirname "$p"; done <<< "$paths" | sort -u |
+    while IFS= read -r d; do find_job "$d"; done | sort -u)
 fi
 
 if [ -z "$jobs" ]; then
@@ -112,11 +112,15 @@ passed=""; config=""; failed=""
 while IFS=$'\t' read -r dir cmd; do
   [ -z "$dir" ] && continue
   log "event=${event:-manual} cwd=$dir cmd=$cmd"
-  out=$(cd "$dir" && bash -c "$cmd" 2>&1); status=$?
+  out=$(cd "$dir" && bash -c "$cmd" 2>&1 </dev/null); status=$?
   case "$status" in
     0) passed="${passed:+$passed; }\`$cmd\` in $dir" ;;
-    126|127) config="$config$(printf 'delivery gate: configuration error: `%s` in %s could not start (exit %s, command not found or not executable). This is not a red tree, and the gate did not verify the slice: run the verification yourself, and declare a working command in the brief ("Verification command: `...`") or in an executable scripts/verify.\n%s' "$cmd" "$dir" "$status" "$(printf '%s\n' "$out" | tail -10)")"$'\n' ;;
-    *) failed="$failed$(printf '`%s` in %s exited %s.\n%s' "$cmd" "$dir" "$status" "$(printf '%s\n' "$out" | tail -40)")"$'\n' ;;
+    126|127)
+      printf -v line 'delivery gate: configuration error: `%s` in %s could not start (exit %s, command not found or not executable). This is not a red tree, and the gate did not verify the slice: run the verification yourself, and declare a working command in the brief ("Verification command: `...`") or in an executable scripts/verify.\n%s\n' "$cmd" "$dir" "$status" "$(printf '%s\n' "$out" | tail -10)"
+      config=$config$line ;;
+    *)
+      printf -v line '`%s` in %s exited %s.\n%s\n' "$cmd" "$dir" "$status" "$(printf '%s\n' "$out" | tail -40)"
+      failed=$failed$line ;;
   esac
 done <<< "$jobs"
 
@@ -132,11 +136,11 @@ if [ -n "$failed" ]; then
   exit 2
 fi
 
-msg=${passed:+delivery gate: verification passed after the Worker handoff ($passed).$'\n'}$config
 if [ "$event" = "PostToolUse" ]; then
   # Say so on the handoff, so the Controller sees the gate ran instead of
   # inferring it from silence.
-  jq -cn --arg c "${msg%$'\n'}" '{hookSpecificOutput:{hookEventName:"PostToolUse",additionalContext:$c}}'
+  jq -cn --arg p "$passed" --arg c "$config" '{hookSpecificOutput:{hookEventName:"PostToolUse",
+    additionalContext:([if $p != "" then "delivery gate: verification passed after the Worker handoff (\($p))." else empty end] + [$c | rtrimstr("\n") | select(. != "")] | join("\n"))}}'
 elif [ -n "$config" ]; then
   printf '%s' "$config" >&2
 fi

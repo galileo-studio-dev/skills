@@ -58,17 +58,19 @@ red_reviewer_stop=$(mk SubagentStop delivery:reviewer '' '' "$tmp/red")
 red_worker_handoff=$(mk PostToolUse '' Agent delivery:worker "$tmp/red" "$(handoff tests/test_session.py)")
 red_other_tool=$(mk PostToolUse '' Bash '' "$tmp/red")
 green_worker_handoff=$(mk PostToolUse '' Agent delivery:worker "$tmp/green" "$(handoff auth/session.py)")
-red_background_launch=$(jq -cn --arg c "$tmp/red" '{hook_event_name:"PostToolUse", tool_name:"Agent", tool_input:{subagent_type:"delivery:worker", run_in_background:true}, tool_response:{isAsync:true, status:"async_launched", agentId:"a1", prompt:"status: verified"}, cwd:$c}')
+red_background_launch=$(mk PostToolUse '' Agent delivery:worker "$tmp/red" | jq -c '.tool_input.run_in_background = true | .tool_response = {isAsync:true, status:"async_launched", agentId:"a1", prompt:"status: verified"}')
 missing_cmd_brief='Slice: s1
 Verification command: `no-such-verify-cmd -q`'
 # monorepo: two projects in one git repo, only svc-b is green
 mono=$tmp/mono; mkdir -p "$mono/services/svc-a/scripts" "$mono/services/svc-b/scripts" "$mono/web" "$tmp/bin"; git -C "$mono" init -q
 printf '#!/bin/sh\nexit 1\n' > "$mono/services/svc-a/scripts/verify"; printf '#!/bin/sh\nexit 0\n' > "$mono/services/svc-b/scripts/verify"
 chmod +x "$mono"/services/*/scripts/verify; touch "$mono/services/svc-a/a.py" "$mono/services/svc-b/b.py"
+git -C "$mono" add -A; git -C "$mono" -c user.email=c@x -c user.name=c commit -qm base
 # runner detection: uv and bun projects, with stand-ins for the real tools on PATH
 mkdir -p "$tmp/uvproj" "$tmp/bunproj"; touch "$tmp/uvproj/uv.lock" "$tmp/uvproj/pyproject.toml" "$tmp/bunproj/bun.lock"
 echo '{"scripts":{"test":"bun test"}}' > "$tmp/bunproj/package.json"
 for b in uv bun; do printf '#!/bin/sh\necho "%s $*" >> "%s/ran"\n' "$b" "$tmp" > "$tmp/bin/$b"; chmod +x "$tmp/bin/$b"; done
+ran() { rm -f "$tmp/ran"; PATH="$tmp/bin:$PATH" verify "$(mk PostToolUse '' Agent delivery:worker "$1" "$(handoff "$2")")" >/dev/null; cat "$tmp/ran" 2>/dev/null; }
 [ "$(decision gate.sh '{"tool_input":{"command":"git push -u origin x"}}')" = "ask" ] && ok "gate asks for git push" || bad "gate: git push should ask"
 [ "$(decision gate.sh '{"tool_input":{"command":"cd infra && terraform apply tfplan"}}')" = "ask" ] && ok "gate asks for terraform apply" || bad "gate: terraform apply should ask"
 [ -z "$(decision gate.sh '{"tool_input":{"command":"git diff --stat main..HEAD"}}')" ] && ok "gate silent for git diff" || bad "gate: git diff should be silent"
@@ -88,16 +90,18 @@ for b in uv bun; do printf '#!/bin/sh\necho "%s $*" >> "%s/ran"\n' "$b" "$tmp" >
 [ "$(verify "$(mk PostToolUse '' Agent delivery:worker "$mono" "$(handoff services/svc-b/b.py)")")" = "0" ] && ok "verify runs only the changed project's command" || bad "verify: svc-b change should not run svc-a"
 [ "$(verify "$(mk PostToolUse '' Agent delivery:worker "$mono" "$(handoff services/svc-a/a.py)")")" = "2" ] && ok "verify blocks a red changed project" || bad "verify: svc-a change should exit 2"
 [ "$(verify "$(mk SubagentStop delivery:worker '' '' "$mono" "$(handoff services/svc-b/b.py services/svc-a/a.py)")")" = "2" ] && ok "verify runs every changed project" || bad "verify: a change in svc-a and svc-b should exit 2"
-( cd "$mono/services/svc-a" && touch new.py )
-[ "$(verify "$(mk SubagentStop delivery:worker '' '' "$mono")")" = "2" ] && ok "verify falls back to git status for changed files" || bad "verify: untracked svc-a file should exit 2"
+touch "$mono/web/app.tsx"
 [ "$(verify "$(mk SubagentStop delivery:worker '' '' "$mono" "$(handoff web/app.tsx)")")" = "0" ] && ok "verify passes a project with no command" || bad "verify: web/ has no command and should exit 0"
-rm -f "$tmp/ran"; PATH="$tmp/bin:$PATH" verify "$(mk PostToolUse '' Agent delivery:worker "$tmp/uvproj" "$(handoff pyproject.toml)")" >/dev/null
-[ "$(cat "$tmp/ran" 2>/dev/null)" = "uv run pytest -q" ] && ok "verify uses uv run pytest in a uv project" || bad "verify: uv project ran '$(cat "$tmp/ran" 2>/dev/null)'"
-rm -f "$tmp/ran"; PATH="$tmp/bin:$PATH" verify "$(mk PostToolUse '' Agent delivery:worker "$tmp/bunproj" "$(handoff package.json)")" >/dev/null
-[ "$(cat "$tmp/ran" 2>/dev/null)" = "bun run test" ] && ok "verify uses bun run test in a bun project" || bad "verify: bun project ran '$(cat "$tmp/ran" 2>/dev/null)'"
+touch "$mono/services/svc-a/new.py"
+[ "$(verify "$(mk SubagentStop delivery:worker '' '' "$mono" "$(printf 'status: blocked\nfiles_changed:\n  - none\n')")")" = "2" ] && ok "verify gates git status changes the handoff does not list" || bad "verify: untracked svc-a file should exit 2"
+rm "$mono/services/svc-a/new.py"
+mkdir -p "$mono/services/svc-0/scripts"; printf '#!/bin/sh\ncat >/dev/null\n' > "$mono/services/svc-0/scripts/verify"; chmod +x "$mono/services/svc-0/scripts/verify"
+[ "$(verify "$(mk SubagentStop delivery:worker '' '' "$mono" "$(handoff services/svc-0/scripts/verify services/svc-a/a.py)")")" = "2" ] && ok "verify runs every project even when one reads stdin" || bad "verify: a stdin-reading command must not swallow the next job"
+[ "$(ran "$tmp/uvproj" pyproject.toml)" = "uv run pytest -q" ] && ok "verify uses uv run pytest in a uv project" || bad "verify: uv project ran '$(ran "$tmp/uvproj" pyproject.toml)'"
+[ "$(ran "$tmp/bunproj" package.json)" = "bun run test" ] && ok "verify uses bun run test in a bun project" || bad "verify: bun project ran '$(ran "$tmp/bunproj" package.json)'"
 missing_cmd=$(mk PostToolUse '' Agent delivery:worker "$tmp/red" "$(handoff auth/session.py)" "$missing_cmd_brief")
 [ "$(verify "$missing_cmd")" = "0" ] && [ "$(ctx "$missing_cmd" | grep -c 'configuration error')" = "1" ] && ok "verify reports exit 127 as a configuration error, not red" || bad "verify: a missing command should exit 0 with a configuration error"
-printf '%s\n' "$(jq -cn --arg b "$missing_cmd_brief" '{type:"user", message:{role:"user", content:$b}}')" > "$tmp/agent.jsonl"
+jq -cn --arg b "$missing_cmd_brief" '{type:"user", message:{role:"user", content:$b}}' > "$tmp/agent.jsonl"
 [ "$(verify "$(mk SubagentStop delivery:worker '' '' "$tmp/red" | jq -c --arg t "$tmp/agent.jsonl" '. + {agent_transcript_path:$t}')")" = "0" ] && ok "verify runs the brief's declared command at the stop gate" || bad "verify: the stop gate should run the brief's command"
 
 echo; [ $fail -eq 0 ] && echo "check: PASS" || { echo "check: FAIL"; exit 1; }
