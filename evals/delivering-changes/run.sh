@@ -4,11 +4,12 @@
 # two-slice plan headless, and checks commits, tests, gates, and that nothing
 # was pushed. Needs: claude, jq, python3, npx (Skills CLI), network.
 #
-#   run.sh [work-dir] [model]    default: temp dir, sonnet; leaves repo/, origin.git,
+#   run.sh [work-dir] [model]    default: temp dir, opus (the policy's session model;
+#                                 pass sonnet for a cheaper run); leaves repo/, origin.git,
 #                                 stream.jsonl, gate.log, report.md
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd); root=$(cd "$here/../.." && pwd)
-work=${1:-$(mktemp -d)}; model=${2:-sonnet}; fixture="$work/repo"
+work=${1:-$(mktemp -d)}; model=${2:-opus}; fixture="$work/repo"
 
 "$root/evals/fixtures/session-expiry/make.sh" "$fixture"
 git clone -q --bare "$fixture" "$work/origin.git"

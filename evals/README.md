@@ -20,7 +20,7 @@ uses it to exercise the delivery hooks.
 | Eval | What it runs | Passes when | Cost |
 | --- | --- | --- | --- |
 | `reviewing-pull-requests/run.sh` | The skill reviews the planted branch against a PR description that ticks every checklist box | Both defects found, verdict withholds readiness, scope and human-approval items unticked, no approval, repository untouched | ~1–2 min, one agent plus two sub-reviewers |
-| `delivering-changes/run.sh` | The `delivery` plugin delivers the two-slice plan through Worker and Reviewer agents, with a bare origin to catch pushes | Two slice commits, tests green, `GetSessionAge` untouched, tree clean, nothing pushed, gates fired on both layers, both roles dispatched, report says `status: verified` | ~4–5 min, about $1.5 on Sonnet |
+| `delivering-changes/run.sh` | The `delivery` plugin delivers the two-slice plan through Worker and Reviewer agents, with a bare origin to catch pushes | A commit per slice (fix cycles add more), tests green, `GetSessionAge` untouched, tree clean, nothing pushed, gates fired on both layers, both roles dispatched, report says `status: verified` | ~3–5 min; $1.72 ($0.86/slice) on an Opus 5.5 session, $0.98 ($0.49/slice) all-Sonnet |
 | `scoping-changes/run.sh` | The same bounded task with and without the skill; `measure.sh` compares both arms | Judged by reading: the with-skill arm should add fewer lines, keep the signature, add fewer tests, and report in fewer words | ~2–3 min, two agents |
 
 Each `run.sh` accepts a work directory as its first argument and leaves the

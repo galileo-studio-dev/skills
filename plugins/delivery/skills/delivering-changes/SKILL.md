@@ -104,10 +104,10 @@ followed by the branch, the pull request URL if one was opened, and the open que
 
 ## Cost policy
 
-An agent loop pays for context × turns, and cache reads cost a tenth of fresh input, so the rules are about context size, turn count, and cache stability:
+An agent loop pays for context × turns, and cache reads cost a fraction of fresh input (a tenth on most models, a twentieth on Opus 5.5), so the rules are about context size, turn count, and cache stability:
 
 - Every role runs at `medium` effort, pinned in the agents and in this skill; only the fix cycle runs a `worker-high`. Measured on SWE-bench Pro, `medium` keeps default accuracy at 13–31% fewer tokens, and re-running only failures at higher effort keeps the pass rate at about half the cost.
-- Workers run on Sonnet for Prototype work and inherit the session's model otherwise; the Reviewer inherits. Never change model or effort in the middle of a slice: it re-bills the whole cached context.
+- Run the session on Claude Opus 5.5 (`claude --model opus` resolves to it); the Controller and the Reviewer inherit it. Never run this loop on Fable 5.1 or Opus 5: same quality tier, but their cache reads cost $0.25 and $0.50/MTok against $0.20, and a loop spends most of its input on cache reads. Workers run on Sonnet for Prototype work, where cheaper cache writes and output win, and inherit on Production and Critical tiers. On the Prototype fixture an all-Sonnet session costs $0.49 per slice against $0.86 for an Opus 5.5 one, which in the same run caught a requirement gap the Sonnet session only noted: spend the difference where a missed requirement costs more than the run. Never change model or effort in the middle of a slice: it re-bills the whole cached context.
 - Briefs carry line ranges when the plan has them; handoffs stay under about 2,000 tokens; reviews return the verdict and Important findings in full and Minor findings as one line each. Everything the Controller receives is re-read on each of its later turns.
 - Judge any change to this loop by cost per verified slice at equal pass rate (`evals/lib/usage.py`), not by token counts.
 
