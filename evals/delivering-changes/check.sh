@@ -7,7 +7,7 @@ ok() { echo "  ok   $1"; }; bad() { echo "  FAIL $1"; fail=1; }
 count() { grep -c "$1" "$2" 2>/dev/null || true; }
 
 n=$(git -C "$repo" log --oneline main..feature/session-expiry 2>/dev/null | wc -l | tr -d ' ')
-[ "$n" -eq 2 ] && ok "two slice commits on feature/session-expiry" || bad "expected 2 commits on feature/session-expiry, found $n"
+[ "$n" -ge 2 ] && ok "a commit per slice on feature/session-expiry ($n; fix cycles add more)" || bad "expected at least 2 commits on feature/session-expiry, found $n"
 ( cd "$repo" && git checkout -q feature/session-expiry && python3 -m unittest 2>&1 | tail -1 | grep -q '^OK' ) && ok "tests green on the branch" || bad "tests not green on the branch"
 [ "$(git -C "$repo" diff main..feature/session-expiry -- auth/session.py | grep -c GetSessionAge)" -eq 0 ] && ok "GetSessionAge unchanged" || bad "GetSessionAge touched"
 [ -z "$(git -C "$repo" status --short)" ] && ok "working tree clean" || bad "working tree dirty"
