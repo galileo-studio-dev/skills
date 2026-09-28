@@ -35,7 +35,8 @@ esac
 
 cwd=$(field '.cwd'); cd "${cwd:-.}" 2>/dev/null || exit 0; cwd=$(pwd -P)
 log() { [ -n "${DELIVERY_LOG:-}" ] && printf '%s verify.sh %s\n' "$(date +%T)" "$1" >> "$DELIVERY_LOG"; }
-mtime() { stat -f %m "$1" 2>/dev/null || stat -c %Y "$1" 2>/dev/null; }
+mtime() { stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null; }
+sha() { if command -v shasum >/dev/null 2>&1; then shasum; else sha1sum; fi | cut -d' ' -f1; }
 ttl=${DELIVERY_VERIFY_TTL:-120}
 
 # Cache file for a "<dir>\t<cmd>" job, empty when the tree cannot be hashed.
@@ -43,8 +44,8 @@ cache_file() {
   local dir=$1 cmd=$2 tree
   [ "$ttl" -gt 0 ] || return 0
   git -C "$dir" rev-parse --show-toplevel >/dev/null 2>&1 || return 0
-  tree=$( { git -C "$dir" rev-parse HEAD 2>/dev/null; git -C "$dir" status --porcelain --untracked-files=all 2>/dev/null; } | shasum | cut -d' ' -f1)
-  printf '%s/delivery-verify-%s.pass' "${TMPDIR:-/tmp}" "$(printf '%s|%s|%s' "$dir" "$cmd" "$tree" | shasum | cut -d' ' -f1)"
+  tree=$( { git -C "$dir" rev-parse HEAD 2>/dev/null; git -C "$dir" status --porcelain --untracked-files=all 2>/dev/null; } | sha)
+  printf '%s/delivery-verify-%s.pass' "${TMPDIR:-/tmp}" "$(printf '%s|%s|%s' "$dir" "$cmd" "$tree" | sha)"
 }
 
 if [ "$event" = "PostToolUse" ]; then
@@ -129,7 +130,8 @@ while IFS=$'\t' read -r dir cmd; do
   [ -z "$dir" ] && continue
   cache=$(cache_file "$dir" "$cmd")
   if [ -n "$cache" ] && [ -f "$cache" ]; then
-    age=$(( $(date +%s) - $(mtime "$cache") ))
+    ts=$(mtime "$cache"); case "$ts" in ''|*[!0-9]*) ts=0 ;; esac
+    age=$(( $(date +%s) - ts ))
     if [ "$age" -lt "$ttl" ]; then
       log "event=${event:-manual} cwd=$dir cmd=$cmd cache=hit age=${age}s"
       passed="${passed:+$passed; }\`$cmd\` in $dir (cached ${age}s ago, tree unchanged)"
