@@ -37,7 +37,7 @@ Acceptance criteria: <from the plan>
 Allowed files: <explicit list>
 Constraints: <what must not change; public names; contracts>
 Expected failing test: <name and what it asserts>
-Verification command: `<exact command>`
+Verification command: `<the fast command, see below>`
 Output: the handoff YAML from your instructions
 ```
 
@@ -68,7 +68,7 @@ Repeat Steps 2 and 3 for each slice. Run Workers in parallel only when the plan 
 ## Step 5: Deliver
 
 1. For more than one slice, dispatch a final `reviewer` over the whole range with the focus on integration between slices.
-2. Run the full verification yourself (`verification-before-completion`).
+2. Run the project's **full** verification yourself, not the fast slice command (`verification-before-completion`). If the project splits them, this is the run that does the slow, whole-tree work: the full suite, migration round-trips, the complete lint and type pass.
 3. Use `finishing-a-development-branch`: present its options; pushing, opening the pull request, merging, or discarding waits for the person's choice. The plugin's gate prompts for those commands in any case.
 4. Fill the pull request template from the handoffs: *Cambios* from `scope` and `files_changed`, *Verificación* from `tests` and `evidence`, *Riesgos y operación* from `remaining_risks`, and *Trazabilidad* from the plan and spec.
 
@@ -101,6 +101,20 @@ followed by the branch, the pull request URL if one was opened, and the open que
 | Handoff → commit | Verification re-run; files within scope | Handoff hook (`verify.sh` on the Worker's `Agent` result) and you, in Step 2 |
 | Commit → next slice | No Critical or Important findings | Reviewer verdict |
 | Deliver → push, PR, merge | Person chooses | `finishing-a-development-branch` and the Bash gate (`gate.sh`) |
+
+## Writing the verification command
+
+The gate runs whatever the brief declares, so its shape decides how long a slice takes. The gate fires twice per handoff, seconds apart, and the Reviewer runs the command again later, so a command with these properties is run three or four times per slice.
+
+- **Fast for the gate, full at delivery.** The brief's command should be the subset that can fail because of *this* slice — typically seconds. The whole suite, migration round-trips and a full type pass belong in Step 5, once. A project that splits them (`scripts/verify` and `scripts/verify --full`) gets both.
+- **Idempotent and safe to run twice at once.** The two gate events overlap when the command is slow. A command that drops and recreates a shared database, binds a fixed port, or reuses one container name will have one run destroy the other's state, and the failure looks like a flaky test rather than a collision. Give each run its own database name, schema or port, and clean up on exit.
+- **Exit non-zero on failure, and put the reason in the last lines.** The gate returns the tail of the output to the agent.
+- **Print per-step timing.** When a slice feels slow, the log should already say which step is responsible.
+- **Fail fast on configuration.** A command that cannot start is reported as a configuration problem and does not block, so a broken path silently stops gating the slice: check the gate log the first time.
+
+A worked example of the failure mode: a CI-equivalent script that recreated a Postgres database, ran three Alembic migrations, 133 tests, `ruff` over 452 files and `mypy` over 323, taking about four minutes. Run three to four times per slice, it was twelve to sixteen minutes of every slice, and because it dropped a fixed database name with `FORCE` at the start, two overlapping runs would have destroyed each other's test data.
+
+The gate memoises a pass for `DELIVERY_VERIFY_TTL` seconds (default 120) against the command and the tree hash, so the second gate event costs nothing. Any edit changes the hash and invalidates it; failures are never cached, and the Reviewer's own run does not go through the hook.
 
 ## Cost policy
 

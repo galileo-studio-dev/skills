@@ -15,6 +15,11 @@
 # status), so a slice in one service does not run another's suite.
 # A command that cannot start (exit 126/127) is a gate configuration problem,
 # reported as such; it does not block, like a project with no command at all.
+# The two events fire seconds apart on the same tree, so a pass is memoised for
+# DELIVERY_VERIFY_TTL seconds (default 120, 0 disables) against the command and
+# the tree's hash: the second gate costs nothing and any edit invalidates it.
+# Only passes are cached, only in a git tree, and the Reviewer's own run is a
+# plain Bash call that never reaches this hook.
 # Other agents and tools pass through untouched.
 set -u
 input=$(cat)
@@ -30,6 +35,17 @@ esac
 
 cwd=$(field '.cwd'); cd "${cwd:-.}" 2>/dev/null || exit 0; cwd=$(pwd -P)
 log() { [ -n "${DELIVERY_LOG:-}" ] && printf '%s verify.sh %s\n' "$(date +%T)" "$1" >> "$DELIVERY_LOG"; }
+mtime() { stat -f %m "$1" 2>/dev/null || stat -c %Y "$1" 2>/dev/null; }
+ttl=${DELIVERY_VERIFY_TTL:-120}
+
+# Cache file for a "<dir>\t<cmd>" job, empty when the tree cannot be hashed.
+cache_file() {
+  local dir=$1 cmd=$2 tree
+  [ "$ttl" -gt 0 ] || return 0
+  git -C "$dir" rev-parse --show-toplevel >/dev/null 2>&1 || return 0
+  tree=$( { git -C "$dir" rev-parse HEAD 2>/dev/null; git -C "$dir" status --porcelain --untracked-files=all 2>/dev/null; } | shasum | cut -d' ' -f1)
+  printf '%s/delivery-verify-%s.pass' "${TMPDIR:-/tmp}" "$(printf '%s|%s|%s' "$dir" "$cmd" "$tree" | shasum | cut -d' ' -f1)"
+}
 
 if [ "$event" = "PostToolUse" ]; then
   handoff=$(field ".tool_response | if type==\"object\" then .content else . end | $text")
@@ -111,10 +127,20 @@ fi
 passed=""; config=""; failed=""
 while IFS=$'\t' read -r dir cmd; do
   [ -z "$dir" ] && continue
+  cache=$(cache_file "$dir" "$cmd")
+  if [ -n "$cache" ] && [ -f "$cache" ]; then
+    age=$(( $(date +%s) - $(mtime "$cache") ))
+    if [ "$age" -lt "$ttl" ]; then
+      log "event=${event:-manual} cwd=$dir cmd=$cmd cache=hit age=${age}s"
+      passed="${passed:+$passed; }\`$cmd\` in $dir (cached ${age}s ago, tree unchanged)"
+      continue
+    fi
+  fi
   log "event=${event:-manual} cwd=$dir cmd=$cmd"
   out=$(cd "$dir" && bash -c "$cmd" 2>&1 </dev/null); status=$?
   case "$status" in
-    0) passed="${passed:+$passed; }\`$cmd\` in $dir" ;;
+    0) passed="${passed:+$passed; }\`$cmd\` in $dir"
+       if [ -n "$cache" ]; then : > "$cache"; fi ;;
     126|127)
       printf -v line 'delivery gate: configuration error: `%s` in %s could not start (exit %s, command not found or not executable). This is not a red tree, and the gate did not verify the slice: run the verification yourself, and declare a working command in the brief ("Verification command: `...`") or in an executable scripts/verify.\n%s\n' "$cmd" "$dir" "$status" "$(printf '%s\n' "$out" | tail -10)"
       config=$config$line ;;
