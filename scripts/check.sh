@@ -42,6 +42,7 @@ echo "== delivery hooks"
 H=plugins/delivery/hooks; tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 evals/fixtures/session-expiry/make.sh "$tmp/green" >/dev/null
 cp -R "$tmp/green" "$tmp/red"; printf '\n    def test_red(self):\n        self.assertTrue(False)\n' >> "$tmp/red/tests/test_session.py"
+export DELIVERY_VERIFY_TTL=0   # each assertion below runs the command itself
 decision() { printf '%s' "$2" | "$H/$1" | jq -r '.hookSpecificOutput.permissionDecision // "silent"' 2>/dev/null; }
 verify() { printf '%s' "$1" | "$H/verify.sh" >/dev/null 2>&1; echo $?; }
 # hook inputs built with jq: nested escaped quotes inside $(...) get re-split by bash
@@ -103,5 +104,20 @@ missing_cmd=$(mk PostToolUse '' Agent delivery:worker "$tmp/red" "$(handoff auth
 [ "$(verify "$missing_cmd")" = "0" ] && [ "$(ctx "$missing_cmd" | grep -c 'configuration error')" = "1" ] && ok "verify reports exit 127 as a configuration error, not red" || bad "verify: a missing command should exit 0 with a configuration error"
 jq -cn --arg b "$missing_cmd_brief" '{type:"user", message:{role:"user", content:$b}}' > "$tmp/agent.jsonl"
 [ "$(verify "$(mk SubagentStop delivery:worker '' '' "$tmp/red" | jq -c --arg t "$tmp/agent.jsonl" '. + {agent_transcript_path:$t}')")" = "0" ] && ok "verify runs the brief's declared command at the stop gate" || bad "verify: the stop gate should run the brief's command"
+
+echo "== delivery gate memo"
+unset DELIVERY_VERIFY_TTL       # default 120s
+evals/fixtures/session-expiry/make.sh "$tmp/memo" >/dev/null
+memo=$(mk SubagentStop delivery:worker '' '' "$tmp/memo"); memolog="$tmp/memo.log"
+run_memo() { printf '%s' "$memo" | DELIVERY_LOG="$memolog" "$H/verify.sh" >/dev/null 2>&1; echo $?; }
+hits() { c=$(grep -c 'cache=hit' "$memolog" 2>/dev/null); echo "${c:-0}"; }
+[ "$(run_memo)" = "0" ] && [ "$(hits)" = "0" ] && ok "first gate run executes the command" || bad "memo: first run should execute and not report a hit"
+[ "$(run_memo)" = "0" ] && [ "$(hits)" = "1" ] && ok "second gate run is a cache hit" || bad "memo: second run on an unchanged tree should hit the cache"
+printf '\n# edit\n' >> "$tmp/memo/auth/session.py"
+[ "$(run_memo)" = "0" ] && [ "$(hits)" = "1" ] && ok "an edit invalidates the cache" || bad "memo: a changed tree must re-run the command"
+cp -R "$tmp/red" "$tmp/memo-red"; memo=$(mk SubagentStop delivery:worker '' '' "$tmp/memo-red")
+[ "$(run_memo)" = "2" ] && [ "$(run_memo)" = "2" ] && [ "$(hits)" = "1" ] && ok "failures are never cached" || bad "memo: a red tree must re-run and stay red"
+memo=$(mk SubagentStop delivery:worker '' '' "$tmp/memo")
+[ "$(DELIVERY_VERIFY_TTL=0 run_memo)" = "0" ] && [ "$(hits)" = "1" ] && ok "DELIVERY_VERIFY_TTL=0 disables the cache" || bad "memo: TTL 0 should disable caching"
 
 echo; [ $fail -eq 0 ] && echo "check: PASS" || { echo "check: FAIL"; exit 1; }
