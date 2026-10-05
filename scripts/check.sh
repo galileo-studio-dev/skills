@@ -75,6 +75,8 @@ ran() { rm -f "$tmp/ran"; PATH="$tmp/bin:$PATH" verify "$(mk PostToolUse '' Agen
 [ "$(decision gate.sh '{"tool_input":{"command":"git push -u origin x"}}')" = "ask" ] && ok "gate asks for git push" || bad "gate: git push should ask"
 [ "$(decision gate.sh '{"tool_input":{"command":"cd infra && terraform apply tfplan"}}')" = "ask" ] && ok "gate asks for terraform apply" || bad "gate: terraform apply should ask"
 [ -z "$(decision gate.sh '{"tool_input":{"command":"git diff --stat main..HEAD"}}')" ] && ok "gate silent for git diff" || bad "gate: git diff should be silent"
+[ "$(decision gate.sh '{"tool_input":{"command":"gh issue create --label follow-up --title x"}}')" = "ask" ] && ok "gate asks for gh issue create" || bad "gate: gh issue create should ask"
+[ -z "$(decision gate.sh '{"tool_input":{"command":"gh issue list --search \"followup-key: a:b:c\""}}')" ] && ok "gate silent for gh issue list" || bad "gate: gh issue list should be silent"
 [ "$(decision readonly.sh '{"agent_type":"delivery:reviewer","tool_input":{"command":"git commit -m x"}}')" = "deny" ] && ok "readonly denies the reviewer a commit" || bad "readonly: reviewer commit should be denied"
 [ "$(decision readonly.sh '{"agent_type":"delivery:reviewer","tool_input":{"command":"sed -i s/a/b/ f.py"}}')" = "deny" ] && ok "readonly denies the reviewer sed -i" || bad "readonly: reviewer sed -i should be denied"
 [ -z "$(decision readonly.sh '{"agent_type":"delivery:reviewer","tool_input":{"command":"git diff BASE..HEAD"}}')" ] && ok "readonly allows the reviewer git diff" || bad "readonly: reviewer git diff should pass"

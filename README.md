@@ -101,6 +101,7 @@ infrastructure, Clerk, Stripe, and Sentry also belong here.
 | `requesting-code-review` | Request focused technical review before completion. |
 | `receiving-code-review` | Evaluate and apply review feedback with technical rigor. |
 | `reviewing-pull-requests` | Review a pull request end to end: independent verification, two-stage review, security pass by risk tier, findings in the PR template format. |
+| `filing-followups` | Turn a review's deferred findings into tracker issues an engineer can pick up cold, capped and deduplicated. |
 | `verification-before-completion` | Require fresh evidence before claiming work is complete. |
 | `finishing-a-development-branch` | Verify tests and choose how to integrate finished work: merge, PR, keep, or discard. |
 
@@ -239,6 +240,7 @@ slices, verify, review, deliver evidence.
 | Review | `requesting-code-review` | Request a focused review |
 | Review | `receiving-code-review` | Evaluate feedback with rigor |
 | Review | `reviewing-pull-requests` | Review a PR end to end and report in the PR template format |
+| Closure | `filing-followups` | File the deferred findings as tracker issues |
 | Security | `owasp-security` | Secure implementation and review guidance |
 | Security | `semgrep` | Static analysis scan with approved scan plan |
 | Security | `codeql` | Data-flow and taint analysis |
@@ -261,6 +263,7 @@ repository. Skills that reach those actions stop and ask first:
   `using-git-worktrees`.
 - Scan plans and output locations: `semgrep`, `codeql`.
 - Posting a review or comment to GitHub: `reviewing-pull-requests`.
+- Creating or editing tracker issues: `filing-followups`.
 - With the `delivery` plugin enabled, push, PR, deploy, publish, and
   state-changing commands prompt for approval in every agent, whatever the
   permission mode.
