@@ -1,0 +1,4 @@
+[
+  {"key":"EV-31","state":"open","last_line":"Huella: dead-code:app/lib/old:helper"},
+  {"key":"EV-12","state":"completed","last_line":"Huella: [error-handling:app/api/files:read_file](http://error-handling:app/api/files:read_file)"}
+]
