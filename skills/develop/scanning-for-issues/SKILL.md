@@ -17,7 +17,7 @@ A finder fills the tracker for executors and people without flooding it. Caps ke
 1. **Count**, without reading descriptions:
    - `nh`: open issues with the needs-human label, whoever filed them;
    - `queue`: agent-ready issues without the blocked label, in the backlog or todo state.
-2. **Remind.** For each open needs-human issue with no assignee, labelled needs-human for longer than the reminder age: assign it to the reminders person and add one comment, in the project language and with the session link (`running-routines` §4), saying how long it has waited and why it needs a person (mention it if the fixer gave up). Never touch an issue that has an assignee: the assignment is the record.
+2. **Remind.** For each open needs-human issue with no assignee, labeled needs-human for longer than the reminder age: assign it to the reminders person and add one comment, in the project language and with the session link (`running-routines` §4), saying how long it has waited and why it needs a person (mention it if the fixer gave up). Never touch an issue that has an assignee: the assignment is the record.
 3. **Slots:** `nh_free` = the needs-human cap minus `nh`; `fix_free` = the queue cap minus `queue`. If both are 0 or less, report "caps full" with both counts and stop without scanning.
 4. **Scope:**
    - the files changed on the base branch within the window (`git log origin/<base> --since=<window> --name-only --format= | sort -u`, skipping deleted files);

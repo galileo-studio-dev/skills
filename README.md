@@ -102,6 +102,10 @@ infrastructure, Clerk, Stripe, and Sentry also belong here.
 | `receiving-code-review` | Evaluate and apply review feedback with technical rigor. |
 | `reviewing-pull-requests` | Review a pull request end to end: independent verification, two-stage review, security pass by risk tier, findings in the PR template format. |
 | `filing-followups` | Turn a review's deferred findings into tracker issues an engineer can pick up cold, capped and deduplicated. |
+| `running-routines` | The contract for unattended agent routines: project data, develop gate, rubric, claim, ask or block, states, never-merge. |
+| `working-an-issue` | Work one tracker issue from check to a draft pull request, delivering the code through `delivering-changes`. |
+| `working-the-queue` | Execute mode: gate, work-in-progress slots, agent-ready queue, one issue at a time, queue report. |
+| `scanning-for-issues` | Find mode: gate, caps, reminders, incremental scan, fingerprint dedupe, file or hold. |
 | `verification-before-completion` | Require fresh evidence before claiming work is complete. |
 | `finishing-a-development-branch` | Verify tests and choose how to integrate finished work: merge, PR, keep, or discard. |
 
@@ -241,6 +245,10 @@ slices, verify, review, deliver evidence.
 | Review | `receiving-code-review` | Evaluate feedback with rigor |
 | Review | `reviewing-pull-requests` | Review a PR end to end and report in the PR template format |
 | Closure | `filing-followups` | File the deferred findings as tracker issues |
+| Routines | `running-routines` | Contract every routine run follows |
+| Routines | `working-the-queue` | Execute agent-ready issues within the work-in-progress ceiling |
+| Routines | `scanning-for-issues` | Find and file work within the caps |
+| Execution | `working-an-issue` | One issue from check to draft pull request |
 | Security | `owasp-security` | Secure implementation and review guidance |
 | Security | `semgrep` | Static analysis scan with approved scan plan |
 | Security | `codeql` | Data-flow and taint analysis |
