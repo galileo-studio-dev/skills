@@ -17,7 +17,7 @@ Read the project data file before anything else: the path the routine's prompt n
 
 | Heading | What it holds |
 | --- | --- |
-| `## Language` | Language of everything a person reads: issues, comments, questions, pull request bodies, reports. Code and code comments follow `AGENTS.md` |
+| `## Language` | Language of everything a person reads: issues, comments, questions, pull request bodies, reports; and the issue sections. Code and code comments follow `AGENTS.md` |
 | `## Tracker` | Tool and channel, team, project, state names (backlog, todo, in progress, in review, done, needs HITL), labels (agent-ready, needs-human, blocked, finder, types), and whether a tracker–Git integration moves states on pull request events |
 | `## Branches` | Base branch, production branch, routine branch prefix, pull request template |
 | `## Verification` | Where the fast and full commands are written; the gate command; the base branch's CI workflow and required check |
