@@ -1,6 +1,6 @@
 # ADR 0002: One contract for agent routines
 
-Status: accepted for Kura, proposed for Piro. Date: 2026-10-15.
+Status: accepted for Kura; Piro adopted (2026-10-15). Date: 2026-10-15.
 
 ## Context
 
@@ -22,11 +22,11 @@ Each copied the catalog and rewrote its data in place, so fixes did not travel.
 7. **One implementation loop.** `working-an-issue` does the tracker side and calls `delivering-changes` for the code.
 8. **Execution is a scheduled batch session.** No routine-fire token lives in any agent environment. Subagents cannot start subagents, so the session is the Controller for each issue in turn.
 9. **Every run starts with the develop gate.** Kura's CI gains `push: develop` for it once compliance-backend #136 and compliance-frontend #132 merge; until then the gate falls back to merged pull requests' checks.
-10. **Agents never merge, in any repository.** This reverses Piro's 2026-10-13 auto-merge of levels 0–1, so it is a proposal for Pablo. PR levels shrink to a protected-paths list.
+10. **Agents never merge on their own:** in a routine, never; interactively, only on a person's explicit OK for that pull request. This reverses Piro's 2026-10-13 auto-merge of levels 0–1; PR levels shrink to a protected-paths list.
 11. **Installation.** Skills are installed with `npx skills` and pinned in `skills-lock.json`.
 
 ## Consequences
 
 - A behaviour change is a catalog pull request reviewed by both owners. A value change is a project pull request.
 - Piro keeps its process until Pablo accepts each change. The proposal pull request is split one decision per commit.
-- The sweep (Piro's barrido) and the dispatcher stay project skills until a generic version exists.
+- The sweep (Piro's barrido) is now the catalog skill `sweeping-open-work`, and the dispatcher stays a project skill.
