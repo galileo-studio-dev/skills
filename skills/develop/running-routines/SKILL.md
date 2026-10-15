@@ -20,7 +20,7 @@ Each repository's `AGENTS.md` has one line `Project data: <path>`. Read that fil
 | `## Language` | Language of everything a person reads: issues, comments, questions, pull request bodies, reports. Code and code comments follow `AGENTS.md` |
 | `## Tracker` | Tool and channel, team, project, state names (backlog, todo, in progress, in review, done, needs HITL), labels (agent-ready, needs-human, blocked, finder, types), and whether a tracker–Git integration moves states on pull request events |
 | `## Branches` | Base branch, production branch, routine branch prefix, pull request template |
-| `## Verification` | Where the fast and full commands are written; the base branch's CI workflow and required check |
+| `## Verification` | Where the fast and full commands are written; the gate command; the base branch's CI workflow and required check |
 | `## Protected paths` | Globs an agent never changes |
 | `## Caps` | Work-in-progress ceiling, queue cap, needs-human cap, reminder age; `none` is a value |
 | `## Execution` | Delivery tier, worker model per priority, `/simplify` threshold |

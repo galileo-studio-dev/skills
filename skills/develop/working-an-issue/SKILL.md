@@ -15,7 +15,7 @@ The tracker side of one issue. The code itself is `delivering-changes`'s job; th
 
 - Read the issue, its comments and related issues. Compare them with Git: `git log origin/<base> --grep <KEY>` and open pull requests that name the key. The last comment can be stale.
 - Already done on the base branch: in a routine, comment that and skip; interactively, tell the person.
-- An open pull request for the key, or a branch `routine/<key-lowercase>*` on origin with commits in the last 24 hours: in a routine the issue is taken, so skip it and say so; interactively, continue on that branch. An older routine branch (for example one left behind by a question in needs HITL): continue on it.
+- An open pull request for the key, or a branch `routine/<key-lowercase>*` on origin with commits in the last 24 hours (unless the issue is in needs HITL with an answer): in a routine the issue is taken, so skip it and say so; interactively, continue on that branch. An older routine branch (for example one left behind by a question in needs HITL): continue on it.
 - Re-check the rubric (`running-routines` §3) against what you now know. If it fails, go to §7 now.
 
 ## 2. Claim
@@ -39,7 +39,7 @@ Run `delivering-changes` with:
 - **Worker briefs:** add the line `Constraints: follow the ponytail skill (.claude/skills/ponytail/SKILL.md, full level) except its Output section.` A worker cannot load skills itself.
 - **Gates:** in a routine nobody is there, so this skill replaces every person gate of `delivering-changes`: the acceptance criteria are the plan gate; §5–§6 here replace its delivery step (push and pull request); anything it would ask the person (a plan flaw, two fix cycles without a clean verdict) goes to §7 as a question or a blocker; deferred findings go under the pull request's risks, not into the tracker. Its "Without the plugin" verification re-runs stay. Interactively, its gates apply as written.
 
-Before the final review, when `git diff --shortstat origin/<base>...HEAD` exceeds the project data's threshold, run `/simplify` and include its changes in that review.
+Before the last review (the slice review when there is only one slice), when `git diff --shortstat origin/<base>...HEAD` exceeds the project data's threshold, run `/simplify` and include its changes in that review.
 
 ## 5. Verify, commit, push
 
@@ -70,7 +70,7 @@ Return the key, the pull request links, and the end state (pull request / questi
 
 | Thought | Reality |
 | --- | --- |
-| "The branch exists but looks abandoned; I'll take it over" | In a routine it is taken. Skip it and say so |
+| "Its branch had commits today, but I'll take it over" | Taken for 24 hours. Skip it and say so |
 | "Close enough to the criteria" | The criteria are the spec: meet them, or ask |
 | "I'll fix this other thing I noticed" | Not this issue. Note it under the pull request's risks |
 | "The pull request is ready, so I'll mark it ready for review" | It stays a draft; a person promotes and merges it |
