@@ -7,7 +7,7 @@ description: Works one tracker issue from check to a draft pull request — conf
 
 ## Overview
 
-The tracker side of one issue. The code itself is `delivering-changes`'s job; this skill decides whether to start, keeps the tracker true, and ends at a draft pull request. It reads the project data (`running-routines` §1) for every value.
+The tracker side of one issue. The code itself is `delivering-changes`'s job; this skill decides whether to start, keeps the tracker true, and ends at a draft pull request. It reads the project data (`running-routines` §1) for every value, and follows its `### Issue` notes as extra steps: checks before starting (§1), extra tracker comments (§6) and tasks after a merge (§8).
 
 **Core principle:** an issue ends in exactly one place: a draft pull request, a question in needs HITL, or a blocker with needs-human. Never half-done and silent.
 
@@ -18,6 +18,7 @@ The tracker side of one issue. The code itself is `delivering-changes`'s job; th
 - An open pull request for the key, or a branch `routine/<key-lowercase>*` on origin with commits in the last 24 hours (unless the issue is in needs HITL with an answer): in a routine the issue is taken, so skip it and say so; interactively, continue on that branch. An older routine branch (for example one left behind by a question in needs HITL): continue on it.
 - A pull request for the key that a person closed without merging, with no person's comment on the issue after it was closed: give up as a structural blocker (`running-routines` §5), reason "closed by a person".
 - Re-check the rubric (`running-routines` §3) against what you now know. If it fails, go to §7 now.
+- Run the checks `### Issue` lists before starting; a failed one goes to §7.
 
 ## 2. Claim
 
@@ -57,11 +58,15 @@ Before the last review (the slice review when there is only one slice), when `gi
   - the risks.
 
   A change across repositories gets one pull request per repository, linked to each other.
-- **Tracker:** comment with the pull request link. Move the issue to in review only if no tracker–Git integration does it. Edit your claim to say what happened.
+- **Tracker:** comment with the pull request link, what to look at on the surface the change touches (`## Surfaces`, when the project data has it), and any comment `### Issue` asks for. Move the issue to in review only if no tracker–Git integration does it. Edit your claim to say what happened.
 
 ## 7. Ask, or give up
 
 As `running-routines` §5 says. Interactively, ask the person in the chat, one decision per question, instead of moving the issue to needs HITL. The structural-blocker labels apply in both cases.
+
+## 8. Merge
+
+Agents never merge on their own. In a routine, never (`running-routines` §7). Interactively, merge only on the person's explicit OK for that pull request, then run the tasks `### Issue` lists for after a merge.
 
 ## Report
 

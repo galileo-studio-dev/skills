@@ -50,6 +50,12 @@ Read by the routine skills (`running-routines` §1). Values only: process lives 
 - Reminders go to: <name> (<tracker user id>)
 - Product decisions: <name> (<tracker user id>)
 
+## Surfaces
+
+Optional. Where a person sees each part once it is deployed:
+
+- <web app: https://dev.example.com>
+
 ## Notes
 
 ### Cloud
@@ -67,3 +73,18 @@ Read by the routine skills (`running-routines` §1). Values only: process lives 
 - Tools: <…>
 - Skip: <docs/tech-debt/>
 - UI QA: <recipe, or none>
+
+### Sweep
+
+- People: <name> (<tracker user id>)
+- Develop gate window: <3 days>
+- Report document: <Sweep · <person>>, in the tracker project
+- Pull request title suffix: < · sweep DD-MM>
+- Caps: <none | n items touched per run>
+- Only report: <issues the sweep lists but never touches, e.g. those that need an office network>
+
+### Issue
+
+- Before starting: <checks, e.g. the issue has a "For whoever does it" section>
+- Tracker comments: <extra comments, e.g. a plan longer than four lines goes to a linked document>
+- After merge: <tasks, e.g. regenerate the agent registry>

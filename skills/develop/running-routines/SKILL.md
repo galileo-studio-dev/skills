@@ -1,6 +1,6 @@
 ---
 name: running-routines
-description: The contract every unattended agent routine follows in a company repository — the project data file, the develop gate that opens every run, which issues an agent may take, how it claims, asks and gives up, which tracker states it may set, and what it never does. Use at the start of any scheduled or remotely fired Claude Code routine session, and when writing or changing a routine prompt. The mode skills `working-the-queue` and `scanning-for-issues` build on it.
+description: The contract every unattended agent routine follows in a company repository — the project data file, the develop gate that opens every run, which issues an agent may take, how it claims, asks and gives up, which tracker states it may set, and what it never does. Use at the start of any scheduled or remotely fired Claude Code routine session, and when writing or changing a routine prompt. The mode skills `working-the-queue`, `scanning-for-issues` and `sweeping-open-work` build on it.
 ---
 
 # Running Routines
@@ -25,9 +25,12 @@ Read the project data file before anything else: the path the routine's prompt n
 | `## Caps` | Work-in-progress ceiling, queue cap, needs-human cap, reminder age; `none` is a value |
 | `## Execution` | Delivery tier, worker model per priority, `/simplify` threshold |
 | `## People` | Who receives reminders and who decides product questions, each with a tracker user id |
-| `## Notes` | Free text per mode: `### Cloud`, `### Queue`, `### Scanner` |
+| `## Surfaces` | Optional: where a person sees each part of the product once it is deployed |
+| `## Notes` | Free text per mode and topic: `### Cloud`, `### Queue`, `### Scanner`, `### Sweep`, `### Issue` |
 
 Template: [`project-data-template.md`](project-data-template.md). When two repositories share a value, such as a cap that counts pull requests in both, one file holds it and the other says where. If the tracker is unreachable, send a push notification and stop.
+
+A routine prompt may route by payload: issue keys → `working-the-queue` with those keys; none → the scheduled mode.
 
 ## 2. The develop gate
 
