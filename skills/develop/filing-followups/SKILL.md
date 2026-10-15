@@ -32,6 +32,7 @@ At most **five** issues per delivery. If the deferred set is larger, the work ha
 Use the tracker the repository's own contract names, not your preference:
 
 - A project whose `CLAUDE.md`, `AGENTS.md` or docs name an issue tracker and a channel — for example "issues through the Linear MCP, never `gh` for tickets" — is settled: use that, with the team, project and labels it specifies.
+- If the repository's project data (`running-routines` §1) declares fixability labels, give each issue exactly one: agent-ready only when it meets the rubric in `running-routines` §3, otherwise needs-human. Before filing a needs-human issue, count the open ones; if filing would pass the needs-human cap, say so in the list you show the person.
 - Otherwise `gh issue create --label follow-up`.
 - If the named tracker is unreachable, do **not** silently fall back to another one and do not drop the list. Report the issues you would have filed, in the pull request description, and say the tracker was unavailable.
 
