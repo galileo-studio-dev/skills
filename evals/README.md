@@ -13,9 +13,9 @@ two-slice plan). With `--with-review-branch` it adds `feature/session-expiry`
 carrying two planted defects: `GetSessionAge` renamed although the spec
 forbids it, and a `try/except` in `refresh_session` that swallows the
 revocation error. Every agentic eval starts from this fixture; the dry-run
-evals (`working-the-queue`, `scanning-for-issues`) use state files in their
-`scenarios/` instead. `scripts/check.sh` uses the fixture to exercise the
-delivery hooks.
+evals (`working-the-queue`, `scanning-for-issues`, `sweeping-open-work`) use
+state files in their `scenarios/` instead. `scripts/check.sh` uses the
+fixture to exercise the delivery hooks.
 
 ## Evals
 
@@ -26,6 +26,7 @@ delivery hooks.
 | `scoping-changes/run.sh` | The same bounded task with and without the skill; `measure.sh` compares both arms | Judged by reading: the with-skill arm should add fewer lines, keep the signature, add fewer tests, and report in fewer words | ~2–3 min, two agents |
 | `working-the-queue/run.sh` | Execute mode in dry run over five scenarios (develop red, develop red with free slots, slots and order, empty queue, ask vs block) | Gate, slots, taken keys, skips and ask/block actions match `expect.json` | ~1 min per scenario, one agent |
 | `scanning-for-issues/run.sh` | Find mode in dry run over three scenarios (caps and dedupe, partial fill and matches, both caps full) | Filed, held, dropped, regressions and notify match `expect.json` | ~1 min per scenario, one agent |
+| `sweeping-open-work/run.sh` | Sweep mode in dry run over three scenarios (another sweep running, one item of each kind, develop red) | Stop, the touched items in order, and each report section match `expect.json` | ~1 min per scenario, one agent |
 
 Each `run.sh` accepts a work directory as its first argument and leaves the
 fixture, the JSON stream, and the report there for inspection. The

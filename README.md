@@ -106,6 +106,7 @@ infrastructure, Clerk, Stripe, and Sentry also belong here.
 | `working-an-issue` | Work one tracker issue from check to a draft pull request, delivering the code through `delivering-changes`. |
 | `working-the-queue` | Execute mode: gate, work-in-progress slots, agent-ready queue, one issue at a time, queue report. |
 | `scanning-for-issues` | Find mode: gate, caps, reminders, incremental scan, fingerprint dedupe, file or hold. |
+| `sweeping-open-work` | Sweep mode: one person's red pull requests, answered questions, stalled issues and orphan branches, recovered up to ready for review, with a report document per person. |
 | `verification-before-completion` | Require fresh evidence before claiming work is complete. |
 | `finishing-a-development-branch` | Verify tests and choose how to integrate finished work: merge, PR, keep, or discard. |
 
@@ -248,6 +249,7 @@ slices, verify, review, deliver evidence.
 | Routines | `running-routines` | Contract every routine run follows |
 | Routines | `working-the-queue` | Execute agent-ready issues within the work-in-progress ceiling |
 | Routines | `scanning-for-issues` | Find and file work within the caps |
+| Routines | `sweeping-open-work` | Recover one person's stalled work and keep their report |
 | Execution | `working-an-issue` | One issue from check to draft pull request |
 | Security | `owasp-security` | Secure implementation and review guidance |
 | Security | `semgrep` | Static analysis scan with approved scan plan |
