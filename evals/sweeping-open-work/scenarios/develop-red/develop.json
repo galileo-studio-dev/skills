@@ -1,0 +1,1 @@
+{"app":{"ci":{"head_sha":"b2","run_head_sha":null,"conclusion":null},"merged_prs":[{"number":12,"required_check":"failure"}],"gate_command":"fail","fixable":true},"web":{"ci":{"head_sha":"w5","run_head_sha":"w5","conclusion":"success"},"merged_prs":[],"gate_command":null,"fixable":null}}
