@@ -78,7 +78,7 @@ Optional. Where a person sees each part once it is deployed:
 
 - People: <name> (<tracker user id>)
 - Develop gate window: <3 days>
-- Report document: <Sweep · <person>>, in the tracker project
+- Report document: <Sweep · {person}>, in the tracker project
 - Pull request title suffix: < · sweep DD-MM>
 - Caps: <none | n items touched per run>
 - Only report: <issues the sweep lists but never touches, e.g. those that need an office network>

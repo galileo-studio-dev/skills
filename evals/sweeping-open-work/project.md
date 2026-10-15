@@ -71,7 +71,7 @@ The eval runs in dry run: nothing is cloned and no tracker or Git host is reache
 
 - People: Eval Person (u-1)
 - Develop gate window: 3 days
-- Report document: `Sweep · <person>`, in the tracker project
+- Report document: `Sweep · {person}`, in the tracker project
 - Pull request title suffix: ` · sweep DD-MM`
 - Caps: none
 - Only report: none

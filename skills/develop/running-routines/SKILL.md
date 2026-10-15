@@ -34,7 +34,7 @@ A routine prompt may route by payload: issue keys → `working-the-queue` with t
 
 ## 2. The develop gate
 
-Every run of every mode starts here, after §1 and before any other work, once per repository:
+Every run of every mode starts here, after §1 and before any other work (a mode's own preconditions, such as the sweep's person and lock checks, may run first), once per repository:
 
 1. Take the latest completed, non-cancelled run of the base branch's CI workflow. If it ran on the base branch's current head commit, its conclusion decides.
 2. Otherwise (no completed run on the current head), list the pull requests merged into the base branch within the mode's window. If none has a red or missing required check on its final head commit, the base is green. If one does, run the project's gate command (Verification) on the base head: its result decides.
@@ -56,7 +56,7 @@ The result is stored as exactly one of the agent-ready or needs-human labels (a 
 ## 4. Claim, comment, thread
 
 - **Agent or person?** A comment that carries a session link (below) is an agent's. Any other comment is a person's, whatever account posted it: tracker connectors often post as a shared human account.
-- **Free?** An issue is taken if it has an unclosed claim from another agent session in the last 24 hours, an open pull request for the key, or commits on its routine branch in the last 24 hours (unless the issue is in needs HITL with an answer). A person's comments do not count. Skip a taken issue.
+- **Free?** An issue is taken if it has an unclosed claim from another agent session in the last 24 hours, an open pull request for the key, or commits on its routine branch in the last 24 hours (unless the issue is in needs HITL with an answer). A sweep (`sweeping-open-work`) works on that pull request, so for it the open pull request does not make the issue taken. A person's comments do not count. Skip a taken issue.
 - **Claim.** Move it to in progress and comment, in the project language, that you are taking it, with the mode, the session link and the UTC time. Read the issue again. If another claim landed first, comment that you are stepping back and take the next issue. When you finish, edit the claim to say what happened.
 - **Session link.** Compute it once with `echo "https://claude.ai/code/${CLAUDE_CODE_REMOTE_SESSION_ID/#cse_/session_}"` and put it in every comment. If the variable is empty (a local session), write `local session` instead.
 - **Thread.** If the run was given a launch comment id, reply to it.

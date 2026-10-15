@@ -16,7 +16,7 @@ Each copied the catalog and rewrote its data in place, so fixes did not travel.
 1. **Ownership.** The contract and the generic skills live in this catalog. Carlos Figueredo owns them; Pablo García Bolívar is a required reviewer (CODEOWNERS). Each repository decides its own adoption.
 2. **Language.** Skills are in English. Each repository's project data declares the language of everything a person reads.
 3. **Project data.** Each repository has one project data file with fixed headings. `AGENTS.md` points to it in one line. Skills read it on demand: routine-only data does not belong in `AGENTS.md`, which every session loads.
-4. **Prompts.** A routine's prompt is one line naming a mode skill and the data files. There is no per-repository routine instruction file.
+4. **Prompts.** A routine's prompt is one line naming a mode skill and the data files, or routing by payload between two (`running-routines` §1). There is no per-repository routine instruction file.
 5. **Agent-ready work is a label.** It is the stored result of the rubric (single-select group: agent-ready | needs-human), set at triage. Executors take only labelled issues.
 6. **A question is a state, not a label.** Questions move an issue to `Needs HITL` and keep it agent-ready. Structural blockers add `blocked` + needs-human. Only needs-human counts toward the cap.
 7. **One implementation loop.** `working-an-issue` does the tracker side and calls `delivering-changes` for the code.
@@ -28,5 +28,5 @@ Each copied the catalog and rewrote its data in place, so fixes did not travel.
 ## Consequences
 
 - A behaviour change is a catalog pull request reviewed by both owners. A value change is a project pull request.
-- Piro keeps its process until Pablo accepts each change. The proposal pull request is split one decision per commit.
+- Piro adopted on 2026-10-15; Pablo reviews each change as CODEOWNER, one decision per commit.
 - The sweep (Piro's barrido) is now the catalog skill `sweeping-open-work`, and the dispatcher stays a project skill.

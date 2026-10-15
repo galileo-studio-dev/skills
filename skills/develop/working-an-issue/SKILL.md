@@ -15,7 +15,7 @@ The tracker side of one issue. The code itself is `delivering-changes`'s job; th
 
 - Read the issue, its comments and related issues. Compare them with Git: `git log origin/<base> --grep <KEY>` and open pull requests that name the key. The last comment can be stale.
 - Already done on the base branch: in a routine, comment that once (skip the comment if an earlier agent comment already says so) and skip; interactively, tell the person.
-- An open pull request for the key, or a branch `routine/<key-lowercase>*` on origin with commits in the last 24 hours (unless the issue is in needs HITL with an answer): in a routine the issue is taken, so skip it and say so; interactively, continue on that branch. An older routine branch (for example one left behind by a question in needs HITL): continue on it.
+- An open pull request for the key (unless a sweep calls it for that pull request), or a branch `routine/<key-lowercase>*` on origin with commits in the last 24 hours (unless the issue is in needs HITL with an answer): in a routine the issue is taken, so skip it and say so; interactively, continue on that branch. An older routine branch (for example one left behind by a question in needs HITL): continue on it.
 - A pull request for the key that a person closed without merging, with no person's comment on the issue after it was closed: give up as a structural blocker (`running-routines` §5), reason "closed by a person".
 - Re-check the rubric (`running-routines` §3) against what you now know. If it fails, go to §7 now.
 - Run the checks `### Issue` lists before starting; a failed one goes to §7.
@@ -70,7 +70,7 @@ Agents never merge on their own. In a routine, never (`running-routines` §7). I
 
 ## Report
 
-Return the key, the pull request links, and the end state (pull request / question / blocked) with one line why. In a routine, `working-the-queue` collects it.
+Return the key, the pull request links, and the end state (pull request / question / blocked) with one line why. In a routine, `working-the-queue` or `sweeping-open-work` collects it.
 
 ## Red flags
 
