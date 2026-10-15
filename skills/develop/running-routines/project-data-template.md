@@ -20,6 +20,7 @@ Read by the routine skills (`running-routines` §1). Values only: process lives 
 
 - Base: <develop>. Production: <prod>.
 - Routine branch prefix: `routine/` (full name `routine/<issue-key-lowercase>-<slug>`)
+- Pull request title: <`<type>: <summary> (<KEY>)`>
 - Pull request template: <.github/pull_request_template.md>
 
 ## Verification

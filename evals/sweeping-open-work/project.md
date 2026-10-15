@@ -18,6 +18,7 @@ en: issues, comments, questions, pull request bodies and reports for people are 
 
 - Base: develop. Production: main.
 - Routine branch prefix: `routine/` (full name `routine/<issue-key-lowercase>-<slug>`)
+- Pull request title: `<type>: <summary> (<KEY>)`
 - Pull request template: .github/pull_request_template.md
 
 ## Verification
