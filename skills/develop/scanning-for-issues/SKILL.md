@@ -86,7 +86,7 @@ Output:
 {"stop": null, "file": ["fingerprint"], "hold": ["fingerprint"], "drop": ["fingerprint"], "regressions": ["fingerprint"], "notify": false}
 ```
 
-`stop` is `null` or `"caps full"`. `file` lists the fingerprints the run would file, including regressions; `regressions` lists the subset of `file` that matched a completed issue; `hold` lists needs-human findings not filed because `nh_free` is 0; `drop` lists duplicates of open or canceled issues and agent-ready findings with no slot; `notify` is true when any held finding has class `security` or `data`. Every finding appears in exactly one of `file`, `hold` or `drop`.
+`stop` is `null` or `"caps full"`. `file` lists the fingerprints the run would file, including regressions; `regressions` lists the subset of `file` that matched a completed issue; `hold` lists needs-human findings not filed because `nh_free` is 0; `drop` lists duplicates of open or canceled issues and agent-ready findings with no slot; `notify` is true when any held finding has class `security` or `data`. Unless `stop` is set, every finding appears in exactly one of `file`, `hold` or `drop`. When `stop` is `"caps full"`, `file`, `hold`, `drop` and `regressions` are empty and `notify` is false: a stopped run evaluates nothing.
 
 ## Red flags
 
