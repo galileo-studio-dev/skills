@@ -12,7 +12,7 @@ for s in "$here"/scenarios/*/; do
   ( cd "$dir" && npx -y skills add "$root" --skill '*' -a claude-code -y --copy >/dev/null )
   ( cd "$dir" && claude -p "$(cat "$here/prompt.md")" --allowedTools "Read,Glob,Grep,Skill" \
       --output-format stream-json --verbose > "$dir/stream.jsonl" 2> "$dir/stderr.log" )
-  jq -r 'select(.type=="result") | .result' "$dir/stream.jsonl" \
-    | awk '/^```json/{f=1;next} /^```/{f=0} f' > "$dir/out.json"
+  jq -r 'select(.type=="result") | .result' "$dir/stream.jsonl" > "$dir/result.txt"
+  awk '/^```/{if(f)exit; f=1; next} f' "$dir/result.txt" > "$dir/out.json"; [ -s "$dir/out.json" ] || cp "$dir/result.txt" "$dir/out.json"
 done
 "$here/check.sh" "$work"

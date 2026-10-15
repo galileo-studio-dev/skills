@@ -13,7 +13,7 @@ A routine is a Claude Code session that starts on a schedule or an API call, run
 
 ## 1. Read the project data
 
-Read the project data file before anything else: the path the routine's prompt names, otherwise the file the repository's `AGENTS.md` points to. Do this in every repository the routine checked out. If no project data file can be found, or a required heading is missing, stop and report which.
+Read the project data file before anything else: the path the routine's prompt names, otherwise the path on the `Project data: <path>` line of the repository's `AGENTS.md`. Do this in every repository the routine checked out. If no project data file can be found, or a required heading is missing, stop and report which.
 
 | Heading | What it holds |
 | --- | --- |

@@ -14,17 +14,17 @@ One session works a batch of issues, one after another. Subagents cannot start s
 ## Steps
 
 0. Read the project data and run the develop gate (`running-routines` §1–2) with the window from `### Queue`.
-1. **Slots** = the work-in-progress ceiling minus the open pull requests whose head starts with the routine branch prefix, in every repository the caps name. Drafts count.
+1. **Slots** = the work-in-progress ceiling minus the open pull requests whose head starts with the routine branch prefix, in every repository the caps name. Drafts count. Never below 0.
 2. **Queue:** issues with the agent-ready label, without the blocked label, in the backlog or todo state, plus needs-HITL issues with an answer (`running-routines` §5). If the person gave keys, the queue is those keys, still filtered. Order:
    1. the develop issue from the gate;
    2. answered needs-HITL issues;
-   3. priority;
+   3. priority (urgent first, no priority last);
    4. oldest first.
 3. **Stop:**
    - with no slots and no develop issue to fix, report "<n> routine pull requests waiting for review" and the queue line, and stop;
    - with an empty queue, report "nothing to do" and stop.
-4. Only now read each repository's `AGENTS.md`, and set up only the repositories an issue you take touches.
-5. **Take** up to the number of slots. The develop issue takes one even when there are none. Work each issue with `working-an-issue`, one at a time, finishing one before the next. Skip an issue that is taken (`running-routines` §4) and say so; it does not use a slot.
+4. Only now read the rest of each repository's `AGENTS.md`, and set up only the repositories an issue you take touches.
+5. **Take** up to the number of slots. The develop issue takes one even when there are none. Work each issue with `working-an-issue`, one at a time, finishing one before the next. Skip an issue that `working-an-issue` §1 finds taken or already done, and say so; it does not use a slot. An issue that ends in a question or a blocker does not use a slot either; take the next. While a repository's gate is red, take only its develop issue there; skip every other issue that needs a change in that repository (reason `develop red`).
 6. **Report:**
    - pull requests opened;
    - questions asked (needs HITL);
@@ -38,9 +38,9 @@ When the prompt says "dry run" and names a state directory, read the state from 
 
 | File | Shape |
 | --- | --- |
-| `develop.json` | `{"<repo>": {"ci": {"head_sha", "run_head_sha" or null, "conclusion" or null}, "merged_prs": [{"number", "required_check": "success"\|"failure"\|"missing"}], "fast_checks": "pass"\|"fail"\|null, "fixable": true\|false\|null}}` |
+| `develop.json` | `{"<repo>": {"ci": {"head_sha", "run_head_sha" or null, "conclusion" or null}, "merged_prs": [{"number", "required_check": "success"\|"failure"\|"missing"}], "gate_command": "pass"\|"fail"\|null, "fixable": true\|false\|null}}` |
 | `pulls.json` | `[{"repo", "number", "head", "state"}]` |
-| `issues.json` | `[{"key", "title", "priority", "created", "state", "labels", "description", "comments": [{"author": "person"\|"agent", "at", "body"}], "routine_branch", "claimed_by_other"}]` |
+| `issues.json` | `[{"key", "title", "priority", "created", "state", "labels", "description", "comments": [{"author": "person"\|"agent", "at", "body"}], "routine_branch", "claimed_by_other"}]`. `priority`: 1 urgent … 4 low, 0 none. `routine_branch`: true when a `routine/<key>*` branch has commits in the last 24 hours (an older branch is false). `claimed_by_other`: true when another agent session holds an unclosed claim from the last 24 hours |
 
 Output:
 
@@ -53,7 +53,7 @@ Output:
  "stop": null}
 ```
 
-`stop` is `null`, `"nothing to do"` or `"no slots"`. A develop issue the gate would file is named `NEW-DEVELOP-<repo>`. `actions` gives the outcome of `working-an-issue` §1 for every queued issue that is not skipped, so a dry run also shows the ask-or-block decision.
+`skip` lists queued issues not taken because `working-an-issue` §1 finds them taken or already done, or because their repository's gate is red. Issues beyond the free slots go in neither `take` nor `skip`. `stop` is `null`, `"nothing to do"` or `"no slots"`. A develop issue the gate would file is named `NEW-DEVELOP-<repo>`. `actions` gives the outcome of `working-an-issue` §1 for every queued issue that is not skipped, so a dry run also shows the ask-or-block decision.
 
 ## Red flags
 
