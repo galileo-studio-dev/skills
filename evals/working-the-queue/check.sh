@@ -21,6 +21,6 @@ for s in "$here"/scenarios/*/; do
   name=$(basename "$s")
   [ -f "$work/$name/stream.jsonl" ] || continue
   echo; echo "cost and context, $name (evals/lib/usage.py):"
-  python3 "$here/../lib/usage.py" "$work/$name/stream.jsonl" --out "$work/$name/metrics.json" | sed 's/^/  /'
+  python3 "$here/../lib/usage.py" "$work/$name/stream.jsonl" --out "$work/$name/metrics.json" | sed 's/^/  /' || bad "$name: usage.py could not read the stream"
 done
 echo; [ $fail -eq 0 ] && echo "working-the-queue eval: PASS" || { echo "working-the-queue eval: FAIL"; exit 1; }

@@ -53,7 +53,7 @@ The result is stored as exactly one of the agent-ready or needs-human labels (a 
 ## 4. Claim, comment, thread
 
 - **Agent or person?** A comment that carries a session link (below) is an agent's. Any other comment is a person's, whatever account posted it: tracker connectors often post as a shared human account.
-- **Free?** An issue is taken if it has an unclosed claim from another agent session in the last 24 hours, or commits on its routine branch in the last 24 hours. A person's comments do not count. Skip a taken issue.
+- **Free?** An issue is taken if it has an unclosed claim from another agent session in the last 24 hours, or commits on its routine branch in the last 24 hours (unless the issue is in needs HITL with an answer). A person's comments do not count. Skip a taken issue.
 - **Claim.** Move it to in progress and comment, in the project language, that you are taking it, with the mode, the session link and the UTC time. Read the issue again. If another claim landed first, comment that you are stepping back and take the next issue. When you finish, edit the claim to say what happened.
 - **Session link.** Compute it once with `echo "https://claude.ai/code/${CLAUDE_CODE_REMOTE_SESSION_ID/#cse_/session_}"` and put it in every comment. If the variable is empty (a local session), write `local session` instead.
 - **Thread.** If the run was given a launch comment id, reply to it.

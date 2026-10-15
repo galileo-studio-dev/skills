@@ -53,7 +53,7 @@ Output:
  "stop": null}
 ```
 
-`skip` lists queued issues not taken because `working-an-issue` §1 finds them taken or already done, or because their repository's gate is red. Issues beyond the free slots go in neither `take` nor `skip`. `stop` is `null`, `"nothing to do"` or `"no slots"`. A develop issue the gate would file is named `NEW-DEVELOP-<repo>`. `actions` gives the outcome of `working-an-issue` §1 for every queued issue that is not skipped, so a dry run also shows the ask-or-block decision.
+`skip` lists queued issues not taken because `working-an-issue` §1 finds them taken or already done, or because their repository's gate is red. Issues beyond the free slots go in neither `take` nor `skip`. `take` lists the issues whose action is `work`; an issue that ends in `ask` or `block` appears only in `actions`. `stop` is `null`, `"nothing to do"` or `"no slots"`. A develop issue the gate would file is named `NEW-DEVELOP-<repo>`. `actions` gives the outcome of `working-an-issue` §1 for every queued issue that is not skipped, so a dry run also shows the ask-or-block decision.
 
 ## Red flags
 
