@@ -21,7 +21,7 @@ Each copied the catalog and rewrote its data in place, so fixes did not travel.
 6. **A question is a state, not a label.** Questions move an issue to `Needs HITL` and keep it agent-ready. Structural blockers add `blocked` + needs-human. Only needs-human counts toward the cap.
 7. **One implementation loop.** `working-an-issue` does the tracker side and calls `delivering-changes` for the code.
 8. **Execution is a scheduled batch session.** No routine-fire token lives in any agent environment. Subagents cannot start subagents, so the session is the Controller for each issue in turn.
-9. **Every run starts with the develop gate.** Kura's CI gained `push: develop` for it (compliance-backend #136, compliance-frontend #132).
+9. **Every run starts with the develop gate.** Kura's CI gains `push: develop` for it once compliance-backend #136 and compliance-frontend #132 merge; until then the gate falls back to merged pull requests' checks.
 10. **Agents never merge, in any repository.** This reverses Piro's 2026-10-13 auto-merge of levels 0–1, so it is a proposal for Pablo. PR levels shrink to a protected-paths list.
 11. **Installation.** Skills are installed with `npx skills` and pinned in `skills-lock.json`.
 

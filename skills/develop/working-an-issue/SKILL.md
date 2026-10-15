@@ -14,8 +14,9 @@ The tracker side of one issue. The code itself is `delivering-changes`'s job; th
 ## 1. Check
 
 - Read the issue, its comments and related issues. Compare them with Git: `git log origin/<base> --grep <KEY>` and open pull requests that name the key. The last comment can be stale.
-- Already done on the base branch: in a routine, comment that and skip; interactively, tell the person.
+- Already done on the base branch: in a routine, comment that once (skip the comment if an earlier agent comment already says so) and skip; interactively, tell the person.
 - An open pull request for the key, or a branch `routine/<key-lowercase>*` on origin with commits in the last 24 hours (unless the issue is in needs HITL with an answer): in a routine the issue is taken, so skip it and say so; interactively, continue on that branch. An older routine branch (for example one left behind by a question in needs HITL): continue on it.
+- A pull request for the key that a person closed without merging: give up as a structural blocker (`running-routines` §5), reason "closed by a person".
 - Re-check the rubric (`running-routines` §3) against what you now know. If it fails, go to §7 now.
 
 ## 2. Claim

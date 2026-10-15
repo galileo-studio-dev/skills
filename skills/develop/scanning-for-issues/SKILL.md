@@ -13,11 +13,11 @@ A finder fills the tracker for executors and people without flooding it. Caps ke
 
 ## Steps
 
-0. Read the project data and run the develop gate (`running-routines` §1–2) with the window from `### Scanner`. In a red repository, skip the checks that would only repeat the failure.
+0. Read the project data and run the develop gate (`running-routines` §1–2) with the window from `### Scanner`. In a red repository, skip step 6 (UI QA) and file nothing that comes only from the failing check. When the finder files the develop issue (`running-routines` §2), it also gets the finder label and the last line `Huella: develop-red:<repo>`.
 1. **Count**, without reading descriptions:
    - `nh`: open issues with the needs-human label, whoever filed them;
    - `queue`: agent-ready issues without the blocked label, in the backlog or todo state.
-2. **Remind.** For each open needs-human issue with no assignee, labeled needs-human for longer than the reminder age: assign it to the reminders person and add one comment, in the project language and with the session link (`running-routines` §4), saying how long it has waited and why it needs a person (mention it if the fixer gave up). Never touch an issue that has an assignee: the assignment is the record.
+2. **Remind.** For each open needs-human issue with no assignee, created more than the reminder age ago (trackers do not expose when a label was added): assign it to the reminders person and add one comment, in the project language and with the session link (`running-routines` §4), saying how long it has waited and why it needs a person (mention it if the fixer gave up). Never touch an issue that has an assignee: the assignment is the record. Also remind every needs-HITL issue whose last agent question has had no person's answer for longer than the reminder age: assign it to the product-decisions person and comment, under the same "an assignee is the record" rule.
 3. **Slots:** `nh_free` = the needs-human cap minus `nh`; `fix_free` = the queue cap minus `queue`. If both are 0 or less, report "caps full" with both counts and stop without scanning.
 4. **Scope:**
    - the files changed on the base branch within the window (`git log origin/<base> --since=<window> --name-only --format= | sort -u`, skipping deleted files);
@@ -36,11 +36,11 @@ A finder fills the tracker for executors and people without flooding it. Caps ke
    - N+1 or unbounded queries (`performance`);
    - oversized modules (`complexity`).
 
-   Use the tools `### Scanner` lists and install nothing. Skip what its skip list names.
+   Use the tools `### Scanner` lists and install nothing. Skip findings already tracked where the skip list in `### Scanner` points (read it first).
 6. **UI QA**, only if `### Scanner` describes a harness. Run the end-to-end suite: a test that fails twice is a finding, and one that passes on the rerun is flaky (report it). Visit the routes the recipe names, in the viewports it names, with realistic and empty data. Look for page-level overflow (`overflow`), clipped or overlapping text and unreachable controls (`layout`), text not in the project language (`text`), broken empty states (`empty-state`), broken error states (`error-state`) and console errors (`console`). Drop anything caused only by incomplete mock data.
 7. **Fingerprint** each finding, with no dots (replace `.` with `-`: trackers autolink domain-like text):
    - tech debt: `<category>:<repo>/<path without extension>:<symbol>`, with `<category>` the slug from step 5;
-   - UI: `qa-<kind>:<route>:<viewport>`, with `<kind>` the slug from step 6;
+   - UI: `qa-<kind>:<route pattern>:<viewport>`, with `<kind>` the slug from step 6 and the route pattern, for example `/projects/[id]`, never a concrete id;
    - failing end-to-end test: `qa-e2e:<spec without extension>:<test title in kebab-case>`.
 
    For each finding, search the tracker, including completed, canceled and archived issues, for `Huella: <fingerprint>`. Compare the last line of every result exactly, after stripping markdown link syntax. Also search open issues by path and symbol.
@@ -55,7 +55,7 @@ A finder fills the tracker for executors and people without flooding it. Caps ke
      - **State and title:** backlog; title `[BUG] …` for defects, `[IMPROVEMENT] …` for debt.
      - **Labels:** finder + type + fixability.
      - **Priority:** high for security, data or a failing end-to-end test; low for cosmetic; medium otherwise.
-     - **Description** in the project language, with sections: context (where), evidence (command output, or reproduction with the fixture used), goal, tasks (checkboxes), testable acceptance criteria, out of scope.
+     - **Description** in the project language, with the sections the project data lists (`## Language`, `Issue sections`). If it lists none: context (where), evidence (command output, or reproduction with the fixture used), goal, tasks (checkboxes), testable acceptance criteria, out of scope.
      - **Last line:** exactly `Huella: <fingerprint>` (a fixed token, never translated).
 9. **Rules:** only create issues, plus the reminders of step 2. Never edit, relabel, close or comment on anything else. Never commit, push, branch or open pull requests; leave the repositories clean.
 10. **Report:**

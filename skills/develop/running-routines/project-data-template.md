@@ -6,6 +6,8 @@ Read by the routine skills (`running-routines` §1). Values only: process lives 
 
 <es | en>: issues, comments, questions, pull request bodies and reports for people are written in this language.
 
+- Issue sections, in this language: <Contexto, Evidencia, Objetivo, Tareas, Criterios de aceptación, Fuera de alcance>
+
 ## Tracker
 
 - Tool and channel: <Linear, through its MCP connector only>
@@ -46,7 +48,7 @@ Read by the routine skills (`running-routines` §1). Values only: process lives 
 ## People
 
 - Reminders go to: <name> (<tracker user id>)
-- Product decisions: <name>
+- Product decisions: <name> (<tracker user id>)
 
 ## Notes
 

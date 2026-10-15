@@ -27,7 +27,7 @@ Read the project data file before anything else: the path the routine's prompt n
 | `## People` | Who receives reminders (tracker user id); who decides product questions |
 | `## Notes` | Free text per mode: `### Cloud`, `### Queue`, `### Scanner` |
 
-Template: [`project-data-template.md`](project-data-template.md). When two repositories share a value, such as a cap that counts pull requests in both, one file holds it and the other says where.
+Template: [`project-data-template.md`](project-data-template.md). When two repositories share a value, such as a cap that counts pull requests in both, one file holds it and the other says where. If the tracker is unreachable, send a push notification and stop.
 
 ## 2. The develop gate
 
@@ -35,7 +35,7 @@ Every run of every mode starts here, after §1 and before any other work, once p
 
 1. Take the latest completed, non-cancelled run of the base branch's CI workflow. If it ran on the base branch's current head commit, its conclusion decides.
 2. Otherwise (no completed run on the current head), list the pull requests merged into the base branch within the mode's window. If none has a red or missing required check on its final head commit, the base is green. If one does, run the project's gate command (Verification) on the base head: its result decides.
-3. Red: search the tracker for an open issue titled `[BUG] develop red: <repo>`. If none, file it: urgent priority, type bug, the failing check and the suspected pull request in the description (written in the project language). Label it agent-ready only when one focused pull request fixes it without touching a protected path; otherwise label it needs-human.
+3. Red: search the tracker for an open issue titled `[BUG] develop red: <repo>`. If none, file it titled exactly `[BUG] develop red: <repo>` (a fixed token, never translated), in the backlog state: urgent priority, type bug, the failing check and the suspected pull request in the description (written in the project language). Label it agent-ready only when one focused pull request fixes it without touching a protected path; otherwise label it needs-human.
 
 The mode decides what follows. An executor fixes an agent-ready develop issue first. A finder skips that repository's checks that would only repeat the failure. When a person must act, send a push notification: `develop red in <repo>: <check>`.
 
@@ -53,7 +53,7 @@ The result is stored as exactly one of the agent-ready or needs-human labels (a 
 ## 4. Claim, comment, thread
 
 - **Agent or person?** A comment that carries a session link (below) is an agent's. Any other comment is a person's, whatever account posted it: tracker connectors often post as a shared human account.
-- **Free?** An issue is taken if it has an unclosed claim from another agent session in the last 24 hours, or commits on its routine branch in the last 24 hours (unless the issue is in needs HITL with an answer). A person's comments do not count. Skip a taken issue.
+- **Free?** An issue is taken if it has an unclosed claim from another agent session in the last 24 hours, an open pull request for the key, or commits on its routine branch in the last 24 hours (unless the issue is in needs HITL with an answer). A person's comments do not count. Skip a taken issue.
 - **Claim.** Move it to in progress and comment, in the project language, that you are taking it, with the mode, the session link and the UTC time. Read the issue again. If another claim landed first, comment that you are stepping back and take the next issue. When you finish, edit the claim to say what happened.
 - **Session link.** Compute it once with `echo "https://claude.ai/code/${CLAUDE_CODE_REMOTE_SESSION_ID/#cse_/session_}"` and put it in every comment. If the variable is empty (a local session), write `local session` instead.
 - **Thread.** If the run was given a launch comment id, reply to it.
@@ -65,7 +65,7 @@ Two outcomes; never mix them.
 
 - **A question.** Use it when the requirements are unclear or contradict each other, a product decision is missing, or two valid options give the person different results.
   - Comment numbered questions, one decision each, at most six lines each: what the issue is, what it says now, what you propose and why, and the main alternative. They must be answerable without opening the tracker or the repository.
-  - Move the issue to needs HITL and keep its agent-ready label. If the tracker has no such state, say so in the comment and leave the issue in progress.
+  - Move the issue to needs HITL and keep its agent-ready label. If the project data names no needs-HITL state, treat the question as a structural blocker instead (below), with the questions in its comment.
   - Stop work on it. If its branch has commits, push the branch and link it in the comment.
 - **A structural blocker.** Use it when the change needs a protected path, a person's hands, access the cloud lacks, or more than one pull request. Add the blocked and needs-human labels (needs-human replaces agent-ready) and one comment saying why. Then move it back to todo.
 
