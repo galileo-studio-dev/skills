@@ -1,0 +1,5 @@
+[
+  {"key":"EV-20","state":"canceled","last_line":"Huella: duplication:app/lib/dates:format"},
+  {"key":"EV-21","state":"completed","last_line":"Huella: test-gap:app/api/files:upload"},
+  {"key":"EV-22","state":"open","last_line":"Huella: test-gap:app/api/files:upload"}
+]

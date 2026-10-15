@@ -1,0 +1,1 @@
+{"stop":null,"file":["security:app/api/auth:login","dead-code:app/lib/legacy:parse"],"hold":["layering:app/api/export:build"],"drop":["duplication:app/lib/dates:format","test-gap:app/api/files:upload"],"regressions":[],"notify":false}

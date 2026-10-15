@@ -91,7 +91,7 @@ Never done or canceled: closing is a person's call.
 
 ## 8. Report
 
-Each mode ends with its report as the final message, in the project language. Send a push notification only when a person must act today: develop is red and not agent-fixable, a security finding was held, or the tracker is unreachable.
+Each mode ends with its report as the final message, in the project language. Send a push notification only when a person must act today: develop is red and not agent-fixable, a security or data finding was held, or the tracker is unreachable.
 
 ## Red flags
 
