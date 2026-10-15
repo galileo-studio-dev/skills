@@ -1,0 +1,7 @@
+[
+  {"fingerprint":"security:app/api/auth:login","title":"Login endpoint has no rate limit","category":"security","class":"security","fixability":"needs-human"},
+  {"fingerprint":"layering:app/api/export:build","title":"Export route builds files in the handler","category":"layering","class":"flow","fixability":"needs-human"},
+  {"fingerprint":"duplication:app/lib/dates:format","title":"Date formatting duplicated in lib/dates","category":"duplication","class":"maintenance","fixability":"agent-ready"},
+  {"fingerprint":"test-gap:app/api/files:upload","title":"Upload handler has no test","category":"test-gap","class":"maintenance","fixability":"agent-ready"},
+  {"fingerprint":"dead-code:app/lib/legacy:parse","title":"Unused parse in lib/legacy","category":"dead-code","class":"maintenance","fixability":"agent-ready"}
+]

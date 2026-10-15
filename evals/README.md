@@ -12,8 +12,10 @@ green `unittest` tests, a spec with four requirements and two constraints, a
 two-slice plan). With `--with-review-branch` it adds `feature/session-expiry`
 carrying two planted defects: `GetSessionAge` renamed although the spec
 forbids it, and a `try/except` in `refresh_session` that swallows the
-revocation error. Every eval starts from this fixture; `scripts/check.sh`
-uses it to exercise the delivery hooks.
+revocation error. Every agentic eval starts from this fixture; the dry-run
+evals (`working-the-queue`, `scanning-for-issues`) use state files in their
+`scenarios/` instead. `scripts/check.sh` uses the fixture to exercise the
+delivery hooks.
 
 ## Evals
 
@@ -22,6 +24,8 @@ uses it to exercise the delivery hooks.
 | `reviewing-pull-requests/run.sh` | The skill reviews the planted branch against a PR description that ticks every checklist box | Both defects found, verdict withholds readiness, scope and human-approval items unticked, no approval, repository untouched | ~1–2 min, one agent plus two sub-reviewers |
 | `delivering-changes/run.sh` | The `delivery` plugin delivers the two-slice plan through Worker and Reviewer agents, with a bare origin to catch pushes | A commit per slice (fix cycles add more), tests green, `GetSessionAge` untouched, tree clean, nothing pushed, gates fired on both layers, both roles dispatched, report says `status: verified` | ~3–5 min; $1.72 ($0.86/slice) on an Opus 5.5 session, $0.98 ($0.49/slice) all-Sonnet |
 | `scoping-changes/run.sh` | The same bounded task with and without the skill; `measure.sh` compares both arms | Judged by reading: the with-skill arm should add fewer lines, keep the signature, add fewer tests, and report in fewer words | ~2–3 min, two agents |
+| `working-the-queue/run.sh` | Execute mode in dry run over five scenarios (develop red, develop red with free slots, slots and order, empty queue, ask vs block) | Gate, slots, taken keys, skips and ask/block actions match `expect.json` | ~1 min per scenario, one agent |
+| `scanning-for-issues/run.sh` | Find mode in dry run over three scenarios (caps and dedupe, partial fill and matches, both caps full) | Filed, held, dropped, regressions and notify match `expect.json` | ~1 min per scenario, one agent |
 
 Each `run.sh` accepts a work directory as its first argument and leaves the
 fixture, the JSON stream, and the report there for inspection. The

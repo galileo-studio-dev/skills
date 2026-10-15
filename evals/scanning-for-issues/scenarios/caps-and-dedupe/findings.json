@@ -1,0 +1,7 @@
+[
+  {"fingerprint":"security:app/api/upload:upload_file","title":"Upload endpoint accepts any file type","category":"security","class":"security","fixability":"needs-human"},
+  {"fingerprint":"security:app/api/export:export_pdf","title":"PDF export reads a path from the request","category":"security","class":"security","fixability":"needs-human"},
+  {"fingerprint":"dead-code:app/lib/old:helper","title":"Unused helper in lib/old","category":"dead-code","class":"maintenance","fixability":"agent-ready"},
+  {"fingerprint":"qa-overflow:/projects:375","title":"Projects page overflows horizontally at 375px","category":"qa-overflow","class":"cosmetic","fixability":"agent-ready"},
+  {"fingerprint":"error-handling:app/api/files:read_file","title":"read_file swallows storage errors","category":"error-handling","class":"maintenance","fixability":"agent-ready"}
+]

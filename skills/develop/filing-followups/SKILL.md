@@ -35,6 +35,8 @@ Use the tracker the repository's own contract names, not your preference:
 - Otherwise `gh issue create --label follow-up`.
 - If the named tracker is unreachable, do **not** silently fall back to another one and do not drop the list. Report the issues you would have filed, in the pull request description, and say the tracker was unavailable.
 
+Whichever tracker: if the repository's project data (`running-routines` §1) declares fixability labels, give each issue exactly one: agent-ready only when it meets the rubric in `running-routines` §3, otherwise needs-human. Before filing a needs-human issue, count the open ones; if filing would pass the needs-human cap, say so in the list you show the person.
+
 ## Deduplicate before writing
 
 Every issue carries a stable key as the last line of its body:

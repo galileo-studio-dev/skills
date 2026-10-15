@@ -1,0 +1,1 @@
+{"stop":null,"file":["error-handling:app/api/files:read_file"],"hold":["security:app/api/upload:upload_file","security:app/api/export:export_pdf"],"drop":["dead-code:app/lib/old:helper","qa-overflow:/projects:375"],"regressions":["error-handling:app/api/files:read_file"],"notify":true}
