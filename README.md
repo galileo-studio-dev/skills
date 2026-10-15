@@ -106,7 +106,7 @@ infrastructure, Clerk, Stripe, and Sentry also belong here.
 | `working-an-issue` | Work one tracker issue from check to a draft pull request, delivering the code through `delivering-changes`. |
 | `working-the-queue` | Execute mode: gate, work-in-progress slots, agent-ready queue, one issue at a time, queue report. |
 | `scanning-for-issues` | Find mode: gate, caps, reminders, incremental scan, fingerprint dedupe, file or hold. |
-| `sweeping-open-work` | Sweep mode: one person's red pull requests, answered questions, stalled issues and orphan branches, recovered up to ready for review, with a report document per person. |
+| `sweeping-open-work` | Sweep mode: one person's red pull requests, answered questions, stalled issues and orphan branches, recovered up to a draft pull request with CI green and a clean review, with a report document per person. |
 | `verification-before-completion` | Require fresh evidence before claiming work is complete. |
 | `finishing-a-development-branch` | Verify tests and choose how to integrate finished work: merge, PR, keep, or discard. |
 

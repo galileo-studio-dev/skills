@@ -30,7 +30,7 @@ Read the project data file before anything else: the path the routine's prompt n
 
 Template: [`project-data-template.md`](project-data-template.md). When two repositories share a value, such as a cap that counts pull requests in both, one file holds it and the other says where. If the tracker is unreachable, send a push notification and stop.
 
-A routine prompt may route by payload: issue keys → `working-the-queue` with those keys; a request from a Git hosting issue or pull request (e.g. a mention) → `working-an-issue` on that request, replying in that thread; nothing → the scheduled mode.
+A routine prompt may route by payload: issue keys → `working-the-queue` with those keys; a request from a Git hosting issue or pull request (e.g. a mention) → `working-an-issue` on that request, replying in that thread, with `gh-<number>` as its key; nothing → the scheduled mode.
 
 ## 2. The develop gate
 

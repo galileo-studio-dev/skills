@@ -1,6 +1,6 @@
 ---
 name: working-an-issue
-description: Works one tracker issue from check to a draft pull request — confirms it is free and still needed, claims it, branches, delivers the code with `delivering-changes`, verifies, opens the pull request and updates the tracker, or asks or gives up the way `running-routines` §5 says. Use for "do <issue key>" in an interactive session and for each issue a routine takes. Not for choosing which issues to do (`working-the-queue`) or for planning multi-issue work.
+description: Works one tracker issue from check to a draft pull request — confirms it is free and still needed, claims it, branches, delivers the code with `delivering-changes`, verifies, opens the pull request and updates the tracker, or asks or gives up the way `running-routines` §5 says. Use for "do <issue key>" in an interactive session, for each issue a routine takes, and for a request from a Git hosting issue or pull request thread (such as a mention). Not for choosing which issues to do (`working-the-queue`) or for planning multi-issue work.
 ---
 
 # Working an Issue
@@ -13,7 +13,7 @@ The tracker side of one issue. The code itself is `delivering-changes`'s job; th
 
 ## 1. Check
 
-- When the request comes from a Git hosting issue or pull request with no tracker issue (e.g. a mention), that thread is the spec and the comment channel, and the rubric still applies.
+- When the request comes from a Git hosting issue or pull request with no tracker issue (e.g. a mention), that thread is the spec and the comment channel, and the rubric still applies. Its key is `gh-<number>` (the issue or pull request number): the branch is the routine branch prefix, then `gh-<number>-<short-slug>`, the pull request title pattern gets `#<number>` where `<KEY>` goes, and the claim and every comment go in that thread, with the session link (`running-routines` §4).
 - Read the issue, its comments and related issues. Compare them with Git: `git log origin/<base> --grep <KEY>` and open pull requests that name the key. The last comment can be stale.
 - Already done on the base branch: in a routine, comment that once (skip the comment if an earlier agent comment already says so) and skip; interactively, tell the person.
 - An open pull request for the key (unless a sweep calls it for that pull request), or a branch on origin named with the project data's routine branch prefix, then `<key-lowercase>`, with commits in the last 24 hours (unless the issue is in needs HITL with an answer): in a routine the issue is taken, so skip it and say so; interactively, continue on that branch. An older routine branch (for example one left behind by a question in needs HITL): continue on it.
