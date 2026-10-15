@@ -24,6 +24,7 @@ Read by the routine skills (`running-routines` §1). Values only: process lives 
 
 - Commands: <AGENTS.md § Verification and § Cloud sessions>
 - Base branch CI: workflow <CI Backend> (`.github/workflows/ci.yml`), required check <ci-ok>
+- Gate command (the develop gate's confirmation, minutes not hours): <bun run typecheck && bun run lint>
 
 ## Protected paths
 

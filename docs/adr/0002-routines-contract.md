@@ -1,6 +1,6 @@
-# 0002. One contract for agent routines
+# ADR 0002: One contract for agent routines
 
-Status: accepted for Kura, proposed for Piro (2026-10-15)
+Status: accepted for Kura, proposed for Piro. Date: 2026-10-15.
 
 ## Context
 
