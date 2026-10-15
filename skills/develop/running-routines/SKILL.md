@@ -24,7 +24,7 @@ Read the project data file before anything else: the path the routine's prompt n
 | `## Protected paths` | Globs an agent never changes |
 | `## Caps` | Work-in-progress ceiling, queue cap, needs-human cap, reminder age; `none` is a value |
 | `## Execution` | Delivery tier, worker model per priority, `/simplify` threshold |
-| `## People` | Who receives reminders (tracker user id); who decides product questions |
+| `## People` | Who receives reminders and who decides product questions, each with a tracker user id |
 | `## Notes` | Free text per mode: `### Cloud`, `### Queue`, `### Scanner` |
 
 Template: [`project-data-template.md`](project-data-template.md). When two repositories share a value, such as a cap that counts pull requests in both, one file holds it and the other says where. If the tracker is unreachable, send a push notification and stop.
