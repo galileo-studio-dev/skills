@@ -36,8 +36,8 @@ A routine prompt may route by payload: issue keys → `working-the-queue` with t
 
 Every run of every mode starts here, after §1 and before any other work (a mode's own preconditions, such as the sweep's person and lock checks, may run first), once per repository:
 
-1. Take the latest completed, non-cancelled run of the base branch's CI workflow. If it ran on the base branch's current head commit, its conclusion decides.
-2. Otherwise (no completed run on the current head), list the pull requests merged into the base branch within the mode's window. If none has a red or missing required check on its final head commit, the base is green. If one does, run the project's gate command (Verification) on the base head: its result decides.
+1. Look at the base branch's CI runs on pushes. For each job, take its most recent run in which it was not skipped: if any of those failed, the base is red; if all passed, it is green. (With path-filtered CI, a green run on the head may have skipped the jobs that are red.)
+2. With no push runs at all, list the pull requests merged into the base branch within the mode's window. If none has a red or missing required check on its final head commit, the base is green. If one does, run the project's gate command (Verification) on the base head: its result decides.
 3. Red: search the tracker for an open issue titled `[BUG] develop red: <repo>`. If none, file it titled exactly `[BUG] develop red: <repo>` (a fixed token, never translated), in the backlog state: urgent priority, type bug, the failing check and the suspected pull request in the description (written in the project language). Label it agent-ready only when one focused pull request fixes it without touching a protected path; otherwise label it needs-human.
 
 The mode decides what follows. An executor fixes an agent-ready develop issue first. A finder skips that repository's checks that would only repeat the failure. When a person must act, send a push notification: `develop red in <repo>: <check>`.

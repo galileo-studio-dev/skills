@@ -38,7 +38,7 @@ When the prompt says "dry run" and names a state directory, read the state from 
 
 | File | Shape |
 | --- | --- |
-| `develop.json` | `{"<repo>": {"ci": {"head_sha", "run_head_sha" or null, "conclusion" or null}, "merged_prs": [{"number", "required_check": "success"\|"failure"\|"missing"}], "gate_command": "pass"\|"fail"\|null, "fixable": true\|false\|null}}` |
+| `develop.json` | `{"<repo>": {"ci": {"head_sha", "run_head_sha" or null, "conclusion" or null}, "merged_prs": [{"number", "required_check": "success"\|"failure"\|"missing"}], "gate_command": "pass"\|"fail"\|null, "fixable": true\|false\|null}}`. `ci.conclusion`: the result of `running-routines` §2 step 1 (per job), or null when there are no push runs |
 | `pulls.json` | `[{"repo", "number", "head", "state"}]` |
 | `issues.json` | `[{"key", "title", "priority", "created", "state", "labels", "description", "comments": [{"author": "person"\|"agent", "at", "body"}], "routine_branch", "claimed_by_other"}]`. `priority`: 1 urgent … 4 low, 0 none. `routine_branch`: true when a branch named with the routine branch prefix, then the key, has commits in the last 24 hours (an older branch is false). `claimed_by_other`: true when another agent session holds an unclosed claim from the last 24 hours |
 
