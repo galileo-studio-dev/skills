@@ -1,0 +1,4 @@
+[
+  {"key":"EV-41","title":"Export CSV with semicolons","state":"In Review","assignee":"person","created":"2026-10-05","labels":["Agent ready"],"description":"CSV export uses commas. Acceptance: the CSV export uses semicolons as separators.","comments":[],"claimed_by_other":false,"routine_branch":false,"activity_24h":false},
+  {"key":"EV-42","title":"Retry failed webhook deliveries","state":"In Progress","assignee":"person","created":"2026-10-07","labels":["Agent ready"],"description":"Failed webhook deliveries are dropped. Acceptance: a failed delivery is retried three times.","comments":[{"author":"person","at":"2026-10-12T10:00:00Z","body":"Started on this, branch pushed."}],"claimed_by_other":false,"routine_branch":false,"activity_24h":false}
+]

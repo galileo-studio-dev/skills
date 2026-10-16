@@ -1,0 +1,4 @@
+[
+  {"key":"EV-42","title":"Retry failed webhook deliveries","state":"In Progress","assignee":"person","created":"2026-10-07","labels":["Agent ready"],"description":"Failed webhook deliveries are dropped. Acceptance: a failed delivery is retried three times.","comments":[{"author":"person","at":"2026-10-12T10:00:00Z","body":"Started on this, branch pushed."},{"author":"agent","at":"2026-10-15T01:05:00Z","body":"Taking it: sweep for Eval Person, session https://claude.ai/code/session_01old, 2026-10-15 01:05 UTC."}],"claimed_by_other":false,"routine_branch":false,"activity_24h":false},
+  {"key":"EV-43","title":"Disable the export button while exporting","state":"Todo","assignee":"person","created":"2026-10-01","labels":["Agent ready"],"description":"The export button can be clicked twice. Acceptance: the export button is disabled while exporting.","comments":[],"claimed_by_other":false,"routine_branch":false,"activity_24h":false}
+]

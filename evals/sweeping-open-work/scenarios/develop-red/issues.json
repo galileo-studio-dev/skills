@@ -1,0 +1,5 @@
+[
+  {"key":"EV-21","title":"Unknown project in list endpoint","state":"In Review","assignee":"person","created":"2026-10-05","labels":["Agent ready"],"description":"The list endpoint returns an empty list for an unknown project id. Acceptance: it returns 404 for an unknown project.","comments":[],"claimed_by_other":false,"routine_branch":false,"activity_24h":false},
+  {"key":"EV-22","title":"Typo in the footer","state":"In Review","assignee":"person","created":"2026-10-06","labels":["Agent ready"],"description":"The footer says 'Copyrigth'. Acceptance: the footer reads 'Copyright'.","comments":[],"claimed_by_other":false,"routine_branch":false,"activity_24h":false},
+  {"key":"EV-23","title":"Disable the export button while exporting","state":"Todo","assignee":"person","created":"2026-10-01","labels":["Agent ready"],"description":"The export button can be clicked twice. Acceptance: the export button is disabled while exporting.","comments":[],"claimed_by_other":false,"routine_branch":false,"activity_24h":false}
+]

@@ -1,6 +1,6 @@
 ---
 name: running-routines
-description: The contract every unattended agent routine follows in a company repository — the project data file, the develop gate that opens every run, which issues an agent may take, how it claims, asks and gives up, which tracker states it may set, and what it never does. Use at the start of any scheduled or remotely fired Claude Code routine session, and when writing or changing a routine prompt. The mode skills `working-the-queue` and `scanning-for-issues` build on it.
+description: The contract every unattended agent routine follows in a company repository — the project data file, the develop gate that opens every run, which issues an agent may take, how it claims, asks and gives up, which tracker states it may set, and what it never does. Use at the start of any scheduled or remotely fired Claude Code routine session, and when writing or changing a routine prompt. The mode skills `working-the-queue`, `scanning-for-issues` and `sweeping-open-work` build on it.
 ---
 
 # Running Routines
@@ -19,22 +19,25 @@ Read the project data file before anything else: the path the routine's prompt n
 | --- | --- |
 | `## Language` | Language of everything a person reads: issues, comments, questions, pull request bodies, reports; and the issue sections. Code and code comments follow `AGENTS.md` |
 | `## Tracker` | Tool and channel, team, project, state names (backlog, todo, in progress, in review, done, needs HITL), labels (agent-ready, needs-human, blocked, finder, types), and whether a tracker–Git integration moves states on pull request events |
-| `## Branches` | Base branch, production branch, routine branch prefix, pull request template |
+| `## Branches` | Base branch, production branch, routine branch prefix, pull request title pattern, pull request template |
 | `## Verification` | Where the fast and full commands are written; the gate command; the base branch's CI workflow and required check |
 | `## Protected paths` | Globs an agent never changes |
 | `## Caps` | Work-in-progress ceiling, queue cap, needs-human cap, reminder age; `none` is a value |
 | `## Execution` | Delivery tier, worker model per priority, `/simplify` threshold |
 | `## People` | Who receives reminders and who decides product questions, each with a tracker user id |
-| `## Notes` | Free text per mode: `### Cloud`, `### Queue`, `### Scanner` |
+| `## Surfaces` | Optional: where a person sees each part of the product once it is deployed |
+| `## Notes` | Free text per mode and topic: `### Cloud`, `### Queue`, `### Scanner`, `### Sweep`, `### Issue` |
 
 Template: [`project-data-template.md`](project-data-template.md). When two repositories share a value, such as a cap that counts pull requests in both, one file holds it and the other says where. If the tracker is unreachable, send a push notification and stop.
 
+A routine prompt may route by payload: issue keys → `working-the-queue` with those keys; a request from a Git hosting issue or pull request (e.g. a mention) → `working-an-issue` on that request, replying in that thread, with `gh-<number>` as its key; nothing → the scheduled mode.
+
 ## 2. The develop gate
 
-Every run of every mode starts here, after §1 and before any other work, once per repository:
+Every run of every mode starts here, after §1 and before any other work (a mode's own preconditions, such as the sweep's person and lock checks, may run first), once per repository:
 
-1. Take the latest completed, non-cancelled run of the base branch's CI workflow. If it ran on the base branch's current head commit, its conclusion decides.
-2. Otherwise (no completed run on the current head), list the pull requests merged into the base branch within the mode's window. If none has a red or missing required check on its final head commit, the base is green. If one does, run the project's gate command (Verification) on the base head: its result decides.
+1. Look at the base branch's CI runs on pushes. For each job, take its most recent run in which it was not skipped: if any of those failed, the base is red; if all passed, it is green. (With path-filtered CI, a green run on the head may have skipped the jobs that are red.)
+2. With no push runs at all, list the pull requests merged into the base branch within the mode's window. If none has a red or missing required check on its final head commit, the base is green. If one does, run the project's gate command (Verification) on the base head: its result decides.
 3. Red: search the tracker for an open issue titled `[BUG] develop red: <repo>`. If none, file it titled exactly `[BUG] develop red: <repo>` (a fixed token, never translated), in the backlog state: urgent priority, type bug, the failing check and the suspected pull request in the description (written in the project language). Label it agent-ready only when one focused pull request fixes it without touching a protected path; otherwise label it needs-human.
 
 The mode decides what follows. An executor fixes an agent-ready develop issue first. A finder skips that repository's checks that would only repeat the failure. When a person must act, send a push notification: `develop red in <repo>: <check>`.
@@ -53,7 +56,7 @@ The result is stored as exactly one of the agent-ready or needs-human labels (a 
 ## 4. Claim, comment, thread
 
 - **Agent or person?** A comment that carries a session link (below) is an agent's. Any other comment is a person's, whatever account posted it: tracker connectors often post as a shared human account.
-- **Free?** An issue is taken if it has an unclosed claim from another agent session in the last 24 hours, an open pull request for the key, or commits on its routine branch in the last 24 hours (unless the issue is in needs HITL with an answer). A person's comments do not count. Skip a taken issue.
+- **Free?** An issue is taken if it has an unclosed claim from another agent session in the last 24 hours, an open pull request for the key, or commits in the last 24 hours on its routine branch, the one named with the routine branch prefix and the key (unless the issue is in needs HITL with an answer). A sweep (`sweeping-open-work`) works on that pull request, so for it the open pull request does not make the issue taken. A person's comments do not count. Skip a taken issue.
 - **Claim.** Move it to in progress and comment, in the project language, that you are taking it, with the mode, the session link and the UTC time. Read the issue again. If another claim landed first, comment that you are stepping back and take the next issue. When you finish, edit the claim to say what happened.
 - **Session link.** Compute it once with `echo "https://claude.ai/code/${CLAUDE_CODE_REMOTE_SESSION_ID/#cse_/session_}"` and put it in every comment. If the variable is empty (a local session), write `local session` instead.
 - **Thread.** If the run was given a launch comment id, reply to it.

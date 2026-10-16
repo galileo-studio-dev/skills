@@ -1,23 +1,25 @@
 ---
 name: working-an-issue
-description: Works one tracker issue from check to a draft pull request — confirms it is free and still needed, claims it, branches, delivers the code with `delivering-changes`, verifies, opens the pull request and updates the tracker, or asks or gives up the way `running-routines` §5 says. Use for "do <issue key>" in an interactive session and for each issue a routine takes. Not for choosing which issues to do (`working-the-queue`) or for planning multi-issue work.
+description: Works one tracker issue from check to a draft pull request — confirms it is free and still needed, claims it, branches, delivers the code with `delivering-changes`, verifies, opens the pull request and updates the tracker, or asks or gives up the way `running-routines` §5 says. Use for "do <issue key>" in an interactive session, for each issue a routine takes, and for a request from a Git hosting issue or pull request thread (such as a mention). Not for choosing which issues to do (`working-the-queue`) or for planning multi-issue work.
 ---
 
 # Working an Issue
 
 ## Overview
 
-The tracker side of one issue. The code itself is `delivering-changes`'s job; this skill decides whether to start, keeps the tracker true, and ends at a draft pull request. It reads the project data (`running-routines` §1) for every value.
+The tracker side of one issue. The code itself is `delivering-changes`'s job; this skill decides whether to start, keeps the tracker true, and ends at a draft pull request. It reads the project data (`running-routines` §1) for every value, and follows its `### Issue` notes as extra steps: checks before starting (§1), extra tracker comments (§6) and tasks after a merge (§8).
 
 **Core principle:** an issue ends in exactly one place: a draft pull request, a question in needs HITL, or a blocker with needs-human. Never half-done and silent.
 
 ## 1. Check
 
+- When the request comes from a Git hosting issue or pull request with no tracker issue (e.g. a mention), that thread is the spec and the comment channel, and the rubric still applies. Its key is `gh-<number>` (the issue or pull request number): the branch is the routine branch prefix, then `gh-<number>-<short-slug>`, the pull request title pattern gets `#<number>` where `<KEY>` goes, the claim and every comment go in that thread, with the session link (`running-routines` §4), and commits name `#<number>`. On a pull request's thread, work on that pull request's branch and never open another; that pull request does not make the request taken.
 - Read the issue, its comments and related issues. Compare them with Git: `git log origin/<base> --grep <KEY>` and open pull requests that name the key. The last comment can be stale.
 - Already done on the base branch: in a routine, comment that once (skip the comment if an earlier agent comment already says so) and skip; interactively, tell the person.
-- An open pull request for the key, or a branch `routine/<key-lowercase>*` on origin with commits in the last 24 hours (unless the issue is in needs HITL with an answer): in a routine the issue is taken, so skip it and say so; interactively, continue on that branch. An older routine branch (for example one left behind by a question in needs HITL): continue on it.
+- An open pull request for the key (unless a sweep calls it for that pull request), or a branch on origin named with the project data's routine branch prefix, then `<key-lowercase>`, with commits in the last 24 hours (unless the issue is in needs HITL with an answer): in a routine the issue is taken, so skip it and say so; interactively, continue on that branch. An older routine branch (for example one left behind by a question in needs HITL): continue on it.
 - A pull request for the key that a person closed without merging, with no person's comment on the issue after it was closed: give up as a structural blocker (`running-routines` §5), reason "closed by a person".
 - Re-check the rubric (`running-routines` §3) against what you now know. If it fails, go to §7 now.
+- Run the checks `### Issue` lists before starting; a failed one goes to §7.
 
 ## 2. Claim
 
@@ -26,7 +28,7 @@ As `running-routines` §4 says. Interactively, also make sure the issue has an a
 ## 3. Branch
 
 From `origin/<base>`:
-- in a routine, `routine/<key-lowercase>-<short-slug>` in each repository the change needs;
+- in a routine, the project data's routine branch prefix, then `<key-lowercase>-<short-slug>`, in each repository the change needs;
 - interactively, the tracker's suggested branch name if the project uses it.
 
 ## 4. Deliver the code
@@ -49,7 +51,7 @@ Before the last review (the slice review when there is only one slice), when `gi
 
 ## 6. Pull request and tracker
 
-- Open a **draft** pull request into the base branch, titled `<type>: <summary> (<KEY>)`. Fill the project's pull request template in the project language with:
+- Open a **draft** pull request into the base branch, titled with the project data's pull request title pattern. Fill the project's pull request template in the project language with:
   - the tracker link;
   - what changed and why;
   - each command run and its result;
@@ -57,15 +59,20 @@ Before the last review (the slice review when there is only one slice), when `gi
   - the risks.
 
   A change across repositories gets one pull request per repository, linked to each other.
-- **Tracker:** comment with the pull request link. Move the issue to in review only if no tracker–Git integration does it. Edit your claim to say what happened.
+- **Draft.** Interactively, on the person's explicit OK for that pull request, mark it ready and merge it; in a routine it stays a draft and a person promotes and merges it.
+- **Tracker:** comment with the pull request link, what to look at on the surface the change touches (`## Surfaces`, when the project data has it), and any comment `### Issue` asks for. Move the issue to in review only if no tracker–Git integration does it. Edit your claim to say what happened.
 
 ## 7. Ask, or give up
 
 As `running-routines` §5 says. Interactively, ask the person in the chat, one decision per question, instead of moving the issue to needs HITL. The structural-blocker labels apply in both cases.
 
+## 8. Merge
+
+Agents never merge on their own: §6 says when a merge may happen, and in a routine it never does (`running-routines` §7). After a merge, run the tasks `### Issue` lists for after a merge.
+
 ## Report
 
-Return the key, the pull request links, and the end state (pull request / question / blocked) with one line why. In a routine, `working-the-queue` collects it.
+Return the key, the pull request links, and the end state (pull request / question / blocked) with one line why. In a routine, `working-the-queue` or `sweeping-open-work` collects it.
 
 ## Red flags
 
@@ -74,7 +81,7 @@ Return the key, the pull request links, and the end state (pull request / questi
 | "Its branch had commits today, but I'll take it over" | Taken for 24 hours. Skip it and say so |
 | "Close enough to the criteria" | The criteria are the spec: meet them, or ask |
 | "I'll fix this other thing I noticed" | Not this issue. Note it under the pull request's risks |
-| "The pull request is ready, so I'll mark it ready for review" | It stays a draft; a person promotes and merges it |
+| "The pull request is ready, so I'll mark it ready for review" | In a routine it stays a draft; a person promotes and merges it |
 
 ## Credits
 

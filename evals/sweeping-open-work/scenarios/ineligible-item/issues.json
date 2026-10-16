@@ -1,0 +1,4 @@
+[
+  {"key":"EV-51","title":"Archive projects","state":"In Progress","assignee":"person","created":"2026-10-03","labels":["Agent ready"],"description":"Add an archived_at column to projects, which needs a new migration in migrations/, and show it in the list. Acceptance: archived projects show their archive date.","comments":[{"author":"person","at":"2026-10-11T09:00:00Z","body":"Started the list part."}],"claimed_by_other":false,"routine_branch":false,"activity_24h":false},
+  {"key":"EV-42","title":"Retry failed webhook deliveries","state":"In Progress","assignee":"person","created":"2026-10-07","labels":["Agent ready"],"description":"Failed webhook deliveries are dropped. Acceptance: a failed delivery is retried three times.","comments":[{"author":"person","at":"2026-10-12T10:00:00Z","body":"Started on this, branch pushed."}],"claimed_by_other":false,"routine_branch":false,"activity_24h":false}
+]
