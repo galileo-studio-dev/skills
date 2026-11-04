@@ -12,7 +12,8 @@ for s in "$here"/scenarios/*/; do
   cp "$s"/trigger.json "$s"/pull.json "$s"/files.json "$s"/reviews.json "$dir/state/"
   git -C "$dir" init -q
   ( cd "$dir" && npx -y skills add "$root" --skill '*' -a claude-code -y --copy >/dev/null )
-  ( cd "$dir" && claude -p "$(cat "$here/prompt.md")" --allowedTools "Read,Glob,Grep,Skill" \
+  # no Skill tool: a user-level copy of the skill would shadow the project copy the prompt names
+  ( cd "$dir" && claude -p "$(cat "$here/prompt.md")" --allowedTools "Read,Glob,Grep" --disallowedTools "Skill" \
       --output-format stream-json --verbose > "$dir/stream.jsonl" 2> "$dir/stderr.log" )
   jq -r 'select(.type=="result") | .result' "$dir/stream.jsonl" > "$dir/result.txt"
   awk '/^```/{if(f)exit; f=1; next} f' "$dir/result.txt" > "$dir/out.json"; [ -s "$dir/out.json" ] || cp "$dir/result.txt" "$dir/out.json"
