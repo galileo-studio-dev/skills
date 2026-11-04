@@ -45,6 +45,7 @@ Read by the routine skills (`running-routines` §1). Values only: process lives 
 - Delivery tier: <Production>
 - Worker model: <sonnet> for priority <3–4>; otherwise inherit
 - `/simplify` when the branch diff exceeds <150> changed lines
+- Review subagents: opus when the diff touches a protected path or exceeds <150> changed lines; otherwise sonnet
 
 ## People
 
@@ -89,3 +90,10 @@ Optional. Where a person sees each part once it is deployed:
 - Before starting: <checks, e.g. the issue has a "For whoever does it" section>
 - Tracker comments: <extra comments, e.g. a plan longer than four lines goes to a linked document>
 - After merge: <tasks, e.g. regenerate the agent registry>
+
+### Review
+
+Its presence opts the repository in to a reviewer routine (`reviewing-pull-requests`, «In a routine»).
+
+- Re-review label: <revisar>
+- Semgrep rule folders, from github.com/semgrep/semgrep-rules, run when the diff touches a protected path: <generic/secrets, python/lang/security>
