@@ -136,7 +136,7 @@ A routine fired by a pull request event runs this skill with nobody present. The
 3. A review of the head SHA exists: a review whose `commit_id` is the head SHA, or whose header names it: `already reviewed`.
 4. Every changed file is documentation (`*.md` or under `docs/`) and none matches a protected path: `documentation only`.
 5. The event does not call for a review:
-   - `pull_request.opened` on a draft whose head branch does not start with the routine branch prefix: `draft`. Executor drafts are reviewed when opened; other drafts wait for `ready_for_review`.
+   - `pull_request.opened` on a draft: `draft`. Events on a draft pull request do not fire a routine (checked 2026-11-04), so every draft, executor drafts included, is reviewed when it is marked ready (`ready_for_review`). This check only guards against that behaviour changing.
    - `pull_request.labeled` while the pull request's labels lack the re-review label from `### Review`: `not the re-review label`. The trigger context does not name the label that was added, so read the current labels.
 
 **R1. Load (replaces the Step 1 commands).** GitHub's GraphQL API is not available in cloud sessions, so `gh pr view`, `gh pr checks`, `gh pr checkout` and `gh pr review` fail. Use REST and git:

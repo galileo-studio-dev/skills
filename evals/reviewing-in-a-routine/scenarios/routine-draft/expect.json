@@ -1,1 +1,1 @@
-{"action": "review", "reason": null, "semgrep": false, "subagent_model": "sonnet"}
+{"action": "skip", "reason": "draft", "semgrep": false, "subagent_model": null}
