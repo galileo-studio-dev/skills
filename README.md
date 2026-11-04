@@ -100,7 +100,7 @@ infrastructure, Clerk, Stripe, and Sentry also belong here.
 | `terraform-engineer` | Implement Terraform infrastructure as code: modules, remote state, providers, multi-environment workflows, and testing. |
 | `requesting-code-review` | Request focused technical review before completion. |
 | `receiving-code-review` | Evaluate and apply review feedback with technical rigor. |
-| `reviewing-pull-requests` | Review a pull request end to end: independent verification, two-stage review, security pass by risk tier, findings in the PR template format. |
+| `reviewing-pull-requests` | Review a pull request end to end: independent verification, two-stage review, security pass by risk tier, findings in the PR template format. A routine mode, fired by pull request events, posts a comment-type review. |
 | `filing-followups` | Turn a review's deferred findings into tracker issues an engineer can pick up cold, capped and deduplicated. |
 | `running-routines` | The contract for unattended agent routines: project data, develop gate, rubric, claim, ask or block, states, never-merge. |
 | `working-an-issue` | Work one tracker issue from check to a draft pull request, delivering the code through `delivering-changes`. |
@@ -272,7 +272,7 @@ repository. Skills that reach those actions stop and ask first:
 - Installing tooling or dependencies: `codeql`, `semgrep`,
   `using-git-worktrees`.
 - Scan plans and output locations: `semgrep`, `codeql`.
-- Posting a review or comment to GitHub: `reviewing-pull-requests`.
+- Posting a review or comment to GitHub: `reviewing-pull-requests`. In a routine, one comment-type review per commit is posted without asking (ADR 0002, decision 12).
 - Creating or editing tracker issues: `filing-followups`.
 - With the `delivery` plugin enabled, push, PR, deploy, publish, and
   state-changing commands prompt for approval in every agent, whatever the

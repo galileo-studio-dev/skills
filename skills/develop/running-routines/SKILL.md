@@ -23,14 +23,14 @@ Read the project data file before anything else: the path the routine's prompt n
 | `## Verification` | Where the fast and full commands are written; the gate command; the base branch's CI workflow and required check |
 | `## Protected paths` | Globs an agent never changes |
 | `## Caps` | Work-in-progress ceiling, queue cap, needs-human cap, reminder age; `none` is a value |
-| `## Execution` | Delivery tier, worker model per priority, `/simplify` threshold |
+| `## Execution` | Delivery tier, worker model per priority, `/simplify` threshold, review subagent model |
 | `## People` | Who receives reminders and who decides product questions, each with a tracker user id |
 | `## Surfaces` | Optional: where a person sees each part of the product once it is deployed |
-| `## Notes` | Free text per mode and topic: `### Cloud`, `### Queue`, `### Scanner`, `### Sweep`, `### Issue` |
+| `## Notes` | Free text per mode and topic: `### Cloud`, `### Queue`, `### Scanner`, `### Sweep`, `### Issue`, `### Review` |
 
 Template: [`project-data-template.md`](project-data-template.md). When two repositories share a value, such as a cap that counts pull requests in both, one file holds it and the other says where. If the tracker is unreachable, send a push notification and stop.
 
-A routine prompt may route by payload: issue keys → `working-the-queue` with those keys; a request from a Git hosting issue or pull request (e.g. a mention) → `working-an-issue` on that request, replying in that thread, with `gh-<number>` as its key; nothing → the scheduled mode.
+A routine prompt may route by payload: issue keys → `working-the-queue` with those keys; a request from a Git hosting issue or pull request (e.g. a mention) → `working-an-issue` on that request, replying in that thread, with `gh-<number>` as its key; a pull request event (a `<github-trigger-context>` with a `pull_request.*` event) → `reviewing-pull-requests`, section «In a routine»; nothing → the scheduled mode.
 
 ## 2. The develop gate
 
