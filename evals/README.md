@@ -13,7 +13,8 @@ two-slice plan). With `--with-review-branch` it adds `feature/session-expiry`
 carrying two planted defects: `GetSessionAge` renamed although the spec
 forbids it, and a `try/except` in `refresh_session` that swallows the
 revocation error. Every agentic eval starts from this fixture; the dry-run
-evals (`working-the-queue`, `scanning-for-issues`, `sweeping-open-work`) use
+evals (`working-the-queue`, `scanning-for-issues`, `sweeping-open-work`,
+`reviewing-in-a-routine`) use
 state files in their `scenarios/` instead. `scripts/check.sh` uses the
 fixture to exercise the delivery hooks.
 
@@ -27,6 +28,7 @@ fixture to exercise the delivery hooks.
 | `working-the-queue/run.sh` | Execute mode in dry run over five scenarios (develop red, develop red with free slots, slots and order, empty queue, ask vs block) | Gate, slots, taken keys, skips and ask/block actions match `expect.json` | ~1 min per scenario, one agent |
 | `scanning-for-issues/run.sh` | Find mode in dry run over three scenarios (caps and dedupe, partial fill and matches, both caps full) | Filed, held, dropped, regressions and notify match `expect.json` | ~1 min per scenario, one agent |
 | `sweeping-open-work/run.sh` | Sweep mode in dry run over six scenarios (no person, another sweep running, stale lock, one item of each kind, ineligible item, develop red) | Stop, the touched items in order, and each report section match `expect.json` | ~1 min per scenario, one agent |
+| `reviewing-in-a-routine/run.sh` | `reviewing-pull-requests` «In a routine» in dry run over ten scenarios (a person's draft, an executor draft, a protected path, documentation only, `AGENTS.md`, a bot author, a re-review of the same and of a new commit, another label, no `### Review`) | Action, reason, semgrep and subagent model match `expect.json` | ~1 min per scenario, one agent |
 
 Each `run.sh` accepts a work directory as its first argument and leaves the
 fixture, the JSON stream, and the report there for inspection. The
