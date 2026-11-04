@@ -17,7 +17,7 @@ A pull request review answers one question for the person who will approve the m
 - In prose: "review PR #123", "review this branch before I merge it".
 - Automatically, when a request matches the description above.
 
-Give the reviewer, or point it to: the PR number or the base and head; the spec or plan (the PR's *Trazabilidad* section usually names it); and the risk tier when it is not in `docs/00-context.md` or the spec. On Production and Critical tiers expect two approval prompts: the `semgrep` (and `codeql`) scan plan before it runs, and the review text before it is posted. The result is the report in Step 6. Nothing is posted or approved without you.
+Give the reviewer, or point it to: the PR number or the base and head; the spec or plan (the PR's *Trazabilidad* section usually names it); and the risk tier when it is not in `docs/00-context.md` or the spec. On Production and Critical tiers expect two approval prompts: the `semgrep` (and `codeql`) scan plan before it runs, and the review text before it is posted. The result is the report in Step 6. Nothing is posted or approved without you. A routine fired by a pull request event follows [In a routine](#in-a-routine) instead, which replaces those two prompts.
 
 ## Step 0: Confirm you are independent
 
@@ -125,6 +125,82 @@ gh pr review <n> --comment --body-file review.md
 
 Never `--approve`: the template reserves approval for a human. Use `--request-changes` only when the person asks for it. Don't comment on lines you did not read in full.
 
+## In a routine
+
+A routine fired by a pull request event runs this skill with nobody present. The session starts with a `<github-trigger-context>` message giving the event, repository, pull request number, head and base branches, and head SHA. Follow `running-routines` §1 (project data), §7 (never) and §8 (report), and these changes to the steps above. Every step not named here runs as written.
+
+**R0. Opt in and decide.** Read the project data. Without a `### Review` note, stop and report "review not enabled". Check, in this order, and skip at the first that applies (a skip writes nothing):
+
+1. The base is not the project's base branch: `not the base branch`.
+2. The author's account type is `Bot`: `bot author`.
+3. A review of the head SHA exists: a review whose `commit_id` is the head SHA, or whose header names it: `already reviewed`.
+4. Every changed file is documentation (`*.md` or under `docs/`) and none matches a protected path: `documentation only`.
+5. The event does not call for a review:
+   - `pull_request.opened` on a draft whose head branch does not start with the routine branch prefix: `draft`. Executor drafts are reviewed when opened; other drafts wait for `ready_for_review`.
+   - `pull_request.labeled` while the pull request's labels lack the re-review label from `### Review`: `not the re-review label`. The trigger context does not name the label that was added, so read the current labels.
+
+**R1. Load (replaces the Step 1 commands).** GitHub's GraphQL API is not available in cloud sessions, so `gh pr view`, `gh pr checks`, `gh pr checkout` and `gh pr review` fail. Use REST and git:
+
+```bash
+gh api repos/<o>/<r>/pulls/<n>                         # title, body, draft, base, head, labels, user
+gh api 'repos/<o>/<r>/pulls/<n>/files?per_page=100'     # changed files and line counts
+gh api repos/<o>/<r>/pulls/<n>/reviews                 # earlier reviews and their commit_id
+git -C <repo> fetch https://github.com/<o>/<r> refs/pull/<n>/head && git -C <repo> checkout --detach FETCH_HEAD
+git -C <repo> fetch origin <base>; BASE_SHA=$(git -C <repo> merge-base origin/<base> HEAD)
+```
+
+When the routine has several repositories, the pull request's head is not checked out for you, so fetch it as above. `gh api` reaches only the routine's source repositories.
+
+**R2. Verify (replaces the Step 2 baseline).**
+- Run the fast command from `AGENTS.md` § Verification for each area the diff touches, plus Step 2's secrets and dependency checks.
+- Take the slow suites from the pull request's CI on the head SHA (`gh api repos/<o>/<r>/commits/<sha>/check-runs`). Wait up to 15 minutes for the required check named in `## Verification`, in the background, because a foreground command stops at 10 minutes.
+- In *Verificación*, a CI row reads `CI: <run url>` with its conclusion, or `CI pendiente`. Never list a CI result as a command you ran.
+
+**R3. Subagents (Step 3).** Run both reviewers with the model that the review-subagents line of `## Execution` gives. That is opus when the diff touches a protected path or exceeds the line threshold, and sonnet otherwise.
+
+**R4. Security (replaces the approval in Step 4).** When the diff touches a protected path, run `semgrep` without asking, with this fixed plan; otherwise run the Prototype pass. The `semgrep.dev` registry is not reachable from cloud sessions, so the rules come from GitHub:
+
+```bash
+python3 -m venv "$SCRATCH/sg" && "$SCRATCH/sg/bin/pip" install -q semgrep
+git clone -q --depth 1 https://github.com/semgrep/semgrep-rules "$SCRATCH/sr"
+"$SCRATCH/sg/bin/semgrep" scan --metrics=off --json --config "$SCRATCH/sr/<folder>" <changed files>   # one --config per folder in ### Review
+```
+
+Say in *Verificación* which pass ran. The Critical tier's `codeql` and second human reviewer are out of a routine's reach: say so under *Riesgos restantes*.
+
+**R5. Report (Step 6).** Use the same sections, in the project language, after one header line: `Review automática · <head SHA> · <session link>`. On a re-review, also say what changed since the last reviewed commit.
+
+**R6. Post (replaces Step 7).** Post one comment-type review through REST, without asking. ADR 0002 decision 12 allows exactly this.
+
+```bash
+gh api -X POST repos/<o>/<r>/pulls/<n>/reviews -f event=COMMENT -F body=@review.md
+```
+
+- Never `APPROVE` or `REQUEST_CHANGES`, and no line comments. Write nothing else to the Git host or the tracker: no labels, no issue comments, no pushes.
+- Never write the mention that fires a routine.
+- The session appends its own «Generated by Claude Code» footer; add nothing after it.
+- Send no push notification: nothing is held, so §8 does not apply.
+- Final message: the review's URL and verdict, or the reason for skipping.
+
+**Dry run.** When the prompt says "dry run" and names a state directory, read these files instead of GitHub. Decide R0, R3 and R4, write nothing, and print exactly one fenced `json` block.
+
+| File | Shape |
+| --- | --- |
+| `trigger.json` | `{"event": "pull_request.opened"\|"pull_request.ready_for_review"\|"pull_request.labeled", "repo", "number", "head_sha"}` |
+| `pull.json` | `{"draft": true\|false, "head": "<branch>", "base": "<branch>", "author_type": "User"\|"Bot", "labels": ["<name>"], "changed_lines": <int>}` |
+| `files.json` | `["<path>"]`: the changed files |
+| `reviews.json` | `[{"commit_id", "header": "<first line of the body>"}]`: earlier reviews |
+
+Output:
+
+```json
+{"action": "review", "reason": null, "semgrep": false, "subagent_model": "sonnet"}
+```
+
+- `action` is `review`, `skip` or `stop`.
+- `reason` is null for `review`, `review not enabled` for `stop`, and the first R0 reason that applies for `skip`.
+- When `action` is not `review`, `semgrep` is false and `subagent_model` is null.
+
 ## Red flags
 
 | Thought | Reality |
@@ -135,6 +211,7 @@ Never `--approve`: the template reserves approval for a human. Use `--request-ch
 | "I know this code; I can skip the subagents" | Your context is the implementer's context. Independent readers find what familiarity hides. |
 | "No findings, LGTM" | State the residual risk, or the review is incomplete. |
 | "Approve to unblock the team" | Not yours to give. Report readiness; a person approves. |
+| "A routine found a Critical, so it should request changes" | A routine only comments (R6). The verdict line already blocks; the person decides |
 
 ## Credits
 
