@@ -24,9 +24,11 @@ Each copied the catalog and rewrote its data in place, so fixes did not travel.
 9. **Every run starts with the develop gate.** Kura's CI gains `push: develop` for it once compliance-backend #136 and compliance-frontend #132 merge; until then the gate falls back to merged pull requests' checks.
 10. **Agents never merge on their own:** in a routine, never; interactively, only on a person's explicit OK for that pull request. This reverses Piro's 2026-10-13 auto-merge of levels 0–1; PR levels shrink to a protected-paths list.
 11. **Installation.** Skills are installed with `npx skills` and pinned in `skills-lock.json`.
+12. **Reviews.** A routine fired by a pull request event may post one comment-type review per reviewed head commit without a person approving the text (2026-11-04). It never approves or requests changes, and writes nothing else to the Git host or the tracker. A repository opts in with `### Review` in its project data.
 
 ## Consequences
 
 - A behaviour change is a catalog pull request reviewed by both owners. A value change is a project pull request.
 - Piro adopted on 2026-10-15; Pablo reviews each change as CODEOWNER, one decision per commit.
 - The sweep (Piro's barrido) is now the catalog skill `sweeping-open-work`, and the dispatcher stays a project skill.
+- `reviewing-pull-requests` gains an «In a routine» section. There, and only there, the scan plan (Step 4) and the posted text (Step 7) need no approval, within decision 12.
