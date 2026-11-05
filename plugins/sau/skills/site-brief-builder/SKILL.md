@@ -1,6 +1,8 @@
 ---
 name: site-brief-builder
 description: "Úsala PRIMERO, antes que cualquier otra skill de SEO, para crear el brief del sitio (el archivo al que apunta `brief` en el perfil, `site-brief.md` por defecto) que leen las demás skills de SAU. Rastrea la web y entrevista al usuario solo sobre lo que no pudo averiguar. Úsala también para actualizar o corregir un brief existente, o cuando otra skill de SEO avisa de que falta site-brief.md."
+metadata:
+  internal: true
 ---
 
 # Site Brief Builder

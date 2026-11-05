@@ -1,11 +1,13 @@
 ---
 name: onpage-optimizer
-description: "Use to audit and optimize a single page's on-page SEO. Detects whether it is a blog post or a service/product page and applies the matching checklist, then rewrites the title tag, meta description, headings and schema. Step 3 of the 5-skill SEO system. Also use for on-page audits, title and meta rewrites, schema fixes, or when asked why a page isn't ranking."
+description: "Use to audit and optimize a single page's on-page SEO. Detects whether it is a blog post or a service/product page and applies the matching checklist, then rewrites the title tag, meta description, headings and schema. Step 3 of the SAU sequence. Also use for on-page audits, title and meta rewrites, schema fixes, or when asked why a page isn't ranking."
+metadata:
+  internal: true
 ---
 
 # On-Page Optimizer
 
-> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de él salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas.
+> **First:** read the profile `.sau/site.json` (see `running-sau`): it gives `brief`, `output_dir`, `locale`, `code_repo_path` and every other path.
 
 Step 3 of 5. The point of this skill is that **a blog post and a service page are not
 graded on the same things.** Generic on-page checklists are why people optimise a

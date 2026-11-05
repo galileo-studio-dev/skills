@@ -1,6 +1,8 @@
 ---
 name: motion-director
 description: "Añade motion design a una página de contenido de SAU. Lee draft.md, asigna piezas del catálogo de movimiento a cada sección y deja el plan en 02b-motion-plan.html. Paso 2b de la secuencia SEO, entre seo-content-writer y onpage-optimizer. Úsala también para animar un post o una página ya publicada, instalar o comprobar el kit de movimiento en la web, o cuando el usuario pida animaciones o motion design en una página."
+metadata:
+  internal: true
 ---
 
 # Motion Director

@@ -1,11 +1,13 @@
 ---
 name: seo-content-writer
 description: "Use to write a blog post, article, service page or product page that is built to rank and to get cited by AI search engines. Reads the keyword map from keyword-fanout-map and the brand voice from the site brief (the profile's `brief`). Step 2 of the SEO system (motion-director, step 2b, follows). Also use for GEO / AEO content, citation-ready content, updating a page that already ranks, or rewriting a page to be quotable by ChatGPT and AI Overviews."
+metadata:
+  internal: true
 ---
 
 # SEO Content Writer
 
-> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de él salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas.
+> **First:** read the profile `.sau/site.json` (see `running-sau`): it gives `brief`, `output_dir`, `locale`, `code_repo_path` and every other path.
 
 Step 2 of 5. Writes the page. Everything about structure, sourcing, schema and voice
 is handled here so it does not have to be re-explained per article.
