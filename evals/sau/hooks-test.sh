@@ -43,6 +43,11 @@ bash_in() { printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":"%s"}
 [ "$(decision gate.sh "$(bash_in 'echo git push')")" = "silent" ] && ok "silent when git push is only an argument" || bad "echo git push should be silent"
 asks()   { [ "$(decision gate.sh "$(bash_in "$1")")" = "ask" ] && ok "asks for: $1" || bad "should ask: $1"; }
 silent() { [ "$(decision gate.sh "$(bash_in "$1")")" = "silent" ] && ok "silent for: $1" || bad "should be silent: $1"; }
+# Quote and backslash splitting of the command word is read like the shell reads it.
+asks 'git pu\"\"sh origin'
+asks "git pu''sh origin"
+asks 'git p\\ush origin'
+asks 'g\\h pr create'
 asks 'gh -R fixture-org/fixture-web pr merge 5'
 asks 'gh --repo Fixture-Org/Fixture-Web pr create'
 silent 'gh -R other-org/other-repo pr merge 5'
@@ -172,7 +177,7 @@ printf '%s\n' "$cmds" | grep -q "^Bash|PowerShell"$'	' && ok "gate matcher is Ba
 printf '%s\n' "$cmds" | grep -q "^Write|Edit|MultiEdit|NotebookEdit"$'	' && ok "forbidden matcher includes NotebookEdit" || bad "forbidden matcher should include NotebookEdit"
 
 echo "== sau hooks without Python"
-fake="$tmp/nopy"; mkdir -p "$fake"
+fake="$tmp/nopy"; mkdir -p "$fake"; if command -v cygpath >/dev/null 2>&1; then fake=$(cygpath -u "$fake"); fi  # POSIX form: a C:/ path breaks the colon-separated PATH
 for p in py python3; do printf '#!/bin/sh\nexit 1\n' > "$fake/$p"; chmod +x "$fake/$p"; done
 nopy() { d=$(printf '%s' "$2" | PATH="$fake:$PATH" "$H/$1" 2>/dev/null | grep -o '"permissionDecision":"[a-z]*"' | cut -d'"' -f4); echo "${d:-silent}"; }
 [ "$(nopy gate.sh "$(bash_in 'git push')")" = "ask" ] && ok "no Python: gate asks for git push" || bad "no Python: git push should ask"
@@ -194,9 +199,9 @@ gd() { decision gate.sh "$(in_dir "$1" "$2")"; }
 [ "$(gd "$P" 'vercel --prod')" = "silent" ] && ok "silent for vercel --prod in a repository with no profile" || bad "vercel outside a SAU repo should be silent"
 [ "$(gd "$S" 'git push origin sau/alpha')" = "ask" ] && ok "asks for git push in code_repo" || bad "push in code_repo should ask"
 [ "$(gd "$S" 'git push https://github.com/other-org/other-repo.git dev')" = "silent" ] && ok "silent for a push to another repository's URL" || bad "push to another URL should be silent"
-[ "$(gd "$P" "git -C $S push")" = "ask" ] && ok "asks for git -C <code_repo> push from another repository" || bad "git -C code_repo push should ask"
-[ "$(gd "$P" "cd $S && git push")" = "ask" ] && ok "asks for cd <code_repo> && git push" || bad "cd code_repo && push should ask"
-[ "$(gd "$S" "cd $P && git push")" = "silent" ] && ok "silent for cd <other repo> && git push" || bad "cd other && push should be silent"
+[ "$(gd "$P" "git -C '$S' push")" = "ask" ] && ok "asks for git -C <code_repo> push from another repository" || bad "git -C code_repo push should ask"
+[ "$(gd "$P" "cd '$S' && git push")" = "ask" ] && ok "asks for cd <code_repo> && git push" || bad "cd code_repo && push should ask"
+[ "$(gd "$S" "cd '$P' && git push")" = "silent" ] && ok "silent for cd <other repo> && git push" || bad "cd other && push should be silent"
 [ "$(gd "$S" 'cd $HOME/x && git push')" = "ask" ] && ok "asks when a cd cannot be resolved (profile found)" || bad "unresolved cd should ask"
 [ "$(CLAUDE_PROJECT_DIR="$S" gd "$P" 'gh -R fixture-org/fixture-web pr merge 5')" = "ask" ] && ok "asks for gh -R <code_repo> from another repository (CLAUDE_PROJECT_DIR)" || bad "gh -R code_repo should ask"
 [ "$(CLAUDE_PROJECT_DIR="$S" gd "$P" 'gh pr ready 5')" = "silent" ] && ok "no question and no gate note when the session repository is not the profile's" || bad "gh pr ready in another repo should be silent"
@@ -212,6 +217,9 @@ for c in "${held_cmds[@]}"; do
 done
 n=0; for c in "${held_cmds[@]}"; do [ "$(gd "$P" "$c")" = "silent" ] && n=$((n+1)); done
 [ "$n" = "${#held_cmds[@]}" ] && ok "none of the ${#held_cmds[@]} asks outside a SAU repository" || bad "only $n of ${#held_cmds[@]} are silent outside a SAU repository"
+split_cmds=('git pu\"\"sh origin' "git pu''sh origin" 'git p\\ush origin' 'g\\h pr create')
+n=0; for c in "${split_cmds[@]}"; do [ "$(gd "$P" "$c")" = "silent" ] && n=$((n+1)); done
+[ "$n" = "${#split_cmds[@]}" ] && ok "quote-split push and gh are silent outside a SAU repository" || bad "only $n of ${#split_cmds[@]} split commands are silent outside a SAU repository"
 for c in 'gh pr edit 5 --title t' 'vercel alias ls' 'gh release list' 'gh api -XGET repos/fixture-org/fixture-web/pulls' 'echo git push > notes.txt' 'npx vercel@latest dev'; do
   [ "$(gd "$S" "$c")" = "silent" ] && ok "silent for: $c" || bad "should be silent: $c"
 done
@@ -262,13 +270,28 @@ sed -i 's#"scan_paths": \["src/"\]#"scan_paths": ["./.well-known/"]#' "$tmp/wk/.
 [ "$(decision forbidden.sh "$(w_in "$K" "$K/well-known/x.txt" 'zorbaflex')")" = "silent" ] && ok "scan path .well-known/ does not cover well-known/" || bad "well-known/ should not match .well-known/"
 
 echo "== sau hooks: Python found once per session"
-sid="test-session-$$"; cache="${TMPDIR:-/tmp}/sau-hooks-python-$sid"; rm -f "$cache"
+sid="test-session-$$"; cache="${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/sau-hooks-python-$sid"; rm -f "$cache"
 si() { printf '{"session_id":"%s","tool_name":"Bash","cwd":"%s","tool_input":{"command":"git push"}}' "$sid" "$S"; }
 [ "$(decision gate.sh "$(si)")" = "ask" ] && [ -s "$cache" ] && ok "the first call caches the Python executable" || bad "cache file should be written"
 [ "$(decision gate.sh "$(si)")" = "ask" ] && ok "a later call uses the cached Python" || bad "cached Python should answer"
 printf '/nonexistent/python\nx\nx\n' > "$cache"
 [ "$(decision gate.sh "$(si)")" = "ask" ] && ok "a stale cache is detected again" || bad "stale cache should be replaced"
 rm -f "$cache"
+
+echo "== sau hooks: cache hardening, hidden profile directories, file's own repository"
+sid2="test-planted-$$"; cache2="${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/sau-hooks-python-$sid2"
+si2() { printf '{"session_id":"%s","tool_name":"Bash","cwd":"%s","tool_input":{"command":"git push"}}' "$sid2" "$S"; }
+truebin=$(command -v true)
+printf '%s\nx\n%s\n' "$truebin" "$H" > "$cache2"
+[ "$(decision gate.sh "$(si2)")" = "ask" ] && ok "a planted non-Python executable in the cache does not silence git push" || bad "planted cache silenced git push"
+rm -f "$cache2"
+setup_site "$tmp/hid"; HD=$(win "$tmp/hid")
+mkdir "$tmp/hid/.algo"; mv "$tmp/hid/.sau" "$tmp/hid/seo" "$tmp/hid/.algo/"
+[ "$(decision forbidden.sh "$(w_in "$HD" "$HD/src/a.ts" '[PRIVADO] x')")" = "deny" ] && ok "a profile under a hidden directory (.algo/.sau) is seen by the fast path" || bad "hidden-directory profile missed"
+[ "$(gd "$HD" 'git push')" = "ask" ] && ok "gate sees the hidden-directory profile too" || bad "gate should ask with a hidden-directory profile"
+[ "$(decision forbidden.sh "$(w_in "$P" "$S/src/a.ts" '[PRIVADO] x')")" = "deny" ] && ok "cwd in another repository: writing [PRIVADO] in the SAU repository is denied" || bad "write from another cwd should be denied"
+[ "$(decision forbidden.sh "$(w_in "$P" "$WB/src/a.ts" '[PRIVADO] x')")" = "deny" ] && ok "cwd in another repository: the same holds for a worktree of the SAU repository" || bad "write into a worktree from another cwd should be denied"
+[ "$(decision forbidden.sh "$(w_in "$P" "$S/src/not-yet/dir/a.ts" 'clean text')")" = "silent" ] && ok "a clean write into a directory that does not exist yet stays silent" || bad "clean write to a new directory should be silent"
 [ "$(nopy gate.sh "$(in_dir "$P" 'git push')")" = "silent" ] && ok "no Python: gate is silent with no profile near" || bad "no Python: push outside a SAU repo should be silent"
 
 echo; echo "sau hooks: $pass passed, $fail failed"

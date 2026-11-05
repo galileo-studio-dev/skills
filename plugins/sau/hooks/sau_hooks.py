@@ -722,7 +722,13 @@ def hook_forbidden(data):
         answer("deny", "sau gate: only the orchestrator writes estado.json, after the person's answer. sau-step must not record gates.")
         return
     cwd = data.get("cwd") or os.getcwd()
-    profiles, broken = find_profiles([os.environ.get("CLAUDE_PROJECT_DIR") or "", cwd])
+    path = path if os.path.isabs(path) else os.path.join(cwd, path)
+    # The file's own repository (and its main checkout, in a worktree) counts too, so a session
+    # started in another repository still reaches the profile of the site being written.
+    fdir = os.path.dirname(os.path.abspath(path))
+    while fdir and not os.path.isdir(fdir) and os.path.dirname(fdir) != fdir:
+        fdir = os.path.dirname(fdir)
+    profiles, broken = find_profiles([os.environ.get("CLAUDE_PROJECT_DIR") or "", cwd, fdir])
     if broken:
         f, err = broken[0]
         answer("ask", "sau gate: the site profile %s cannot be read (%s), so this write cannot be checked "
@@ -730,7 +736,6 @@ def hook_forbidden(data):
         return
     if not profiles:
         return
-    path = path if os.path.isabs(path) else os.path.join(cwd, path)
     top = git_root(path)
     origin = repo_slug(remote_url(top)) if top else ""
     if not origin:

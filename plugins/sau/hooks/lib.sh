@@ -22,14 +22,34 @@ sau_json_path() {
   REPLY=${REPLY//\\\//\/}
 }
 
-# sau_profile_near: true when a .sau/site.json exists where sau_hooks.py looks for profiles:
-# CLAUDE_PROJECT_DIR and cwd, their parents up to the git root, at most two levels under that
-# git root and under the main checkout of a worktree. Outside a git repository, only <dir>/.sau.
+# sau_glob_profile <root>: true when a .sau/site.json sits at most two levels under <root>
+# (the profile's .sau at depth 0 to 2), hidden directories included, skipping the same
+# directories as SKIP_DIRS in sau_hooks.py.
+sau_glob_profile() {
+  local r=$1 f had=0 skip
+  shopt -q dotglob && had=1
+  shopt -s dotglob
+  skip='.sau|.git|.claude|node_modules|.venv|venv|.next|dist|build|out|.cache|.turbo|coverage|AppData|target|__pycache__'
+  for f in "$r"/.sau/site.json "$r"/!($skip)/.sau/site.json "$r"/!($skip)/!($skip)/.sau/site.json; do
+    if [ -f "$f" ]; then [ "$had" = 1 ] || shopt -u dotglob; return 0; fi
+  done
+  [ "$had" = 1 ] || shopt -u dotglob
+  return 1
+}
+
+# sau_profile_near [path...]: true when a .sau/site.json exists where sau_hooks.py looks for profiles:
+# CLAUDE_PROJECT_DIR, cwd and each given path (a file being written: its nearest existing directory),
+# their parents up to the git root, at most two levels under that git root and under the main
+# checkout of a worktree. Outside a git repository, only <dir>/.sau.
 sau_profile_near() {
-  local base d p root line g main r f
+  local base d p root line g main r
   sau_json_path cwd
-  for base in "${CLAUDE_PROJECT_DIR:-}" "$REPLY"; do
+  for base in "${CLAUDE_PROJECT_DIR:-}" "$REPLY" "$@"; do
     base=${base//\\/\/}
+    while [ -n "$base" ] && [ ! -d "$base" ]; do
+      p=${base%/*}
+      if [ "$p" = "$base" ]; then base=""; else base=$p; fi
+    done
     [ -n "$base" ] && [ -d "$base" ] || continue
     [ -f "$base/.sau/site.json" ] && return 0
     d=$base; root=""
@@ -52,9 +72,7 @@ sau_profile_near() {
       [[ $g == */.git/worktrees/* ]] && main=${g%/.git/worktrees/*}
     fi
     for r in "$root" ${main:+"$main"}; do
-      for f in "$r"/.sau/site.json "$r"/!(node_modules)/.sau/site.json "$r"/!(node_modules)/!(node_modules)/.sau/site.json; do
-        [ -f "$f" ] && return 0
-      done
+      sau_glob_profile "$r" && return 0
     done
   done
   return 1
@@ -67,9 +85,11 @@ sau_python() {
   local here=$SAU_HERE cache="" sid p exe s h
   sau_json_str session_id; sid=${REPLY//[^A-Za-z0-9_-]/}
   if [ -n "$sid" ]; then
-    cache="${TMPDIR:-/tmp}/sau-hooks-python-$sid"
-    if [ -f "$cache" ] && { IFS= read -r exe; IFS= read -r s; IFS= read -r h; } < "$cache" \
-       && [ "$h" = "$here" ] && [ -n "$exe" ] && [ -x "$exe" ]; then
+    cache="${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/sau-hooks-python-$sid"
+    # Trusted only when it is ours and the cached executable really starts as Python 3.
+    if [ -f "$cache" ] && [ -O "$cache" ] && { IFS= read -r exe; IFS= read -r s; IFS= read -r h; } < "$cache" \
+       && [ "$h" = "$here" ] && [ -n "$exe" ] && [ -x "$exe" ] \
+       && [ "$("$exe" -I -S -c 'import sys;print(sys.version_info[0])' 2>/dev/null)" = "3" ]; then
       SAU_PY=$exe; SAU_SCRIPT=$s; return 0
     fi
   fi

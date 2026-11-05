@@ -7,7 +7,11 @@ case "$SAU_HERE" in /*|[A-Za-z]:*) ;; *) SAU_HERE="$PWD/$SAU_HERE" ;; esac
 # Fast path: a sau-step write to estado.json is always checked; anything else only near a profile.
 step=0
 [[ $SAU_IN == *'"sau:sau-step"'* && $SAU_IN == *estado.json* ]] && step=1
-[ "$step" = 1 ] || sau_profile_near || exit 0
+sau_json_path file_path; fp=$REPLY
+[ -n "$fp" ] || { sau_json_path notebook_path; fp=$REPLY; }
+case "$fp" in /*|[A-Za-z]:*) ;; *) fp="" ;; esac   # a relative path resolves against cwd, already searched
+fp=${fp%/*}
+[ "$step" = 1 ] || sau_profile_near "$fp" || exit 0
 if sau_python; then exec "$SAU_PY" -I -S "$SAU_SCRIPT" forbidden <<< "$SAU_IN"; fi
 # No Python 3: the profile and its terms cannot be read. Ask only for the obvious cases:
 # a [PRIVADO]/[OBJETIVO] marker in the text, or a sau-step agent writing estado.json.
