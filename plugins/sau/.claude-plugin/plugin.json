@@ -1,0 +1,14 @@
+{
+  "name": "sau",
+  "version": "0.1.0",
+  "description": "SEO Auto Upgrade for any site described by a .sau/site.json profile: the seven SEO skills (brief, keyword map, content, motion, on-page, internal links, AI visibility), a step-by-step orchestrator that derives each page's or batch's state from its output files, and hooks that hold the human gates, the forbidden-content check, and the redirect away from stale account copies of the skills.",
+  "author": {
+    "name": "Galileo Studio"
+  },
+  "keywords": [
+    "seo",
+    "content",
+    "gates",
+    "site-profile"
+  ]
+}

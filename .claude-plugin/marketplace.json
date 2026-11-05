@@ -1,6 +1,6 @@
 {
   "name": "galileo-skills",
-  "description": "Galileo Studio's company-approved skills and plugins for Claude Code: the delivery loop (Worker and Reviewer roles with test, read-only and human-approval gates) and its evals.",
+  "description": "Galileo Studio's company-approved skills and plugins for Claude Code: the delivery loop (Worker and Reviewer roles with test, read-only and human-approval gates) and its evals, and SAU, the gated SEO upgrade process for any site with a profile.",
   "owner": {
     "name": "Galileo Studio"
   },
@@ -9,6 +9,11 @@
       "name": "delivery",
       "source": "./plugins/delivery",
       "description": "Implement, review, and deliver an approved plan slice by slice through Worker and Reviewer subagents with test, read-only, and human-approval gates."
+    },
+    {
+      "name": "sau",
+      "source": "./plugins/sau",
+      "description": "Run SEO Auto Upgrade on a site described by a .sau/site.json profile: seven SEO skills chained by an orchestrator with file-derived state and human gates enforced by hooks."
     }
   ]
 }

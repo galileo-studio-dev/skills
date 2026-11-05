@@ -1,0 +1,178 @@
+/* ============================================================
+   Motion — piezas de movimiento de marca (catálogo SAU)
+   ARCHIVO GENERADO por install_kit.py del kit de motion-director (plugin sau).
+   No lo edites en src/app: edita kit/styles/motion.css del plugin y vuelve a instalar.
+   Reglas: motion-rules.md de la skill motion-director
+   - Solo transform y opacity. Cada elemento entra una vez. Sin bucles.
+   - CSS de scroll (animation-timeline: view()): sin JavaScript.
+   - Sin soporte o con prefers-reduced-motion: el contenido se ve estático.
+   - Lo que ya está en pantalla al cargar se ve completo (no retrasa el LCP).
+   ============================================================ */
+:root {
+  --motion-ease-brand: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-exit: cubic-bezier(0.32, 0, 0.67, 0);
+  --motion-rise: 24px;
+}
+
+@keyframes motion-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-rise));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes motion-mask-up {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes motion-draw-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes motion-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Contenedor de página: las páginas usan `overflow-x-hidden` en la raíz.
+   `overflow-x: hidden` convierte la raíz en contenedor de scroll, y entonces
+   `view()` mide contra ella (que no se desplaza) y la animación nunca corre.
+   `clip` recorta igual sin crear contenedor de scroll. Solo afecta a páginas con piezas. */
+.overflow-x-hidden:has(
+    .motion-reveal,
+    .motion-mask,
+    .motion-steps,
+    .motion-compare,
+    .motion-pull-quote
+  ) {
+  overflow-x: clip;
+}
+
+/* Estructura estática (siempre activa) */
+.motion-mask > .motion-mask-inner {
+  display: inline-block;
+}
+
+.motion-steps {
+  position: relative;
+}
+
+.motion-steps > ol {
+  position: relative;
+  list-style: none;
+  counter-reset: motion-step;
+  padding-left: 3.5rem;
+}
+
+.motion-steps > ol > li {
+  position: relative;
+  counter-increment: motion-step;
+}
+
+.motion-steps > ol > li::before {
+  content: counter(motion-step);
+  position: absolute;
+  left: -3.5rem;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--primary) 60%, transparent);
+  background: color-mix(in srgb, var(--primary) 12%, var(--background));
+  color: var(--primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.motion-steps > .motion-steps-line {
+  position: absolute;
+  left: 1.125rem;
+  top: 1.25rem;
+  bottom: 1.25rem;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--primary) 70%, transparent),
+    color-mix(in srgb, var(--primary) 10%, transparent)
+  );
+  transform-origin: top;
+}
+
+/* `pasos` sin lista numerada: sin línea (el contenido se ve normal). */
+.motion-steps:not(:has(> ol)) > .motion-steps-line {
+  display: none;
+}
+
+/* Animación (solo con soporte y sin preferencia de movimiento reducido) */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .motion-reveal,
+    .motion-steps > ol > li,
+    .motion-compare > *,
+    .motion-pull-quote {
+      animation: motion-rise linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: view();
+      animation-range: entry 5% entry 60%;
+    }
+
+    /* Grupo escalonado (Reveal con `index`): cada elemento empieza un poco después.
+       Equivale a la cadencia de marca (0,02–0,12 s) en una animación de scroll. */
+    .motion-reveal[style*="--motion-index"] {
+      animation-range: entry calc(5% + var(--motion-index) * 7%) entry calc(60% + var(--motion-index) * 7%);
+    }
+
+    /* Segunda columna de una comparativa: entra un poco después. */
+    .motion-compare > :nth-child(2) {
+      animation-range: entry 20% entry 80%;
+    }
+
+    .motion-mask {
+      overflow: clip;
+      overflow-clip-margin: 0.2em;
+    }
+
+    .motion-mask > .motion-mask-inner {
+      animation: motion-mask-up linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: view();
+      animation-range: entry 10% entry 70%;
+    }
+
+    .motion-steps > ol > li::before {
+      animation: motion-pop linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: view();
+      animation-range: entry 10% entry 50%;
+    }
+
+    .motion-steps > .motion-steps-line {
+      animation: motion-draw-y linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 60%;
+    }
+  }
+}

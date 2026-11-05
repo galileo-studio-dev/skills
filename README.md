@@ -50,8 +50,11 @@ docs/adr/
 Each skill may also include an upstream `LICENSE*`, references, prompts, or
 other supporting files. The skill directory name matches the `name` field in
 its YAML frontmatter. Plugins bundle a skill with the subagents and hooks it
-needs to enforce roles and gates; their skills are also installable on their
-own. Decisions about the catalog's structure are recorded in `docs/adr/`.
+needs to enforce roles and gates. The `delivery` plugin's skill is also
+installable on its own; the `sau` plugin's skills work only installed with the
+plugin (`/plugin install sau@galileo-skills`), not as loose skills, because
+they call its scripts, agent and hooks. Decisions about the catalog's
+structure are recorded in `docs/adr/`.
 
 ## Skills
 
@@ -122,6 +125,23 @@ their documented approval gates, output boundaries, and redaction rules.
 | `codeql` | Build and analyze CodeQL databases for deeper data-flow and taint-tracking findings. |
 | `owasp-security` | Apply OWASP Top 10, ASVS, LLM, and agentic security guidance during implementation or review. |
 
+### SEO
+
+Skills of the `sau` plugin (see [Plugins](#plugins)). They work on one site
+through its `.sau/site.json` profile, are loaded as `sau:<skill>`, and work
+only with the plugin installed.
+
+| Skill | Purpose |
+| --- | --- |
+| `running-sau` | Orchestrate a page or a tanda of up to five pages through the SEO steps and the person's gates (P1 to P4), deriving state from files. |
+| `site-brief-builder` | Build the site brief that every other SEO step reads. |
+| `keyword-fanout-map` | Map a seed into keyword clusters and search intents for the site's market. |
+| `seo-content-writer` | Write the page draft and its content package from the approved keyword map. |
+| `motion-director` | Plan the page's motion and animation. |
+| `onpage-optimizer` | Audit the draft on-page and score it. |
+| `internal-link-architect` | Design the internal links between the site's pages. |
+| `ai-visibility-checker` | Check whether AI assistants mention and cite the site, and track it monthly. |
+
 ### Legal
 
 Reserved for company-approved legal skills. This category is currently empty.
@@ -152,6 +172,11 @@ One skill:
 ```bash
 npx skills add https://github.com/galileo-studio-dev/skills --skill <skill-name>
 ```
+
+The Skills CLI also finds the skills inside `plugins/`. The `sau` skills are
+marked `metadata.internal`, so the whole-catalog install and `-l` skip them;
+naming one with `--skill` still copies it, but it does not work outside the
+plugin. Install them with the `sau` plugin (see [Plugins](#plugins)).
 
 Useful options of the [Skills CLI](https://skills.sh):
 
@@ -190,6 +215,33 @@ symbol instead of reading whole files.
 
 For a local checkout: `claude --plugin-dir /path/to/skills/plugins/delivery`.
 The design is recorded in `docs/adr/0001-delivery-plugin.md`.
+
+The `sau` plugin runs SEO work on a site, one page or one tanda at a time,
+from keyword map to published page. A *tanda* is a batch of up to five seed
+keywords worked together; its *reparto* is the table that gives each seed its
+own page, primary keyword and excluded keywords, so no two pages compete for
+the same search. Its orchestrator `running-sau` reads the site's profile
+(`.sau/site.json`, kept in the site's own private repository; format in
+`plugins/sau/profile.schema.json`), computes each unit's state from the files
+the steps leave with a small script, and stops at four gates a person answers
+(`plugins/sau/docs/states-and-gates.md`). Three hooks, written in bash over
+standard-library Python (`py` or `python3`, no `jq`), hold what must not
+depend on memory: push, pull-request and production-deploy commands ask for
+approval when their target repository is one of the site's (and stay silent
+elsewhere, so unrelated work in the same session is not interrupted); file-tool writes under the site's code
+paths are denied when they contain a forbidden term or a line marked
+`[PRIVADO]` or `[OBJETIVO]`, and `sau-step` agents cannot write
+`estado.json`; and the seven SEO skills load only as `sau:<skill>`, never as
+an older copy. Registering published changes in SAR, the post-publication
+review, depends on skills outside this catalog and is optional
+(`sar_register` in the profile). The design is recorded in
+`docs/adr/0003-sau-plugin.md`.
+
+```bash
+/plugin install sau@galileo-skills
+```
+
+For a local checkout: `claude --plugin-dir /path/to/skills/plugins/sau`.
 
 ### Using a skill in a session
 
@@ -255,6 +307,14 @@ slices, verify, review, deliver evidence.
 | Security | `semgrep` | Static analysis scan with approved scan plan |
 | Security | `codeql` | Data-flow and taint analysis |
 | Infrastructure | `terraform-engineer` | Terraform modules, state, and providers |
+| SEO | `running-sau` | Orchestrate a page or tanda through the SEO steps and gates |
+| SEO | `site-brief-builder` | Build the site brief |
+| SEO | `keyword-fanout-map` | Keyword clusters and intents for the market |
+| SEO | `seo-content-writer` | Draft and content package from the keyword map |
+| SEO | `motion-director` | Motion plan for the page |
+| SEO | `onpage-optimizer` | On-page audit and score |
+| SEO | `internal-link-architect` | Internal links between pages |
+| SEO | `ai-visibility-checker` | AI assistant visibility, tracked monthly |
 | Automation | `webwright` | Browser tasks with reusable scripts and evidence |
 | Closure | `verification-before-completion` | Fresh evidence before claiming done |
 | Closure | `finishing-a-development-branch` | Tests, then merge, PR, keep, or discard |
@@ -304,8 +364,11 @@ reviewable.
 ### Checks and evals
 
 `scripts/check.sh` runs the static checks without network or model calls:
-frontmatter, credits, README tables against the directories, plugin JSON, and
-the delivery hooks against a generated fixture. It runs on every push and
+frontmatter (parsed as YAML for plugin skills, agents and commands), credits,
+README tables against the directories, plugin JSON, and
+the delivery hooks against a generated fixture, the `sau` hooks
+against `evals/sau/fixture/` (`evals/sau/hooks-test.sh`), and the `sau` state
+script against an invented site (`evals/sau/state-test.sh`). It runs on every push and
 pull request through `.github/workflows/check.yml`; run it locally before
 opening a pull request.
 

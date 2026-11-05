@@ -1,0 +1,164 @@
+# Site Brief — {{BUSINESS_NAME}}
+
+> Read by: keyword-fanout-map · seo-content-writer · onpage-optimizer ·
+> internal-link-architect · ai-visibility-checker
+>
+> Anything marked ⚠️ verify was inferred from the website and needs a human to
+> confirm it. Anything marked ⚠️ NEEDS INPUT could not be determined at all.
+>
+> Last updated: {{LAST_UPDATED}}
+
+---
+
+## Part 1 — Business
+
+- **Business name:** {{BUSINESS_NAME}}
+- **Domain:** {{DOMAIN}}
+- **Industry / niche:** {{INDUSTRY}}
+- **What they actually sell (one sentence):** {{WHAT_THEY_SELL}}
+- **Price positioning:** {{PRICE_POSITIONING}}  <!-- budget / mid / premium -->
+
+### Services or products
+
+<!-- List the ones that matter for SEO, most important first. -->
+1. {{SERVICE_1}}
+2. {{SERVICE_2}}
+3. {{SERVICE_3}}
+
+**Money pages** (the URLs that actually make money, so internal links get
+prioritised towards them):
+- {{MONEY_PAGE_1}}
+- {{MONEY_PAGE_2}}
+
+### Service area
+
+- **Primary location(s):** {{PRIMARY_LOCATION}}
+- **Towns / suburbs / regions that matter:** {{LOCATIONS_LIST}}
+- **Country for search data:** {{SEARCH_COUNTRY}}
+- **Language for search data:** {{SEARCH_LANGUAGE}}
+
+> These last two are load-bearing. Wrong values return wrong search volumes in
+> every skill, with no error message.
+
+### Competitors
+
+**Business competitors** (who the business competes with for a client):
+
+1. {{COMPETITOR_1}}
+2. {{COMPETITOR_2}}
+3. {{COMPETITOR_3}}
+
+**Search competitors** (who wins each search cluster today in Google and in AI
+answers). Checked in the SERP on {{SERP_CHECK_DATE}}:
+
+| Search cluster | Winning domains |
+|---|---|
+| {{SEARCH_CLUSTER_1}} | {{SEARCH_COMPETITORS_1}} |
+
+### Search vocabulary
+
+<!-- How Google reads each term. keyword-fanout-map checks it in the SERP. -->
+
+| Use | Avoid as primary keyword | Why (what Google shows) |
+|---|---|---|
+| {{SEARCH_TERM_USE_1}} | {{SEARCH_TERM_TRAP_1}} | {{SEARCH_TERM_REASON_1}} |
+
+### Goals
+
+- **Primary goal:** {{PRIMARY_GOAL}}
+- **What a customer is worth, roughly:** {{CUSTOMER_VALUE}}
+- **What this business will NOT do:** {{WILL_NOT_DO}}
+
+### Proof and assets
+
+Only things that are genuinely true and, ideally, already published. These feed
+content and AI citations, so a fabricated claim here poisons everything downstream.
+
+- **Real numbers the business can claim:** {{REAL_NUMBERS}}
+- **Case studies / results that actually exist:** {{CASE_STUDIES}}
+- **Certifications, awards, associations, memberships:** {{CERTIFICATIONS}}
+- **Years in business / team size:** {{LONGEVITY}}
+- **Approved wording about the company:** {{ENTITY_WORDING}} <!-- exact phrases for relationships, programmes and location -->
+
+### Author identity (for author bios and E-E-A-T)
+
+- **Who is credited as author:** {{AUTHOR_NAME}}
+- **Their credentials, in one line:** {{AUTHOR_CREDENTIALS}}
+- **Author page URL:** {{AUTHOR_URL}}
+
+### The call to action
+
+- **Primary CTA:** {{PRIMARY_CTA}}
+- **Where it points:** {{CTA_URL}}
+- **What happens after the click:** {{CTA_OUTCOME}}
+- **Phone:** {{PHONE}}
+- **Address (exactly as it should appear everywhere):** {{ADDRESS}}
+
+### Presence outside the site
+
+- **Google Business Profile:** {{GBP_URL}}
+  - Name, address and phone as shown on the profile: {{GBP_NAP}}
+  - Do they match the address and phone above?: {{GBP_NAP_MATCH}}
+  - Reviews (count and rating, with the date checked): {{GBP_REVIEWS}}
+- **Official profiles (for `sameAs`):** {{SAME_AS_PROFILES}}
+- **Directories where it appears:** {{DIRECTORIES}}
+- **Press or third-party mentions:** {{THIRD_PARTY_MENTIONS}}
+
+---
+
+## Part 2 — Voice
+
+### Tone in three words
+
+{{TONE_THREE_WORDS}}
+
+### The reader
+
+- **Who is reading:** {{READER_WHO}}
+- **Reading level:** {{READING_LEVEL}}
+- **What they are afraid of:** {{READER_FEARS}}
+- **What would make them trust this business:** {{READER_TRUST}}
+
+### Say / don't say
+
+<!-- The single highest-value table in this file. Add rows freely. -->
+
+| Always | Never |
+|--------|-------|
+| {{SAY_1}} | {{DONT_SAY_1}} |
+| {{SAY_2}} | {{DONT_SAY_2}} |
+| {{SAY_3}} | {{DONT_SAY_3}} |
+
+### Sentence style
+
+- **Person:** {{PERSON}}  <!-- e.g. first person plural: "we", "our team" -->
+- **Contractions:** {{CONTRACTIONS}}
+- **Humour:** {{HUMOUR}}
+- **Sentence length:** {{SENTENCE_LENGTH}}
+- **Anything structural to always do or never do:** {{STYLE_RULES}}
+
+### Words from the business's own mouth
+
+<!-- Quote real lines from the site or from the owner. The writer will echo these. -->
+
+{{OWN_WORDS}}
+
+---
+
+### Movimiento (motion)
+<!-- Used by motion-director (step 2b). Rules and catalogue: `motion-director` skill of the sau plugin. -->
+
+- **Intensidad:** {{MOTION_INTENSITY}} <!-- sobria | media | expresiva. No data: sobria. -->
+- **Páginas sin animación:** {{MOTION_EXCLUDED}} <!-- routes, or "ninguna" -->
+- **Vídeo de motion graphics en páginas de servicio:** {{MOTION_VIDEO}} <!-- sí, proponer | no -->
+
+---
+
+## Hard content rules
+
+Things no skill may ever do on this site:
+
+- {{HARD_RULE_1}}
+- {{HARD_RULE_2}}
+- Never invent statistics, results, reviews or credentials.
+- Never cite a source that was not fetched and confirmed in that run.
