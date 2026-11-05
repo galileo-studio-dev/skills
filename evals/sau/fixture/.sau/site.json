@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "site": "fixture",
+  "domain": "www.fixture-site.test",
+  "locale": "es-ES",
+  "brief": "seo/site-brief.md",
+  "output_dir": "seo/output",
+  "code_repo": "fixture-org/fixture-web",
+  "content_repo": "fixture-org/fixture-web",
+  "base_branch": "dev",
+  "production_branch": "main",
+  "branch_prefix": "sau/",
+  "mode": "page",
+  "motion": "plan-only",
+  "checks": ["true"],
+  "scan_paths": ["src/"],
+  "forbidden_terms_file": "seo/forbidden-terms.txt",
+  "legal_review": "off",
+  "onpage_min": 90
+}
