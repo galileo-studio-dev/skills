@@ -5,7 +5,7 @@ description: "Añade motion design a una página de contenido de SAU. Lee draft.
 
 # Motion Director
 
-> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de Ã©l salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas. Los scripts se invocan como `${CLAUDE_PLUGIN_ROOT}/skills/motion-director/scripts/â€¦` con el intÃ©rprete `py` o `python3` (el que exista).
+> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de él salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas. El instalador del kit se invoca como `${CLAUDE_PLUGIN_ROOT}/skills/motion-director/kit/install_kit.py` con el intérprete `py` o `python3` (el que exista).
 
 Paso 2b de la secuencia. Decide **qué se mueve y dónde**. No escribe animaciones nuevas:
 elige piezas de un catálogo cerrado que ya existe en el kit.
@@ -132,4 +132,4 @@ Una página con 0 piezas destacadas y 5/5 es un resultado válido.
 
 ## Credits
 
-Original: Galileo Studio internal SEO skills (seo-auto-upgrade), adapted for the sau plugin.
+Original: Galileo Studio internal SEO skills, adapted for the sau plugin.

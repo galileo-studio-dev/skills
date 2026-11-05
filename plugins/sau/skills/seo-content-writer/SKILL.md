@@ -5,7 +5,7 @@ description: "Use to write a blog post, article, service page or product page th
 
 # SEO Content Writer
 
-> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de Ã©l salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas. Los scripts se invocan como `${CLAUDE_PLUGIN_ROOT}/skills/seo-content-writer/scripts/â€¦` con el intÃ©rprete `py` o `python3` (el que exista).
+> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de él salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas.
 
 Step 2 of 5. Writes the page. Everything about structure, sourcing, schema and voice
 is handled here so it does not have to be re-explained per article.
@@ -16,7 +16,7 @@ source impossible to detach from the claim.
 
 ## Before you start
 
-**Read `01-keyword-map.csv`** from la carpeta de la unidad (modo page: `<output_dir>/<slug>/`; modo tanda: `<output_dir>/tanda-<AAAA-MM-DD>/`). It gives you
+**Read `01-keyword-map.csv`** from the unit folder (page mode: `<output_dir>/<slug>/`; tanda mode: `<output_dir>/tanda-<YYYY-MM-DD>/`). It gives you
 the primary keyword, secondaries, roles, intents, volumes and the `owner_page` of
 each cluster. Never ask the user to restate any of it. If it is missing, offer to
 run `keyword-fanout-map` first.
@@ -160,7 +160,7 @@ If the user's first-hand input names a client, or contains data the brief marks
 
 ## Output
 
-Both files go in la carpeta de la unidad (modo page: `<output_dir>/<slug>/`; modo tanda: `<output_dir>/tanda-<AAAA-MM-DD>/`).
+Both files go in the unit folder (page mode: `<output_dir>/<slug>/`; tanda mode: `<output_dir>/tanda-<YYYY-MM-DD>/`).
 
 **`draft.md`** — the clean paste-ready article. Markdown, inline links, nothing else.
 The title tag, meta and schema go in a small frontmatter block at the top.
@@ -208,4 +208,4 @@ markup (`:::`) yourself: that is `motion-director`'s job.
 
 ## Credits
 
-Original: Galileo Studio internal SEO skills (seo-auto-upgrade), adapted for the sau plugin.
+Original: Galileo Studio internal SEO skills, adapted for the sau plugin.

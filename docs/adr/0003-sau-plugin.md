@@ -56,7 +56,7 @@ The plugin holds no site data. Briefs, outputs, forbidden terms, competitor list
 
 - `scripts/check.sh` green: frontmatter, `name` equal to the directory, one `## Credits` per skill, README tables and skill map, valid JSON for the manifest, hooks and `profile.schema.json`, hooks executable.
 - Hook tests with synthetic input in `scripts/check.sh`: `gate.sh` asks for `git push` and `gh pr create`, stays silent for `git diff`; `forbidden.sh` denies a fixture term and a `[PRIVADO]` line under `src/`, allows clean text, ignores paths outside `scan_paths`, and denies `sau:sau-step` writing `estado.json`; `no-account-copies.sh` denies `anthropic-skills:keyword-fanout-map` and allows `sau:keyword-fanout-map`.
-- `examples/site.example.json` validates against `profile.schema.json`.
+- `examples/site.example.json` validates against `profile.schema.json`. **Pending (next iteration):** the check in `scripts/check.sh` does not exist yet.
 - A grep of `plugins/sau/` finds no site names, competitor names, `[PRIVADO]`/`[OBJETIVO]` lines with content, or tracker data.
-- Eval on a fake site (profile, brief, half-finished outputs under `evals/sau/`): the status view reports the right step and pending gate, and the orchestrator stops at P1 without writing anything.
+- Eval on a fake site (profile, brief, half-finished outputs under `evals/sau/`): the status view reports the right step and pending gate, and the orchestrator stops at P1 without writing anything. **Pending (next iteration):** this eval of the orchestrator with a half-finished fake site is not written yet.
 - Real run with `claude --plugin-dir plugins/sau` in a website repository, read-only: a finished page reports the right state, and the most recent tanda is read correctly in `tanda` mode, including its legacy motion layout.
