@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/galileo-studio-dev/skills/plugins/sau/profile.schema.json",
+  "title": "SAU site profile (.sau/site.json)",
+  "description": "One profile per site. It lives in the site's own (private) repository, at <dir>/.sau/site.json; every relative path in it resolves against <dir>, the directory that contains .sau/. The plugin never ships site data: briefs, outputs, forbidden terms and tracker data stay behind these pointers. See plugins/sau/docs/states-and-gates.md for how each field is used.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "site",
+    "domain",
+    "locale",
+    "brief",
+    "output_dir",
+    "code_repo",
+    "content_repo",
+    "base_branch",
+    "production_branch",
+    "branch_prefix",
+    "mode",
+    "motion",
+    "checks",
+    "legal_review",
+    "onpage_min"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional pointer to this schema, for editors."
+    },
+    "schema_version": {
+      "const": 1,
+      "description": "Profile format version. Added so running-sau can refuse or migrate a profile written for a later format instead of misreading it."
+    },
+    "site": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,39}$",
+      "description": "Short site id. Selects the profile when a repository holds several (`running-sau <site>`) and is written into estado.json."
+    },
+    "domain": {
+      "type": "string",
+      "pattern": "^(?!https?://)[a-z0-9.-]+\\.[a-z]{2,}$",
+      "description": "Production host without scheme, e.g. www.example.com. P4 checks the live page on https://<domain>."
+    },
+    "locale": {
+      "type": "string",
+      "pattern": "^[a-z]{2}-[A-Z]{2}$",
+      "description": "Primary market and language, e.g. es-ES. Every keyword and SERP call uses this country and language, never a US default."
+    },
+    "alternate_locales": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z]{2}(-[A-Z]{2})?$" },
+      "uniqueItems": true,
+      "default": [],
+      "description": "Other published languages of each page (e.g. [\"en\"]). Added because the sources publish ES and EN versions and P4 requests indexing for every language URL."
+    },
+    "dataforseo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "location_code": { "type": "integer", "description": "DataForSEO location code for the market (e.g. 2724 for Spain)." },
+        "language_code": { "type": "string", "description": "DataForSEO language code (e.g. es)." }
+      },
+      "description": "Optional. Added because the skills call DataForSEO and the sources pin the location code; when absent the skills derive country and language from `locale`."
+    },
+    "brief": {
+      "type": "string",
+      "description": "Path to the site brief (site-brief.md). Its markers [PRIVADO], [OBJETIVO], [HIPÓTESIS] and the incomplete-context warning are instructions for the agents. If the file is missing, running-sau offers site-brief-builder first."
+    },
+    "output_dir": {
+      "type": "string",
+      "description": "Directory for step outputs. Page mode: <output_dir>/<slug>/. Tanda mode: <output_dir>/tanda-<YYYY-MM-DD>/. Site-wide files (05-query-panel.csv, 05-history.csv) sit at its root. It must not be under a directory the site publishes (public/, src/)."
+    },
+    "code_repo": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$",
+      "description": "GitHub owner/name of the repository that receives the page code. Hooks recognise its checkouts and worktrees by their origin remote."
+    },
+    "code_repo_path": {
+      "type": "string",
+      "default": ".",
+      "description": "Local checkout of code_repo, relative to the profile directory or absolute. Added because code and content can live in different repositories, and the orchestrator needs a checkout to branch from and to run `checks` in."
+    },
+    "content_repo": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$",
+      "description": "GitHub owner/name of the repository that holds the profile, the brief and the outputs. Equal to code_repo for a single-repository site."
+    },
+    "base_branch": {
+      "type": "string",
+      "default": "dev",
+      "description": "Integration branch of both repositories. Work branches start here and pull requests target it (P3)."
+    },
+    "production_branch": {
+      "type": "string",
+      "description": "Branch whose deployment is production (e.g. main or prod). Added because P4 is reached through a base_branch -> production_branch release, and the sources use different names per site."
+    },
+    "branch_prefix": {
+      "type": "string",
+      "default": "sau/",
+      "pattern": "^[A-Za-z0-9._/-]*/$",
+      "description": "Prefix of every work branch: <branch_prefix><slug> in code_repo, <branch_prefix><site>-tanda-<date> for a tanda's outputs in content_repo."
+    },
+    "git_author_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Optional. Author email for SAU commits. Added because the sources require commits signed with one specific address so the deploy provider recognises them."
+    },
+    "mode": {
+      "enum": ["page", "tanda"],
+      "description": "Default unit of work. page: one page through the whole sequence. tanda: up to 5 seeds at once with one shared keyword run and a 00-reparto.csv. A run can override it."
+    },
+    "motion": {
+      "enum": ["install-kit", "plan-only"],
+      "description": "install-kit: step 2b may install motion-director's kit into the code (its installer). plan-only: step 2b writes the motion plan only; any code adaptation goes through a normal reviewed change. Step 2b itself runs only when requested at P1."
+    },
+    "checks": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "description": "Commands run in the code_repo checkout, in order, before P3 (e.g. npm run lint, npm run build). All must exit 0. They run locally because hosted CI may be unavailable."
+    },
+    "scan_paths": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": ["src/"],
+      "description": "Paths inside code_repo, relative to its root, where forbidden.sh inspects writes. Added because the code layout differs per site; the plan's default is src/."
+    },
+    "existing_pages": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Optional files in code_repo that list the site's current pages (route tables, SEO docs). Added because the tanda reparto must cross the seeds with existing pages to prevent cannibalisation."
+    },
+    "tanda": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "content_dirs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Directories in code_repo where a seed's own content file may be created (the reparto's `archivo` must be inside one of them)."
+        },
+        "shared_files": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Files in code_repo that several seeds touch (route tables, indexes). A seed may only append its own lines to them; conflicts keep the lines of both pages."
+        }
+      },
+      "description": "Optional, tanda mode only. Added because the tanda protocol confines each seed agent to its own content file plus append-only shared files, and these paths are site-specific."
+    },
+    "forbidden_terms_file": {
+      "type": "string",
+      "description": "Optional. Path to a plain-text file in the private repository: one term per line, case-insensitive, # starts a comment. forbidden.sh denies a write under scan_paths that contains any term. The terms are never copied into the plugin."
+    },
+    "legal_review": {
+      "enum": ["blocking", "informative", "off"],
+      "description": "blocking: P2 cannot be recorded without the reviewer's report for every page that requested it. informative: the report is attached when it exists and never blocks. off: no legal step. Whether a page requests a review is decided at P1."
+    },
+    "legal_agent": {
+      "type": "string",
+      "description": "Optional. Name of the subagent that writes the legal report (revision-legal*.md). Without it, running-sau asks the person for the report instead of dispatching an agent."
+    },
+    "linear": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "team": { "type": "string", "description": "Team name. Added because labels and statuses belong to a team." },
+        "label": { "type": "string" },
+        "project": { "type": "string" },
+        "milestone": { "type": "string" },
+        "assignee": { "type": "string", "description": "Name or email of the default assignee." },
+        "title_prefix": { "type": "string", "description": "Prefix of every SAU task title (e.g. \"SEO: \"). Added because the sources fix a title convention." }
+      },
+      "description": "Optional. Where SAU proposes its tracker tasks. running-sau never creates or edits a task without the person's OK."
+    },
+    "publish_notes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Reminders shown after every push to a branch with a preview, before P3 and at P4 (e.g. a manual step the deploy provider needs). Free text kept in the private profile."
+    },
+    "close_notes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [],
+      "description": "Reminders shown once when a page or tanda closes. Added so that site- or team-specific closing steps stay in the private profile instead of the plugin."
+    },
+    "sar_register": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether published changes are registered in SAR (the change-tracker skill). Added because one of the first sites is not yet covered by SAR: with false, running-sau skips that reminder."
+    },
+    "request_indexing": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether P4 includes asking the search engine to index every published URL (all locales) and recording the date. Added because the sources made it a fixed publish step on 2026-11-04."
+    },
+    "onpage_min": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Minimum onpage-optimizer score (out of 100) a page needs before P2 can be recorded."
+    }
+  }
+}
