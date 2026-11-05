@@ -35,6 +35,9 @@
     "assignee": "owner@example.com",
     "title_prefix": "SEO: "
   },
+  "preview": "url",
+  "local_preview_cmd": "npm run start -- -p {port}",
+  "publish_check": "deployment",
   "publish_notes": ["Check that the preview deployment is READY before sharing the link."],
   "close_notes": ["Tell the team which pages went live."],
   "sar_register": true,

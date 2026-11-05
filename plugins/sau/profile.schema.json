@@ -52,7 +52,7 @@
       "items": { "type": "string", "pattern": "^[a-z]{2}(-[A-Z]{2})?$" },
       "uniqueItems": true,
       "default": [],
-      "description": "Other published languages of each page (e.g. [\"en\"]). Added because the sources publish ES and EN versions and P4 requests indexing for every language URL."
+      "description": "Other published languages of each page (e.g. [\"en\"]). Added because a site may publish each page in several languages, and P4 requests indexing for every language URL."
     },
     "dataforseo": {
       "type": "object",
@@ -61,7 +61,7 @@
         "location_code": { "type": "integer", "description": "DataForSEO location code for the market (e.g. 2724 for Spain)." },
         "language_code": { "type": "string", "description": "DataForSEO language code (e.g. es)." }
       },
-      "description": "Optional. Added because the skills call DataForSEO and the sources pin the location code; when absent the skills derive country and language from `locale`."
+      "description": "Optional. Added because the skills call DataForSEO and a site may need to pin the location code; when absent the skills derive country and language from `locale`."
     },
     "brief": {
       "type": "string",
@@ -93,7 +93,7 @@
     },
     "production_branch": {
       "type": "string",
-      "description": "Branch whose deployment is production (e.g. main or prod). Added because P4 is reached through a base_branch -> production_branch release, and the sources use different names per site."
+      "description": "Branch whose deployment is production (e.g. main or prod). Added because P4 is reached through a base_branch -> production_branch release, and sites name it differently."
     },
     "branch_prefix": {
       "type": "string",
@@ -104,7 +104,7 @@
     "git_author_email": {
       "type": "string",
       "format": "email",
-      "description": "Optional. Author email for SAU commits. Added because the sources require commits signed with one specific address so the deploy provider recognises them."
+      "description": "Optional. Author email for every SAU commit: the orchestrator's in code_repo and content_repo, and sau-step's. Added because some deploy providers only build commits from known authors."
     },
     "mode": {
       "enum": ["page", "tanda"],
@@ -118,13 +118,13 @@
       "type": "array",
       "items": { "type": "string", "minLength": 1 },
       "minItems": 1,
-      "description": "Commands run in the code_repo checkout, in order, before P3 (e.g. npm run lint, npm run build). All must exit 0. They run locally because hosted CI may be unavailable."
+      "description": "Commands run in the code_repo checkout, in order, before P3 (e.g. npm run lint, npm run build). All must exit 0. They run locally so the gate does not depend on hosted CI."
     },
     "scan_paths": {
       "type": "array",
       "items": { "type": "string" },
       "default": ["src/"],
-      "description": "Paths inside code_repo, relative to its root, where forbidden.sh inspects writes. Added because the code layout differs per site; the plan's default is src/."
+      "description": "Paths inside code_repo, relative to its root, where forbidden.sh inspects writes. Added because the code layout differs per site; the default is src/."
     },
     "existing_pages": {
       "type": "array",
@@ -170,9 +170,23 @@
         "project": { "type": "string" },
         "milestone": { "type": "string" },
         "assignee": { "type": "string", "description": "Name or email of the default assignee." },
-        "title_prefix": { "type": "string", "description": "Prefix of every SAU task title (e.g. \"SEO: \"). Added because the sources fix a title convention." }
+        "title_prefix": { "type": "string", "description": "Prefix of every SAU task title (e.g. \"SEO: \"). Added because a team may use a fixed title convention." }
       },
       "description": "Optional. Where SAU proposes its tracker tasks. running-sau never creates or edits a task without the person's OK."
+    },
+    "preview": {
+      "enum": ["url", "none"],
+      "default": "url",
+      "description": "Optional. url: each pushed work branch gets a preview deployment, and P2 in tanda mode reviews its link. none: the site has no previews; P2 reviews the draft and, when local_preview_cmd is set, a local check of the branch."
+    },
+    "local_preview_cmd": {
+      "type": "string",
+      "description": "Optional. Command that serves a built checkout of code_repo locally, with {port} replaced by a free port (e.g. npm run start -- -p {port}). Used when a preview asks for a login or preview is none: the orchestrator checks status, title, H1 and redirects, then stops only the process it started."
+    },
+    "publish_check": {
+      "enum": ["deployment", "manual"],
+      "default": "deployment",
+      "description": "Optional. deployment: P4 waits for the production deployment of the release commit to be READY (or success in the repository's deployment status). manual: the site exposes no deployment status; P4 records the person's confirmation that the release is live. Either way the live URLs must answer on https://<domain>."
     },
     "publish_notes": {
       "type": "array",
@@ -189,12 +203,12 @@
     "sar_register": {
       "type": "boolean",
       "default": true,
-      "description": "Whether published changes are registered in SAR (the change-tracker skill). Added because one of the first sites is not yet covered by SAR: with false, running-sau skips that reminder."
+      "description": "Whether published changes are registered in SAR (the change-tracker skill), the post-publication review process, which relies on skills outside this catalog. Set it to false for a site that does not use SAR: running-sau then skips every SAR reminder."
     },
     "request_indexing": {
       "type": "boolean",
       "default": true,
-      "description": "Whether P4 includes asking the search engine to index every published URL (all locales) and recording the date. Added because the sources made it a fixed publish step on 2026-11-04."
+      "description": "Whether P4 includes asking the search engine to index every published URL (all locales) and recording the date. Added so that requesting indexing is a fixed publish step."
     },
     "onpage_min": {
       "type": "integer",

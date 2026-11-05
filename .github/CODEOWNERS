@@ -9,3 +9,5 @@
 
 # The sau plugin: its owner reviews it.
 /plugins/sau/ @pelayootero-sys
+/docs/adr/0003-sau-plugin.md @pelayootero-sys
+/evals/sau/ @pelayootero-sys

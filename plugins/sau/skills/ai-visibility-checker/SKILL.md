@@ -1,11 +1,13 @@
 ---
 name: ai-visibility-checker
-description: Use to check whether a website is being cited or mentioned in AI search results across ChatGPT, Gemini, Google AI Overviews and Perplexity, compare it against competitors, and produce the gap list of queries it should own but doesn't. Step 5 of the 5-skill SEO system. Use for AI visibility, GEO, AI search tracking, LLM citations, "am I showing up in ChatGPT", or AI Overview monitoring.
+description: Use to check whether a website is being cited or mentioned in AI search results across ChatGPT, Gemini, Google AI Overviews and Perplexity, compare it against competitors, and produce the gap list of queries it should own but doesn't. Step 5 of the SAU sequence. Use for AI visibility, GEO, AI search tracking, LLM citations, "am I showing up in ChatGPT", or AI Overview monitoring.
+metadata:
+  internal: true
 ---
 
 # AI Visibility Checker
 
-> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de él salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas. Los scripts se invocan como `${CLAUDE_PLUGIN_ROOT}/skills/ai-visibility-checker/scripts/…` con el intérprete `py` o `python3` (el que exista).
+> **First:** read the profile `.sau/site.json` (see `running-sau`): it gives `brief`, `output_dir`, `locale`, `code_repo_path` and every other path. Call its scripts as `${CLAUDE_PLUGIN_ROOT}/skills/ai-visibility-checker/scripts/…` with `py` or `python3`, whichever exists.
 
 Step 5 of 5, and the one that closes the loop. Ranking in Google and being cited by
 an AI engine are different outcomes with different causes. This measures the second

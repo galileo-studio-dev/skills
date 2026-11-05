@@ -1,11 +1,13 @@
 ---
 name: internal-link-architect
-description: Use to plan internal links for a page. Crawls the site's existing pages and returns exactly which pages should link to the target and which the target should link out to, with the exact anchor text and the sentence to place it in. Also finds orphan pages, broken internal links and soft 404s, checks how well the money pages are linked and in the navigation, and maps topic clusters. Step 4 of the 5-skill SEO system. Use for internal linking, orphan pages, topical authority or site structure questions.
+description: Use to plan internal links for a page. Crawls the site's existing pages and returns exactly which pages should link to the target and which the target should link out to, with the exact anchor text and the sentence to place it in. Also finds orphan pages, broken internal links and soft 404s, checks how well the money pages are linked and in the navigation, and maps topic clusters. Step 4 of the SAU sequence. Use for internal linking, orphan pages, topical authority or site structure questions.
+metadata:
+  internal: true
 ---
 
 # Internal Link Architect
 
-> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de él salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas. Los scripts se invocan como `${CLAUDE_PLUGIN_ROOT}/skills/internal-link-architect/scripts/…` con el intérprete `py` o `python3` (el que exista).
+> **First:** read the profile `.sau/site.json` (see `running-sau`): it gives `brief`, `output_dir`, `locale`, `code_repo_path` and every other path. Call its scripts as `${CLAUDE_PLUGIN_ROOT}/skills/internal-link-architect/scripts/…` with `py` or `python3`, whichever exists.
 
 Step 4 of 5. This is the step almost everyone skips. People publish a post and link
 it from nowhere, so it sits with no internal authority and Google has no signal that

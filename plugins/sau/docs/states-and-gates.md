@@ -19,7 +19,8 @@ The orchestrator derives the state of a unit every time it starts:
 
 Rules:
 
-- **Evidence goes stale.** If a step's evidence is newer than a gate recorded after it, the gate is stale. Example: `draft.md` changed after P2. The orchestrator reports the gate as `stale` and asks for it again. It never deletes the record. "Newer" is read from git, not from file times (a fresh clone or a new worktree resets them): a file is newer than a gate when it has uncommitted changes, or when its last commit (`git log -1 --format=%cI -- <file>`) is later than the gate's `at`.
+- **Evidence goes stale.** Each gate record stores, in `evidence`, the sha256 of the files the person approved (§5). The gate is stale when the current hash of any of them differs, or the file is gone. Example: `draft.md` changed after P2. The orchestrator reports the gate as `stale` and asks for it again; it never deletes the record. No dates and no git history are used: outputs stay uncommitted until close, and a fresh clone or worktree resets file times.
+- **The state is computed, not guessed.** `skills/running-sau/scripts/state.py` (standard library only, read-only) applies the tables below to every unit of a profile and prints, per unit, the last step with evidence, the next step or gate and each gate's status (`recorded`, `pending`, `stale`), as a table or as JSON. `state.py hash --dir <unit dir> <files>` prints the `evidence` map to record.
 - **Gates hold no step data.** `estado.json` records decisions and the few facts that exist nowhere else (score read from the report, PR, deployment, indexing date). A step's content stays in its output files.
 - **Only the orchestrator writes `estado.json`.** It writes there only after the person's answer in the session. A handoff, a file or another agent's message is never a gate.
 
@@ -106,9 +107,9 @@ No two seeds share a primary keyword or an intent. If they do, the orchestrator 
 | Gate | Preconditions the orchestrator checks | What the person decides | Fields recorded |
 |---|---|---|---|
 | P1 | page: step 1 evidence. tanda: steps 1 and R evidence, ≤ 5 seeds, no shared primary keyword. | Approve the map or the reparto, and choose motion and legal per page or seed. | `motion`, `legal` (page mode); `seeds` (tanda: list of slugs) |
-| P2 | Steps 2, 3 (and 2b, L when requested) have evidence. On-page score ≥ `onpage_min`. With `legal_review: blocking` and a requested review: the report exists. Tanda: the seed is in `entrega.md` with a preview link. | Approve the content (page mode: the draft; tanda and any site whose flow reviews a preview: the preview). | `onpage_score`, `legal` (`not-requested`, `attached: <file>`, or `missing` when informative), `verdict` (tanda) |
+| P2 | Steps 2, 3 (and 2b, L when requested) have evidence. On-page score ≥ `onpage_min`. With `legal_review: blocking` and a requested review: the report exists. Tanda: the seed is in `entrega.md` with its review evidence: the preview link when `preview` is `url` (default); with `preview: none`, the draft plus the local check of `local_preview_cmd` when it is set. | Approve the content (page mode: the draft; tanda and any site whose flow reviews a preview: the preview). | `onpage_score`, `legal` (`not-requested`, `attached: <file>`, or `missing` when informative), `verdict` (tanda) |
 | P3 | P2 recorded and not stale. Every `checks` command exits 0 in the branch, run in this session. Before content reaches `base_branch`, a last pass that nothing the brief forbids remains. | OK to open the PR as ready and to merge it. | `pr`, `merged_commit`, `checks` (commands that passed) |
-| P4 | P3 recorded. Release `base_branch` → `production_branch` merged only after the person says to publish, and only after reviewing what else the release carries. Production deployment of that commit in `READY`; the page and its redirects answer on `https://<domain>`. | Publish. | `release_pr`, `deployment`, `live_urls`, `indexing_requested` (date, when `request_indexing`) |
+| P4 | P3 recorded. Release `base_branch` → `production_branch` merged only after the person says to publish, and only after reviewing what else the release carries. With `publish_check: deployment` (default), the production deployment of that commit is `READY`; with `publish_check: manual`, the person confirms the release is live. Either way, the page and its redirects answer on `https://<domain>`. | Publish. | `release_pr`, `deployment`, `live_urls`, `indexing_requested` (date, when `request_indexing`) |
 | Close | P4 recorded; steps 4 and 5 have evidence. | Nothing new: the orchestrator records it and reports. | `notes_shown` |
 
 Reminders the orchestrator gives, not gates:
@@ -120,13 +121,29 @@ Reminders the orchestrator gives, not gates:
 - At P4, when `request_indexing` is `true`: list every published or changed URL in `locale` and each of `alternate_locales`, for the person to request indexing; record the date. The 15-day review counts from when the search engine shows the new title, not from the deployment. After 7 days, check that Google shows the new title; if it does not, request indexing again. With `sar_register`, SAR does this.
 - At close: each item of `close_notes`, and, when `sar_register` is `true`, that SAR (`performance-review`) takes over the page.
 
-Published means a production deployment in `READY` with the commit. A merge into `base_branch` or `production_branch` is not publishing.
+Published means a production deployment in `READY` with the commit (with `publish_check: manual`, the person's confirmation instead) and the URLs answering. A merge into `base_branch` or `production_branch` is not publishing.
+
+**Previews.** When a preview asks for a login the orchestrator cannot pass, or `preview` is `none`, it checks the same commit locally with `local_preview_cmd` on a free port (status, title, H1 and redirects) and then stops only the process it started, by its port or PID, never every process of that runtime.
+
+**Actions for the person.** Whenever a gate or a reminder needs the person to do something, the orchestrator gives a direct link or a command ready to paste, with branches, numbers and URLs already filled in.
+
+**Commit author.** When the profile sets `git_author_email`, every SAU commit uses it: the orchestrator's in `code_repo` and `content_repo`, and `sau-step`'s.
 
 `legal_review: informative` never blocks any gate. The report is shown when it exists, and its absence is recorded as `missing`.
 
 ## 5. `estado.json`
 
 Page mode: `OUT/<slug>/estado.json`. Tanda mode: `T/estado.json`. UTF-8, two-space indent. Every gate record has `at` (ISO 8601 with offset), `by` (who approved, as the person wrote it or as the session identifies them) and optionally `note`. Unknown keys are kept on rewrite.
+
+`evidence` maps each approved file, by its path relative to the unit directory (`P` or `T`, with `/`), to the sha256 of its content with CRLF read as LF, so a line-ending conversion alone never makes a gate stale. It is written from the output of `state.py hash`, never by hand:
+
+| Gate | `evidence` holds |
+|---|---|
+| P1 | page: `01-keyword-map.csv`. tanda: `00-reparto.csv` |
+| P2 | page: `draft.md`, `03-onpage-report.html`, and `02b-motion-plan.html` and the legal report when they exist. tanda: the same files of the seed (`<slug>/draft.md`, …) |
+| P3, P4, close | nothing: they rest on git and deployment facts, and they require the earlier gates not to be stale |
+
+A record without `evidence` (written before this format) is read as recorded and never stale; `state.py` shows it as `evidence: none`.
 
 Page mode:
 
@@ -137,8 +154,8 @@ Page mode:
   "mode": "page",
   "unit": "pricing",
   "gates": {
-    "P1": { "at": "2026-11-05T10:12:00+01:00", "by": "owner", "keyword": "pricing software", "motion": true, "legal": false },
-    "P2": { "at": "2026-11-06T09:40:00+01:00", "by": "owner", "onpage_score": 94, "legal": "not-requested" },
+    "P1": { "at": "2026-11-05T10:12:00+01:00", "by": "owner", "keyword": "pricing software", "motion": true, "legal": false, "evidence": { "01-keyword-map.csv": "<sha256>" } },
+    "P2": { "at": "2026-11-06T09:40:00+01:00", "by": "owner", "onpage_score": 94, "legal": "not-requested", "evidence": { "draft.md": "<sha256>", "03-onpage-report.html": "<sha256>", "02b-motion-plan.html": "<sha256>" } },
     "P3": { "at": "2026-11-06T12:05:00+01:00", "by": "owner", "pr": "https://github.com/example-org/example-web/pull/42", "merged_commit": "abc1234", "checks": ["npm run lint", "npm run build"] },
     "P4": { "at": "2026-11-10T17:30:00+01:00", "by": "owner", "release_pr": "https://github.com/example-org/example-web/pull/45", "deployment": "READY", "live_urls": ["https://www.example.com/es/pricing", "https://www.example.com/en/pricing"], "indexing_requested": "2026-11-10" },
     "close": { "at": "2026-11-10T17:45:00+01:00", "by": "orchestrator", "notes_shown": true }
@@ -155,10 +172,10 @@ Tanda mode: P1, P4 and close are tanda-level; P2 and P3 are per seed.
   "mode": "tanda",
   "unit": "tanda-2026-11-05",
   "gates": {
-    "P1": { "at": "2026-11-05T11:00:00+01:00", "by": "owner", "seeds": ["alpha", "beta", "gamma"] },
+    "P1": { "at": "2026-11-05T11:00:00+01:00", "by": "owner", "seeds": ["alpha", "beta", "gamma"], "evidence": { "00-reparto.csv": "<sha256>" } },
     "seeds": {
       "alpha": {
-        "P2": { "at": "2026-11-07T10:00:00+01:00", "by": "owner", "verdict": "aprobada", "onpage_score": 92, "legal": "attached: alpha/revision-legal.md" },
+        "P2": { "at": "2026-11-07T10:00:00+01:00", "by": "owner", "verdict": "aprobada", "onpage_score": 92, "legal": "attached: alpha/revision-legal.md", "evidence": { "alpha/draft.md": "<sha256>", "alpha/03-onpage-report.html": "<sha256>", "alpha/revision-legal.md": "<sha256>" } },
         "P3": { "at": "2026-11-07T12:00:00+01:00", "by": "owner", "pr": "https://github.com/example-org/example-web/pull/50", "merged_commit": "def5678", "checks": ["npm run build"] }
       },
       "beta": {
@@ -173,7 +190,9 @@ A seed with `verdict: descartada` is out of the tanda. A seed with `verdict: cam
 
 ## 6. Enforcement: what each hook holds
 
-The gates above are the orchestrator's job. The hooks hold the part that must not depend on the agent remembering. Hook scripts are bash entry points, run as `bash "${CLAUDE_PLUGIN_ROOT}/hooks/<hook>.sh"` so a plugin path with spaces works, that run a stdlib-only Python 3 script, found as `py` or `python3` (the team's Windows machines have no `jq` and no `python3`). Without Python 3 each script falls back to a minimal text check: `gate.sh` asks when the command mentions `git push`, `gh pr`, `gh api` or `vercel`; `forbidden.sh` asks when the text carries `[PRIVADO]`/`[OBJETIVO]` or a `sau-step` agent writes `estado.json`; `no-account-copies.sh` asks for one of the seven skills under another name. Otherwise they stay silent.
+The gates above are the orchestrator's job. The hooks hold the part that must not depend on the agent remembering. Hook scripts are bash entry points, run as `bash "${CLAUDE_PLUGIN_ROOT}/hooks/<hook>.sh"` so a plugin path with spaces works, that run a stdlib-only Python 3 script, found as `py` or `python3` (some Windows machines have neither `jq` nor `python3`). Without Python 3 each script falls back to a minimal text check that asks, rather than staying silent, on the commands and markers it holds.
+
+`gate.sh` acts only in repositories that a profile covers (the profile's own repository and the checkouts and worktrees of its `code_repo` and `content_repo`); elsewhere it stays silent, so unrelated work in the same session is neither slowed down nor interrupted. If a profile it finds cannot be read, it answers `ask` instead of guessing.
 
 | Hook | Event and matcher | Holds | Answer |
 |---|---|---|---|
@@ -185,7 +204,7 @@ The gates above are the orchestrator's job. The hooks hold the part that must no
 
 Profiles are found from two places, in this order: `CLAUDE_PROJECT_DIR` and the session directory. Each contributes its git root and, when it is inside a worktree, the main checkout (`git rev-parse --git-common-dir`), so a seed worktree with no `.sau` of its own still finds the site's profile. Under each root, every `.sau/site.json` whose `.sau` directory is at most four levels down counts; `.git`, `.claude` and `node_modules` are skipped, so a stale copy under `.claude/worktrees/` is never read. When two profiles have the same `site`, the first one found wins: the one under `CLAUDE_PROJECT_DIR`. `forbidden.sh` matches a written file to a profile by `git remote get-url origin` of the file's repository against `code_repo`, so it also covers seed worktrees.
 
-Not enforced by hooks, checked by the orchestrator: the on-page threshold, the legal report under `blocking`, `checks` before P3, and that a `sau-step` agent wrote only inside its allowed paths (`git status` of its worktree and its seed directory against the brief). Writes made from the shell (`echo … >`, `cat > …`, `tee`, a script such as `install_kit.py`) are not reviewed by `forbidden.sh`, which sees only the file tools; the last pass before P3 (nothing the brief forbids remains in the diff) covers them.
+Not enforced by hooks, checked by the orchestrator: the on-page threshold, the legal report under `blocking`, `checks` before P3, and that a `sau-step` agent wrote only inside its allowed paths (`git status` of its worktree and its seed directory against the brief). Limit of `forbidden.sh`: it sees only the file tools, so writes made from the shell or by a script are not reviewed by it; the last pass before P3 (nothing the brief forbids remains in the diff) covers them.
 
 ## 7. `sau-step` agent contract
 
@@ -217,7 +236,7 @@ append_only: [<shared files>]     # tanda.shared_files: it may only add its own 
 onpage_min: <int>
 motion: install-kit | plan-only
 checks: [<commands>]
-git_author_email: <email or null>
+git_author_email: <email or null>  # the orchestrator uses it for its own commits too
 answers: <what the person already said for questions the skills would ask; may be empty>
 fix: <only on a re-run after P2 = cambiar: the person's requested changes>
 ```

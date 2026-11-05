@@ -3,7 +3,7 @@ name: sau-step
 description: Ejecuta, en aislamiento, una semilla de una tanda de SAU (borrador, plan de movimiento, auditoría on-page y código) o un paso largo de una página, con las skills sau:<x>, dentro de las rutas que le da el brief, y devuelve un handoff. Úsalo solo cuando lo despacha la skill running-sau; nunca para hablar con la persona, empujar ramas, abrir PR ni registrar puertas.
 tools: Read, Write, Edit, Bash, Grep, Glob, Skill, WebSearch, WebFetch
 model: inherit
-effort: high
+effort: medium
 isolation: worktree
 ---
 
