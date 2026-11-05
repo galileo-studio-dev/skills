@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # sau plugin: helpers shared by the three hook entry points (sourced, not run).
 # Portable: needs only bash and Python 3 (py or python3). Uses bash builtins only on the
 # fast path, so a hook that has nothing to check exits without starting another process.

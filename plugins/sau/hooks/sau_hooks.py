@@ -434,7 +434,7 @@ def classify(prog, rest):
         return hit
     if prog == "vercel":
         pos = [a for a in rest if not a.startswith("-")]
-        if ("--prod" in rest or "--production" in rest or (pos and pos[0] == "promote")
+        if ("--prod" in rest or "--production" in rest or (pos and pos[0] in ("promote", "rollback"))
                 or (pos and pos[0] == "alias" and not (len(pos) > 1 and pos[1] in ("ls", "list", "help")))
                 or flag_value(rest, "--target") == "production"):
             return {"kind": "vercel production deploy", "args": rest}

@@ -227,7 +227,8 @@ the steps leave with a small script, and stops at four gates a person answers
 (`plugins/sau/docs/states-and-gates.md`). Three hooks, written in bash over
 standard-library Python (`py` or `python3`, no `jq`), hold what must not
 depend on memory: push, pull-request and production-deploy commands ask for
-approval in the site's repositories; file-tool writes under the site's code
+approval when their target repository is one of the site's (and stay silent
+elsewhere, so unrelated work in the same session is not interrupted); file-tool writes under the site's code
 paths are denied when they contain a forbidden term or a line marked
 `[PRIVADO]` or `[OBJETIVO]`, and `sau-step` agents cannot write
 `estado.json`; and the seven SEO skills load only as `sau:<skill>`, never as

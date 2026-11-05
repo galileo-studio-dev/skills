@@ -26,7 +26,7 @@ Quién hace qué:
 
 ## 1. Perfil
 
-1. **Buscar** desde la raíz git de la sesión cada `.sau/site.json` a 4 niveles o menos. Varios: elige por `site`; si no viene, enséñalos y pregunta.
+1. **Buscar** desde la raíz git de la sesión cada `.sau/site.json` a 3 niveles o menos. Varios: elige por `site`; si no viene, enséñalos y pregunta.
 2. **Sin perfil:** ofrece crearlo desde `${CLAUDE_PLUGIN_ROOT}/examples/site.example.json`, preguntando cada campo obligatorio; no lo escribas sin OK. Sin perfil no se avanza.
 3. **Validar** contra `profile.schema.json` (`required`, `enum`, patrones, sin claves de más; `schema_version` distinto de `1`: para). Las rutas resuelven contra el directorio que contiene `.sau/`; `output_dir` no va bajo `public/` ni `src/`; el `origin` de `code_repo_path` es `code_repo`. Un fallo se enseña campo por campo y para; el perfil no se corrige sin OK.
 4. **Brief.** Si no existe, el paso 0 es `sau:site-brief-builder`: propónlo y para. Si existe, respeta sus marcas en todo lo que hagas y encargues: `[PRIVADO]` y `[OBJETIVO]` nunca se publican, `[HIPÓTESIS]` solo con la formulación aprobada, lo marcado como contexto incompleto no se usa.

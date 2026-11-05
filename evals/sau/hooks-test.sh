@@ -205,7 +205,7 @@ reason gate.sh "$(in_dir "$S" 'git push')" | grep -q "fixture-org/fixture-web" &
 echo "== sau gate.sh: more held commands (each asks in code_repo, none outside)"
 held_cmds=('npx vercel@latest --prod' 'pnpm dlx vercel --prod' 'bunx vercel --prod' 'yarn dlx vercel --prod' 'npx -y vercel@39.1.0 deploy --prod'
   'gh api -XPOST repos/fixture-org/fixture-web/issues' 'gh api --method=POST repos/fixture-org/fixture-web/issues'
-  'git -c alias.x=push x' 'vercel alias set a.vercel.app www.fixture-site.test' 'vercel promote dpl_123'
+  'git -c alias.x=push x' 'vercel alias set a.vercel.app www.fixture-site.test' 'vercel promote dpl_123' 'vercel rollback dpl_123'
   'gh release create v1.0.0' 'gh pr edit 5 --base main' 'echo git push | sh' 'echo git push | bash' "printf 'git push' | pwsh")
 for c in "${held_cmds[@]}"; do
   [ "$(gd "$S" "$c")" = "ask" ] && ok "asks for: $c" || bad "should ask: $c"
