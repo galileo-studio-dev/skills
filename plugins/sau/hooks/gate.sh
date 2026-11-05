@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# sau plugin: gate hook (PreToolUse Bash). Bash entry point; the logic is in
+# sau plugin: gate hook (PreToolUse Bash|PowerShell). Bash entry point; the logic is in
 # sau_hooks.py (stdlib only). Runs py or python3, whichever works: there is no
 # jq on the team's Windows machines, and no python3 either.
 here=$(cd "$(dirname "$0")" && pwd)
@@ -9,6 +9,9 @@ for p in py python3; do
     exec "$p" "$script" gate
   fi
 done
-cat >/dev/null
-printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"sau hook: Python 3 (py or python3) was not found, so this action could not be checked."}}'
+# No Python 3: a minimal text check. Ask only when the command names a held tool.
+in=$(cat)
+if printf '%s' "$in" | grep -Eq '\<git\>[^"]*\<push\>|\<gh\>[^"]*\<(pr|api)\>|\<vercel\>'; then
+  printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"sau hook: Python 3 (py or python3) was not found; this command looks like a push, pull request, API call or deploy, so it needs the person'"'"'s approval."}}'
+fi
 exit 0

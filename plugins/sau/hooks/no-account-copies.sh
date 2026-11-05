@@ -9,6 +9,14 @@ for p in py python3; do
     exec "$p" "$script" no-account-copies
   fi
 done
-cat >/dev/null
-printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"sau hook: Python 3 (py or python3) was not found, so this action could not be checked."}}'
+# No Python 3: ask only when the skill is one of the seven under a name other than sau:<skill>.
+in=$(cat)
+name=$(printf '%s' "$in" | grep -Eo '"(skill|name)"[[:space:]]*:[[:space:]]*"[^"]*"' | head -n1 | sed -E 's/.*"([^"]*)"$/\1/')
+bare=${name##*:}
+case "$bare" in
+  site-brief-builder|keyword-fanout-map|seo-content-writer|motion-director|onpage-optimizer|internal-link-architect|ai-visibility-checker)
+    if [ "$name" != "sau:$bare" ]; then
+      printf '%s\n' "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"sau hook: Python 3 (py or python3) was not found; '$name' is not the plugin's copy. Load 'sau:$bare' instead.\"}}"
+    fi ;;
+esac
 exit 0

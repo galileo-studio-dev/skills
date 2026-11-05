@@ -19,7 +19,8 @@ SAU_SKILLS = (
     "ai-visibility-checker",
 )
 MARKERS = ("[PRIVADO]", "[OBJETIVO]")
-MAX_DEPTH = 4  # a profile's .sau directory sits at most this many levels under the git root
+MAX_DEPTH = 4  # a profile's .sau directory sits at most this many levels under a search root
+SKIP_DIRS = (".git", ".claude", "node_modules")
 
 
 def answer(decision, reason):
@@ -51,22 +52,66 @@ def norm(p):
     return os.path.normcase(os.path.realpath(p))
 
 
-def find_profiles(cwd):
-    """Every <dir>/.sau/site.json under the session's git root; .sau at most MAX_DEPTH levels down."""
-    root = git(cwd, "rev-parse", "--show-toplevel") or cwd
-    root = os.path.abspath(root)
+# ------------------------------------------------------------ profiles
+
+def main_repo_root(cwd):
+    """The main checkout of the repository cwd belongs to (not the git root when cwd is in a worktree)."""
+    common = git(cwd, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    if not common:
+        return ""
+    common = os.path.abspath(common)
+    return os.path.dirname(common) if os.path.basename(common) == ".git" else ""
+
+
+def search_roots(cwd):
+    """Where profiles are searched, most authoritative first: CLAUDE_PROJECT_DIR, then cwd.
+
+    Each base contributes its git root and, inside a worktree, the main checkout.
+    """
+    roots = []
+    for base in (os.environ.get("CLAUDE_PROJECT_DIR") or "", cwd):
+        if not base or not os.path.isdir(base):
+            continue
+        for r in (git(base, "rev-parse", "--show-toplevel") or base, main_repo_root(base)):
+            if r and norm(r) not in [norm(x) for x in roots]:
+                roots.append(os.path.abspath(r))
+    return roots
+
+
+def walk_profiles(root):
     found = []
     for dirpath, dirnames, _ in os.walk(root):
         depth = 0 if dirpath == root else len(os.path.relpath(dirpath, root).split(os.sep))
-        dirnames[:] = [d for d in dirnames if d not in (".git", "node_modules") and depth < MAX_DEPTH]
+        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS and depth < MAX_DEPTH]
         if os.path.basename(dirpath) == ".sau":
             f = os.path.join(dirpath, "site.json")
             if os.path.isfile(f):
                 try:
                     with open(f, encoding="utf-8") as fh:
-                        found.append((os.path.dirname(dirpath), json.load(fh)))
+                        prof = json.load(fh)
+                    if isinstance(prof, dict):
+                        found.append((os.path.dirname(dirpath), prof))
                 except Exception:
                     pass
+    return found
+
+
+def find_profiles(cwd):
+    """Every <dir>/.sau/site.json under the search roots, .sau at most MAX_DEPTH levels down.
+
+    .git, .claude and node_modules are skipped. When two profiles share a `site`,
+    the one found first wins, so the project directory's profile beats a stale copy.
+    """
+    found, seen_dirs, seen_sites = [], set(), set()
+    for root in search_roots(cwd):
+        for pdir, prof in walk_profiles(root):
+            site = prof.get("site")
+            if norm(pdir) in seen_dirs or (site and site in seen_sites):
+                continue
+            seen_dirs.add(norm(pdir))
+            if site:
+                seen_sites.add(site)
+            found.append((pdir, prof))
     return found
 
 
@@ -109,19 +154,115 @@ def command_segments(cmd):
     return segs
 
 
-WRAPPERS = ("sudo", "env", "command", "npx", "pnpm", "bunx", "dlx", "exec")
+# Words that only introduce the real command: wrappers and shell keywords.
+WRAPPERS = ("sudo", "env", "command", "builtin", "npx", "pnpm", "bunx", "dlx", "exec", "nohup",
+            "time", "nice", "stdbuf", "then", "do", "else", "elif", "if", "while", "until", "!", "{")
+# Wrappers whose options take a value; timeout also takes a duration.
+VALUE_OPTS = {"timeout": ("-s", "--signal", "-k", "--kill-after"),
+              "xargs": ("-I", "-n", "-P", "-L", "-d", "-s", "-E", "-a", "--max-args",
+                        "--max-procs", "--delimiter", "--arg-file", "--replace")}
+SHELLS = ("bash", "sh", "zsh", "dash", "ksh")
+PWSH = ("powershell", "pwsh")
 
 
-def classify(seg):
-    """Return (kind, args) for a held command, else None."""
+def prog_name(tok):
+    return re.sub(r"\.(exe|cmd)$", "", os.path.basename(tok.replace("\\", "/")).lower())
+
+
+def strip_prefix(seg):
+    """Drop variable assignments, shell keywords and wrappers (timeout 30, xargs -n1, nohup, ...)."""
     i = 0
-    while i < len(seg) and (re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", seg[i]) or seg[i] in WRAPPERS):
-        i += 1
-    seg = seg[i:]
+    while i < len(seg):
+        t, base = seg[i], prog_name(seg[i])
+        if re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", t) or t in WRAPPERS or base in WRAPPERS:
+            i += 1
+            if base in ("nice", "stdbuf", "env", "sudo"):
+                while i < len(seg) and seg[i].startswith("-"):
+                    i += 1
+            continue
+        if base in VALUE_OPTS:
+            i += 1
+            while i < len(seg) and seg[i].startswith("-"):
+                i += 2 if seg[i] in VALUE_OPTS[base] else 1
+            if base == "timeout" and i < len(seg):
+                i += 1  # the duration
+            continue
+        break
+    return seg[i:]
+
+
+def inner_script(prog, rest):
+    """The command string run by bash -c, sh -c, eval, powershell -Command or cmd /c; else None."""
+    if prog in SHELLS:
+        for k, a in enumerate(rest):
+            if re.match(r"^-[A-Za-z]*c[A-Za-z]*$", a):
+                return rest[k + 1] if k + 1 < len(rest) else ""
+            if not a.startswith("-"):
+                return None
+        return None
+    if prog == "eval":
+        return " ".join(rest)
+    if prog in PWSH:
+        for k, a in enumerate(rest):
+            al = a.lower()
+            if al in ("-c", "/c") or (len(al) > 2 and "-command".startswith(al)):
+                return " ".join(rest[k + 1:])
+        return None
+    if prog == "cmd":
+        for k, a in enumerate(rest):
+            if a.lower() in ("/c", "/k", "/r"):
+                return " ".join(rest[k + 1:])
+    return None
+
+
+def positionals(args, value_flags=()):
+    pos, k = [], 0
+    while k < len(args):
+        a = args[k]
+        if a in value_flags:
+            k += 2
+            continue
+        if not a.startswith("-"):
+            pos.append(a)
+        k += 1
+    return pos
+
+
+GH_VALUE_FLAGS = ("-R", "--repo", "--hostname")
+GH_API_VALUE_FLAGS = ("-R", "--repo", "-X", "--method", "-f", "-F", "--field", "--raw-field", "-H",
+                      "--header", "--input", "-q", "--jq", "-t", "--template", "--hostname",
+                      "--cache", "-p", "--preview")
+GH_API_BODY = re.compile(r"^(-f|-F|--field|--raw-field|--input)(=.*)?$|^-[fF].")
+
+
+def gh_api_writes(args):
+    """True when a `gh api` call is not a plain read (an explicit non-GET method, or a body)."""
+    pos = positionals(args, GH_API_VALUE_FLAGS)
+    endpoint = pos[1] if len(pos) > 1 else ""
+    method = flag_value(args, "-X", "--method").upper()
+    if endpoint == "graphql":
+        return "mutation" in " ".join(args).lower()
+    if method:
+        return method != "GET"
+    return any(GH_API_BODY.match(a) for a in args)
+
+
+def classify(seg, depth=0):
+    """Return (kind, args) for a held command, else None."""
+    seg = strip_prefix(seg)
     if not seg:
         return None
-    prog = re.sub(r"\.(exe|cmd)$", "", os.path.basename(seg[0]).lower())
+    prog = prog_name(seg[0])
     rest = seg[1:]
+    inner = inner_script(prog, rest)
+    if inner is not None:
+        if depth >= 3:
+            return None
+        for s2 in command_segments(inner):
+            hit = classify(s2, depth + 1)
+            if hit:
+                return hit
+        return None
     if prog == "git":
         j = 0
         while j < len(rest) and rest[j].startswith("-"):
@@ -129,14 +270,48 @@ def classify(seg):
         if j < len(rest) and rest[j] == "push":
             return "git push", rest[j + 1:]
     elif prog == "gh":
-        pos = [a for a in rest if not a.startswith("-")]
+        pos = positionals(rest, GH_VALUE_FLAGS)
         if len(pos) >= 2 and pos[0] == "pr" and pos[1] in ("create", "ready", "merge", "close"):
             return "gh pr " + pos[1], rest
+        if pos and pos[0] == "api" and gh_api_writes(rest):
+            return "gh api write", rest
     elif prog == "vercel":
         pos = [a for a in rest if not a.startswith("-")]
-        if "--prod" in rest or "--production" in rest or (pos and pos[0] == "promote"):
+        if ("--prod" in rest or "--production" in rest or (pos and pos[0] == "promote")
+                or flag_value(rest, "--target") == "production"):
             return "vercel production deploy", rest
     return None
+
+
+# Commands that may write a file named among their arguments.
+FILE_WRITERS = ("tee", "cp", "mv", "rm", "touch", "install", "truncate", "dd", "ln", "rsync",
+                "set-content", "add-content", "out-file", "new-item", "copy-item", "move-item",
+                "remove-item", "clear-content", "py", "python", "python3", "node", "perl", "ruby")
+REDIRECT_ESTADO = re.compile(r">>?\|?\s*[\"']?[^\s;&|<>]*estado\.json", re.I)
+
+
+def writes_estado(cmd, depth=0):
+    """True when a shell command writes or redirects into an estado.json."""
+    if "estado.json" not in cmd.lower():
+        return False
+    if REDIRECT_ESTADO.search(cmd):
+        return True
+    for seg in command_segments(cmd):
+        seg = strip_prefix(seg)
+        if not seg:
+            continue
+        prog, rest = prog_name(seg[0]), seg[1:]
+        inner = inner_script(prog, rest)
+        if inner is not None:
+            if depth < 3 and writes_estado(inner, depth + 1):
+                return True
+            continue
+        named = any("estado.json" in a.lower() for a in rest)
+        if named and prog in FILE_WRITERS:
+            return True
+        if named and prog == "sed" and any(a.startswith("-i") or a.startswith("--in-place") for a in rest):
+            return True
+    return False
 
 
 def flag_value(args, *names):
@@ -152,38 +327,66 @@ def flag_value(args, *names):
 def has_gate(files, gate, slug=None):
     for f in files:
         g = load_json(f).get("gates", {})
+        if not isinstance(g, dict):
+            continue
         if slug is None:
-            if gate in g or any(gate in s for s in g.get("seeds", {}).values()):
+            if gate in g or any(gate in s for s in (g.get("seeds") or {}).values() if isinstance(s, dict)):
                 return True
         else:
             if os.path.basename(os.path.dirname(f)) == slug and gate in g:
                 return True
-            if gate in g.get("seeds", {}).get(slug, {}):
+            if gate in ((g.get("seeds") or {}).get(slug) or {}):
                 return True
     return False
+
+
+def worktree_paths(cwd):
+    out = git(cwd, "worktree", "list", "--porcelain")
+    return [l[len("worktree "):] for l in out.splitlines() if l.startswith("worktree ")]
+
+
+def gate_records(profiles, cwd):
+    """Every estado.json of every profile, in its own checkout and in each worktree of its repository."""
+    seen, files = set(), []
+    for pdir, prof in profiles:
+        out_rel = prof.get("output_dir", ".")
+        bases = [pdir]
+        top = git(pdir, "rev-parse", "--show-toplevel")
+        if top:
+            rel = os.path.relpath(norm(pdir), norm(top))
+            for wt in worktree_paths(pdir) + worktree_paths(cwd):
+                bases.append(os.path.normpath(os.path.join(wt, rel)))
+        for b in bases:
+            for f in glob.glob(os.path.join(b, out_rel, "*", "estado.json")):
+                if norm(f) not in seen:
+                    seen.add(norm(f))
+                    files.append(f)
+    return files
 
 
 def missing_gate(kind, args, cwd):
     """A sentence naming the missing gate, or '' when unknown or satisfied."""
     profiles = find_profiles(cwd)
+    if not profiles:
+        return ""
+    files = gate_records(profiles, cwd)
+    where = "any estado.json of the site profiles or their worktrees (%d checked)" % len(files)
     branch = git(cwd, "rev-parse", "--abbrev-ref", "HEAD")
     for pdir, prof in profiles:
         prefix = prof.get("branch_prefix", "sau/")
         prod = prof.get("production_branch", "")
-        out = os.path.join(pdir, prof.get("output_dir", "."))
-        files = glob.glob(os.path.join(out, "*", "estado.json")) + glob.glob(os.path.join(out, "tanda-*", "estado.json"))
         targets_prod = bool(prod) and (kind == "vercel production deploy" or prod in args
                                        or flag_value(args, "--base", "-B") == prod)
         if targets_prod:
             if not has_gate(files, "P3"):
-                return "gate P3 is not recorded in any estado.json under %s; a release into %s needs it." % (out, prod)
+                return "gate P3 is not recorded in %s; a release into %s needs it." % (where, prod)
             continue
         needs_p2 = kind in ("gh pr ready", "gh pr merge") or (
             kind == "gh pr create" and not any(a in ("--draft", "-d") for a in args))
         if needs_p2 and branch.startswith(prefix) and len(branch) > len(prefix):
             slug = branch[len(prefix):]
             if not has_gate(files, "P2", slug):
-                return "gate P2 is not recorded for unit '%s' (no gate record under %s); this action needs it." % (slug, out)
+                return "gate P2 is not recorded for unit '%s' in %s; this action needs it." % (slug, where)
     return ""
 
 
@@ -204,15 +407,22 @@ def hook_gate(data):
                 reason += " Also: " + extra
             answer("ask", reason)
             return
+    if data.get("agent_type") == "sau:sau-step" and writes_estado(cmd):
+        answer("ask", "sau gate: this command writes estado.json from a sau-step agent; only the orchestrator records gates, after the person's answer.")
 
 
 # ----------------------------------------------------------- forbidden
+
+FILE_TOOLS = ("Write", "Edit", "MultiEdit", "NotebookEdit")
+
 
 def written_text(tool, ti):
     if tool == "Write":
         return ti.get("content") or ""
     if tool == "Edit":
         return ti.get("new_string") or ""
+    if tool == "NotebookEdit":
+        return ti.get("new_source") or ""
     return "\n".join((e or {}).get("new_string") or "" for e in ti.get("edits") or [])
 
 
@@ -227,10 +437,10 @@ def under(rel, scan_paths):
 
 def hook_forbidden(data):
     tool = data.get("tool_name") or ""
-    if tool not in ("Write", "Edit", "MultiEdit"):
+    if tool not in FILE_TOOLS:
         return
     ti = data.get("tool_input") or {}
-    path = ti.get("file_path") or ""
+    path = ti.get("file_path") or ti.get("notebook_path") or ""
     if not path:
         return
     if data.get("agent_type") == "sau:sau-step" and os.path.basename(path).lower() == "estado.json":
