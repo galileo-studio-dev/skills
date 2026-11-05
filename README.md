@@ -122,6 +122,22 @@ their documented approval gates, output boundaries, and redaction rules.
 | `codeql` | Build and analyze CodeQL databases for deeper data-flow and taint-tracking findings. |
 | `owasp-security` | Apply OWASP Top 10, ASVS, LLM, and agentic security guidance during implementation or review. |
 
+### SEO
+
+Skills of the `sau` plugin (see [Plugins](#plugins)). They work on one site
+through its `.sau/site.json` profile and are loaded as `sau:<skill>`.
+
+| Skill | Purpose |
+| --- | --- |
+| `running-sau` | Orchestrate a page or a tanda of up to five pages through the SEO steps and the person's gates (P1 to P4), deriving state from files. |
+| `site-brief-builder` | Build the site brief that every other SEO step reads. |
+| `keyword-fanout-map` | Map a seed into keyword clusters and search intents for the site's market. |
+| `seo-content-writer` | Write the page draft and its content package from the approved keyword map. |
+| `motion-director` | Plan the page's motion and animation. |
+| `onpage-optimizer` | Audit the draft on-page and score it. |
+| `internal-link-architect` | Design the internal links between the site's pages. |
+| `ai-visibility-checker` | Check whether AI assistants mention and cite the site, and track it monthly. |
+
 ### Legal
 
 Reserved for company-approved legal skills. This category is currently empty.
@@ -191,6 +207,26 @@ symbol instead of reading whole files.
 For a local checkout: `claude --plugin-dir /path/to/skills/plugins/delivery`.
 The design is recorded in `docs/adr/0001-delivery-plugin.md`.
 
+The `sau` plugin runs SEO work on a site, one page or one tanda of up to five
+pages at a time, from keyword map to published page. Its orchestrator
+`running-sau` reads the site's profile (`.sau/site.json`, kept in the site's
+own private repository; format in `plugins/sau/profile.schema.json`), derives
+each unit's state from the files the steps leave, and stops at four gates a
+person answers (`plugins/sau/docs/states-and-gates.md`). Three hooks, written
+in bash over standard-library Python (`py` or `python3`, no `jq`), hold what
+must not depend on memory: push, pull-request and production-deploy commands
+ask for approval; writes under the site's code paths are denied when they
+contain a forbidden term or a line marked `[PRIVADO]` or `[OBJETIVO]`, and
+`sau-step` agents cannot write `estado.json`; and the seven SEO skills load
+only as `sau:<skill>`, never as an account copy. The design is recorded in
+`docs/adr/0003-sau-plugin.md`.
+
+```bash
+/plugin install sau@galileo-skills
+```
+
+For a local checkout: `claude --plugin-dir /path/to/skills/plugins/sau`.
+
 ### Using a skill in a session
 
 Claude Code keeps only each skill's name and description in context and reads
@@ -255,6 +291,14 @@ slices, verify, review, deliver evidence.
 | Security | `semgrep` | Static analysis scan with approved scan plan |
 | Security | `codeql` | Data-flow and taint analysis |
 | Infrastructure | `terraform-engineer` | Terraform modules, state, and providers |
+| SEO | `running-sau` | Orchestrate a page or tanda through the SEO steps and gates |
+| SEO | `site-brief-builder` | Build the site brief |
+| SEO | `keyword-fanout-map` | Keyword clusters and intents for the market |
+| SEO | `seo-content-writer` | Draft and content package from the keyword map |
+| SEO | `motion-director` | Motion plan for the page |
+| SEO | `onpage-optimizer` | On-page audit and score |
+| SEO | `internal-link-architect` | Internal links between pages |
+| SEO | `ai-visibility-checker` | AI assistant visibility, tracked monthly |
 | Automation | `webwright` | Browser tasks with reusable scripts and evidence |
 | Closure | `verification-before-completion` | Fresh evidence before claiming done |
 | Closure | `finishing-a-development-branch` | Tests, then merge, PR, keep, or discard |
@@ -305,7 +349,8 @@ reviewable.
 
 `scripts/check.sh` runs the static checks without network or model calls:
 frontmatter, credits, README tables against the directories, plugin JSON, and
-the delivery hooks against a generated fixture. It runs on every push and
+the delivery hooks against a generated fixture, and the `sau` hooks
+against `evals/sau/fixture/` (`evals/sau/hooks-test.sh`). It runs on every push and
 pull request through `.github/workflows/check.yml`; run it locally before
 opening a pull request.
 

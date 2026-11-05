@@ -122,4 +122,7 @@ cp -R "$tmp/red" "$tmp/memo-red"; memo=$(mk SubagentStop delivery:worker '' '' "
 memo=$(mk SubagentStop delivery:worker '' '' "$tmp/memo")
 [ "$(DELIVERY_VERIFY_TTL=0 run_memo)" = "0" ] && [ "$(hits)" = "1" ] && ok "DELIVERY_VERIFY_TTL=0 disables the cache" || bad "memo: TTL 0 should disable caching"
 
+echo "== sau hooks"
+evals/sau/hooks-test.sh > "$tmp/sau-hooks.out" 2>&1 && ok "sau hooks: $(grep -c '^  ok ' "$tmp/sau-hooks.out") synthetic cases pass" || { bad "sau hooks: evals/sau/hooks-test.sh failed"; grep '^  FAIL' "$tmp/sau-hooks.out" | sed 's/^/       /'; }
+
 echo; [ $fail -eq 0 ] && echo "check: PASS" || { echo "check: FAIL"; exit 1; }

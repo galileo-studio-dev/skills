@@ -6,3 +6,6 @@
 /skills/develop/scanning-for-issues/ @Cefigueredo @pablogarciabolivar
 /skills/develop/sweeping-open-work/  @Cefigueredo @pablogarciabolivar
 /docs/adr/0002-routines-contract.md  @Cefigueredo @pablogarciabolivar
+
+# The sau plugin: its owner reviews it.
+/plugins/sau/ @pelayootero-sys
