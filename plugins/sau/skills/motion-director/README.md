@@ -44,7 +44,7 @@ Es idempotente: si todo está al día, no cambia nada.
 
 ## Conectar el blog a mano
 
-El blog es código propio de cada web, así que esta conexión se hace a mano una vez. Solo hace falta si el sitio tiene blog con Markdown.
+El blog es código propio de cada web, así que esta conexión se hace a mano una vez. El kit ya no conecta el blog automáticamente; el parche concreto de cada web vive en el repo privado de esa web. Solo hace falta si el sitio tiene blog con Markdown.
 
 1. En el componente que renderiza el Markdown del blog:
    - Importa `remarkDirective`, `remarkMotion` (de `@/lib/remark-motion`) y las piezas de `@/components/motion`.
