@@ -5,7 +5,7 @@ description: "Úsala PRIMERO, antes que cualquier otra skill de SEO, para crear 
 
 # Site Brief Builder
 
-> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de él salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas. Los scripts se invocan como `${CLAUDE_PLUGIN_ROOT}/skills/site-brief-builder/scripts/…` con el intérprete `py` o `python3` (el que exista).
+> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de él salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas.
 
 ## Para qué sirve
 
@@ -360,4 +360,4 @@ Cosas que ninguna skill puede hacer nunca en este sitio:
 
 ## Credits
 
-Original: Galileo Studio internal SEO skills (seo-auto-upgrade), adapted for the sau plugin.
+Original: Galileo Studio internal SEO skills, adapted for the sau plugin.

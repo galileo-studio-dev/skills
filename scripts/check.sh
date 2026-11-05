@@ -14,6 +14,8 @@ for f in skills/*/*/SKILL.md plugins/*/skills/*/SKILL.md; do
   [ "$(grep -c '^## Credits' "$f")" -eq 1 ] || bad "$f: expected exactly one '## Credits' section"
   grep -q '@skills/' "$f" && bad "$f: force-loading @skills/ link"
 done
+moji=$(LC_ALL=C grep -rlP '\xC3\x83\xC2|\xC3\xA2\xE2\x82\xAC' plugins/ docs/ 2>/dev/null)
+[ -z "$moji" ] || { bad "double-encoded UTF-8 (mojibake) in:"; echo "$moji" | sed 's/^/       /'; }
 ok "$(ls skills/*/*/SKILL.md plugins/*/skills/*/SKILL.md | wc -l | tr -d ' ') skills: frontmatter, name, description, credits"
 
 echo "== README"

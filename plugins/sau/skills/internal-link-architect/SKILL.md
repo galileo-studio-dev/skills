@@ -5,7 +5,7 @@ description: Use to plan internal links for a page. Crawls the site's existing p
 
 # Internal Link Architect
 
-> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de Ã©l salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas. Los scripts se invocan como `${CLAUDE_PLUGIN_ROOT}/skills/internal-link-architect/scripts/â€¦` con el intÃ©rprete `py` o `python3` (el que exista).
+> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de él salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas. Los scripts se invocan como `${CLAUDE_PLUGIN_ROOT}/skills/internal-link-architect/scripts/…` con el intérprete `py` o `python3` (el que exista).
 
 Step 4 of 5. This is the step almost everyone skips. People publish a post and link
 it from nowhere, so it sits with no internal authority and Google has no signal that
@@ -20,7 +20,7 @@ It is also the most rules-based of the five, which is why automating it works we
 **Read the site brief** (the profile's `brief` path) for the domain and, importantly, the **money pages**, so
 links get prioritised towards the pages that actually earn.
 
-**Read `01-keyword-map.csv`** if it exists (in la carpeta de la unidad (modo page: `<output_dir>/<slug>/`; modo tanda: `<output_dir>/tanda-<AAAA-MM-DD>/`)), for the `owner_page` of each cluster.
+**Read `01-keyword-map.csv`** if it exists (in the unit folder (page mode: `<output_dir>/<slug>/`; tanda mode: `<output_dir>/tanda-<YYYY-MM-DD>/`)), for the `owner_page` of each cluster.
 Anchors that point at a money page use the owner's primary keyword.
 
 ## Input
@@ -121,7 +121,7 @@ sit isolated (`fail`).
 
 ## Output
 
-**`04-internal-links.html`** (in la carpeta de la unidad (modo page: `<output_dir>/<slug>/`; modo tanda: `<output_dir>/tanda-<AAAA-MM-DD>/`)) — fill `${CLAUDE_PLUGIN_ROOT}/skills/internal-link-architect/templates/internal-links.html.template`.
+**`04-internal-links.html`** (in the unit folder (page mode: `<output_dir>/<slug>/`; tanda mode: `<output_dir>/tanda-<YYYY-MM-DD>/`)) — fill `${CLAUDE_PLUGIN_ROOT}/skills/internal-link-architect/templates/internal-links.html.template`.
 
 Build a `data.json` and render it, because these tables get long:
 
@@ -166,4 +166,4 @@ Notes:
 
 ## Credits
 
-Original: Galileo Studio internal SEO skills (seo-auto-upgrade), adapted for the sau plugin.
+Original: Galileo Studio internal SEO skills, adapted for the sau plugin.

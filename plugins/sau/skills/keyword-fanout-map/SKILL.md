@@ -5,7 +5,7 @@ description: Use for keyword research: turning a seed keyword, business type or 
 
 # Keyword & Fan-Out Map
 
-> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de Ã©l salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas. Los scripts se invocan como `${CLAUDE_PLUGIN_ROOT}/skills/keyword-fanout-map/scripts/â€¦` con el intÃ©rprete `py` o `python3` (el que exista).
+> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de él salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas. Los scripts se invocan como `${CLAUDE_PLUGIN_ROOT}/skills/keyword-fanout-map/scripts/…` con el intérprete `py` o `python3` (el que exista).
 
 Step 1 of 5. Produces the keyword map every later skill reads, so nothing has to be
 restated.
@@ -144,7 +144,7 @@ URL on the site that should rank for it. Decide it like this:
 ### Step 2b — Cross with Search Console (only if an export was given)
 
 Write a first `01-keyword-map.csv`, then run (`py` or `python3`, whichever exists;
-paths inside la carpeta de la unidad (modo page: `<output_dir>/<slug>/`; modo tanda: `<output_dir>/tanda-<AAAA-MM-DD>/`)):
+paths inside the unit folder (page mode: `<output_dir>/<slug>/`; tanda mode: `<output_dir>/tanda-<YYYY-MM-DD>/`)):
 
 ```
 <py|python3> ${CLAUDE_PLUGIN_ROOT}/skills/keyword-fanout-map/scripts/gsc_merge.py <export.zip> 01-keyword-map.csv gsc.json \
@@ -191,7 +191,7 @@ page and say so.
 
 ## Output
 
-Write two files, both in la carpeta de la unidad (modo page: `<output_dir>/<slug>/`; modo tanda: `<output_dir>/tanda-<AAAA-MM-DD>/`).
+Write two files, both in the unit folder (page mode: `<output_dir>/<slug>/`; tanda mode: `<output_dir>/tanda-<YYYY-MM-DD>/`).
 
 **`01-keyword-map.csv`** — columns exactly:
 `cluster,keyword,intent,role,search_volume,ai_search_volume,keyword_difficulty,trend_12m,competition,cpc,current_position,opportunity,owner_page,gsc_impressions,gsc_clicks,gsc_position`
@@ -276,4 +276,4 @@ decides whether to apply it with `site-brief-builder`.
 
 ## Credits
 
-Original: Galileo Studio internal SEO skills (seo-auto-upgrade), adapted for the sau plugin.
+Original: Galileo Studio internal SEO skills, adapted for the sau plugin.

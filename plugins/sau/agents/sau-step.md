@@ -20,6 +20,8 @@ Tu directorio de trabajo es un worktree desechable (`isolation: worktree`). No e
 
 Si un paso necesita tocar algo más (componentes, estilos, textos compartidos, configuración), no lo toques: apúntalo en `<out_dir>/pendiente-compartido.md` y sigue.
 
+Si la semilla es `tipo: actualizar` (en `reparto_row`) y su paso 3 necesita DataForSEO en vivo (`sau:onpage-optimizer` sobre una URL ya publicada), no la audites tú: esa semilla se audita en la sesión principal. Devuelve `status: blocked` con ese motivo en `reason` y deja hechos los pasos anteriores que sí puedas hacer.
+
 ## Pasos
 
 Hazlos en el orden de `steps`. Cada uno con su skill, invocada siempre como `sau:<skill>` con la herramienta Skill (otro nombre lo deniega `no-account-copies.sh`). Si la herramienta Skill no está disponible, lee `${CLAUDE_PLUGIN_ROOT}/skills/<skill>/SKILL.md` y síguelo.

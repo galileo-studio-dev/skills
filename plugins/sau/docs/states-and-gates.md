@@ -48,6 +48,8 @@ Steps 4 and 5 may run before or after P4. The unit closes only when both have ev
 
 **Branches.** Page outputs and `estado.json` are committed by the orchestrator on `<branch_prefix><slug>` of `content_repo`; for a single-repository site that is the same branch as the code.
 
+**Pull request of the outputs.** When `content_repo` differs from `code_repo`, the orchestrator also pushes the outputs branch of `content_repo` (`<branch_prefix><slug>`) and opens a PR into `base_branch`. In page mode this happens at close; when both are the same repository, the outputs travel in the code PR at P3. Always with the person's OK, through `gate.sh`. At close, the orchestrator reminds the person to merge it, with explicit OK.
+
 **Legacy layout.** Pages made before the plugin may have their outputs directly in `OUT/` instead of `OUT/<slug>/`. The orchestrator shows such a unit as slug `(root)` in `estado`, read-only, and never writes a new unit there.
 
 ## 3. Tanda mode
@@ -74,6 +76,8 @@ Unit directory: `T = OUT/tanda-<YYYY-MM-DD>/`. Seed directory: `S = T/<slug>/`. 
 | **Close** | **Closed** | orchestrator | `gates.close` | Discarded seeds: their PR closed and branch deleted only with the person's OK. |
 
 **Where a tanda's files are read.** A tanda's outputs live on one branch of `content_repo`, `<branch_prefix><site>-tanda-<YYYY-MM-DD>`, in one worktree of it (see `git worktree list`). While that worktree exists, `T` resolves inside it, not in the main checkout; after the branch is merged, `T` resolves in the main checkout. The orchestrator creates each seed's worktree of `code_repo` on `<branch_prefix><slug>` from `origin/<base_branch>` before dispatching the seed, and it alone commits in `content_repo`.
+
+**Pull request of the outputs (tanda).** After delivery (D), the orchestrator pushes the tanda's outputs branch and opens a PR from it into `base_branch` of `content_repo`: always with the person's OK, through `gate.sh`, and as a PR of its own, apart from the seeds' code PRs. At close, it reminds the person to merge it, with explicit OK.
 
 Optional files a seed may leave: `S/pendiente-compartido.md` (changes the seed needed outside its own files, for the orchestrator to handle). The orchestrator surfaces it in `entrega.md`.
 
@@ -109,10 +113,11 @@ No two seeds share a primary keyword or an intent. If they do, the orchestrator 
 
 Reminders the orchestrator gives, not gates:
 
+- Before opening a unit, when `sar_register` is `true` and the page has an open SAR follow-up: warn, and do not open the unit without the person's explicit OK, except for a serious error (a page is not changed again while its review is pending).
 - After every push to a branch with a preview, before P3 and at P4: each item of `publish_notes`.
 - At P3, when `sar_register` is `true`: register the change in SAR with `change-tracker` when its PR opens; the 15-day review is not dated until P4.
 - At P4, when `sar_register` is `true`: give SAR the production date (`change-tracker`), so the 15-day review gets its date; until then the record stays pending publication.
-- At P4, when `request_indexing` is `true`: list every published or changed URL in `locale` and each of `alternate_locales`, for the person to request indexing; record the date. The 15-day review counts from when the search engine shows the new title, not from the deployment.
+- At P4, when `request_indexing` is `true`: list every published or changed URL in `locale` and each of `alternate_locales`, for the person to request indexing; record the date. The 15-day review counts from when the search engine shows the new title, not from the deployment. After 7 days, check that Google shows the new title; if it does not, request indexing again. With `sar_register`, SAR does this.
 - At close: each item of `close_notes`, and, when `sar_register` is `true`, that SAR (`performance-review`) takes over the page.
 
 Published means a production deployment in `READY` with the commit. A merge into `base_branch` or `production_branch` is not publishing.
@@ -186,6 +191,8 @@ Not enforced by hooks, checked by the orchestrator: the on-page threshold, the l
 `sau-step` runs one unit of work in isolation: one seed of a tanda (steps 2 → 2b → 3 → C), or one step of a page when the orchestrator wants it out of the main context (by default, the code step C). At most 3 agents run at once, `legal_agent` dispatches included. It never talks to the person, never pushes, never opens or changes a PR, never writes `estado.json`, and never touches another seed's directory.
 
 It runs with `isolation: worktree`: its working directory is a throwaway worktree of the session's repository, so a stray relative write cannot land in the orchestrator's checkout. Its real work happens only in the absolute paths of the brief (`out_dir` and `code_worktree`).
+
+A seed with `tipo: actualizar` whose audit needs live DataForSEO data (`onpage-optimizer` on a published URL) is audited in the main session: `sau-step` returns `blocked` with that reason, and the orchestrator runs step 3 itself.
 
 Legal review is not one of its steps: a subagent cannot dispatch another subagent, so the orchestrator dispatches `legal_agent` itself once the seed's draft exists (§3, step L).
 

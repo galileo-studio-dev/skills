@@ -5,7 +5,7 @@ description: "Use to audit and optimize a single page's on-page SEO. Detects whe
 
 # On-Page Optimizer
 
-> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de Ã©l salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas. Los scripts se invocan como `${CLAUDE_PLUGIN_ROOT}/skills/onpage-optimizer/scripts/â€¦` con el intÃ©rprete `py` o `python3` (el que exista).
+> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de él salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas.
 
 Step 3 of 5. The point of this skill is that **a blog post and a service page are not
 graded on the same things.** Generic on-page checklists are why people optimise a
@@ -43,7 +43,7 @@ Either:
   description rather than assuming an exact name. Also fetch the raw server HTML
   for check 10: the parsed content hides exactly the problems that check looks for.
 
-Also read `01-keyword-map.csv` if it exists in la carpeta de la unidad (modo page: `<output_dir>/<slug>/`; modo tanda: `<output_dir>/tanda-<AAAA-MM-DD>/`), for the page's cluster and its
+Also read `01-keyword-map.csv` if it exists in the unit folder (page mode: `<output_dir>/<slug>/`; tanda mode: `<output_dir>/tanda-<YYYY-MM-DD>/`), for the page's cluster and its
 `owner_page`, and `gsc.json` for `ctr_opportunities`. If the page is in
 `ctr_opportunities`, the title and meta rewrite is the first fix: Google already
 shows the page and people do not click.
@@ -180,7 +180,7 @@ the brief was missing the input a check needed, and say so.
 
 ## Output
 
-**`03-onpage-report.html`** (in la carpeta de la unidad (modo page: `<output_dir>/<slug>/`; modo tanda: `<output_dir>/tanda-<AAAA-MM-DD>/`)) — fill `${CLAUDE_PLUGIN_ROOT}/skills/onpage-optimizer/templates/onpage-report.html.template` by hand.
+**`03-onpage-report.html`** (in the unit folder (page mode: `<output_dir>/<slug>/`; tanda mode: `<output_dir>/tanda-<YYYY-MM-DD>/`)) — fill `${CLAUDE_PLUGIN_ROOT}/skills/onpage-optimizer/templates/onpage-report.html.template` by hand.
 
 Show the score out of 100 clearly in the report: `running-sau` reads it at gate P2 and compares it with the profile's `onpage_min`.
 
@@ -202,4 +202,4 @@ answers a different question than it asks, quote: …" is actionable.
 
 ## Credits
 
-Original: Galileo Studio internal SEO skills (seo-auto-upgrade), adapted for the sau plugin.
+Original: Galileo Studio internal SEO skills, adapted for the sau plugin.

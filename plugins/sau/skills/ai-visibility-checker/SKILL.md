@@ -5,7 +5,7 @@ description: Use to check whether a website is being cited or mentioned in AI se
 
 # AI Visibility Checker
 
-> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de Ã©l salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas. Los scripts se invocan como `${CLAUDE_PLUGIN_ROOT}/skills/ai-visibility-checker/scripts/â€¦` con el intÃ©rprete `py` o `python3` (el que exista).
+> **Antes de nada:** lee el perfil `.sau/site.json` (ver `running-sau`): de él salen `brief`, `output_dir`, `locale`, `code_repo_path` y el resto de rutas. Los scripts se invocan como `${CLAUDE_PLUGIN_ROOT}/skills/ai-visibility-checker/scripts/…` con el intérprete `py` o `python3` (el que exista).
 
 Step 5 of 5, and the one that closes the loop. Ranking in Google and being cited by
 an AI engine are different outcomes with different causes. This measures the second
@@ -151,7 +151,7 @@ monthly record. Compare this run with the previous one in `PREV_RUN_NOTE` (for
 example "0 → 1 citations; competitor.example entered 2 answers"). On the first run, write
 "first run, no previous data".
 
-**`05-ai-visibility.html`** (in la carpeta de la unidad (modo page: `<output_dir>/<slug>/`; modo tanda: `<output_dir>/tanda-<AAAA-MM-DD>/`)) — fill `${CLAUDE_PLUGIN_ROOT}/skills/ai-visibility-checker/templates/ai-visibility.html.template`.
+**`05-ai-visibility.html`** (in the unit folder (page mode: `<output_dir>/<slug>/`; tanda mode: `<output_dir>/tanda-<YYYY-MM-DD>/`)) — fill `${CLAUDE_PLUGIN_ROOT}/skills/ai-visibility-checker/templates/ai-visibility.html.template`.
 
 Build a `data.json` and render it:
 
@@ -204,4 +204,4 @@ End with the handoff that makes these five a system rather than a pipeline:
 
 ## Credits
 
-Original: Galileo Studio internal SEO skills (seo-auto-upgrade), adapted for the sau plugin.
+Original: Galileo Studio internal SEO skills, adapted for the sau plugin.

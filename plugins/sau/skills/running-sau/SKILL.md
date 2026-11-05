@@ -61,6 +61,8 @@ Cada vez que empiezas, y después de cada paso, recalcula el estado; no confíes
 
 Enseña en dos o tres líneas dónde está la unidad y cuál es el siguiente paso, con lo que va a escribir y dónde. Si la persona no ha pedido "sigue", espera su OK antes de ejecutar. Después de cada paso: recalcula el estado (§2), enseña qué archivos quedaron y para si lo siguiente es una puerta.
 
+**Antes de elegir o abrir una unidad** (página nueva o actualizada, o una semilla que cambia una página existente): si el perfil tiene `sar_register: true` y esa página tiene un seguimiento de SAR abierto (registrado con `change-tracker` y con su revisión a 15 días sin cerrar), avísalo y no abras la unidad sin OK explícito de la persona, salvo error grave. Es la regla «no se vuelve a cambiar una página con revisión pendiente»: un cambio nuevo falsea la medición del anterior. Si no puedes consultar el registro de SAR, pregúntalo.
+
 ### Cómo se ejecuta cada paso
 
 | Paso | Modo `page` | Modo `tanda` |
@@ -68,7 +70,7 @@ Enseña en dos o tres líneas dónde está la unidad y cuál es el siguiente pas
 | 0 Brief | `sau:site-brief-builder`, en la sesión | igual |
 | 1 Keywords | `sau:keyword-fanout-map`, en la sesión; salida en `OUT/<slug>/` | una sola ejecución con todas las semillas, cruzada con `existing_pages`; salida en `T/` |
 | R Reparto | — | tú, en la sesión (§5) |
-| 2, 2b, 3 | `sau:seo-content-writer`, `sau:motion-director`, `sau:onpage-optimizer` en la sesión, o un `sau-step` si la persona lo prefiere fuera del contexto | un `sau-step` por semilla (§5) |
+| 2, 2b, 3 | `sau:seo-content-writer`, `sau:motion-director`, `sau:onpage-optimizer` en la sesión, o un `sau-step` si la persona lo prefiere fuera del contexto | un `sau-step` por semilla (§5), salvo las `actualizar` que necesiten DataForSEO en vivo (ver «Despachar `sau-step`») |
 | L Legal | `legal_agent` con el borrador y el brief; sin `legal_agent`, pide el informe a la persona | igual, por semilla, en cuanto exista `S/draft.md` |
 | C Código | un `sau-step` con `steps: [C]`, después de P2 | dentro del `sau-step` de cada semilla, antes de P2 |
 | 4 Enlaces | `sau:internal-link-architect` sobre `base_branch`, después de P3 | una vez, con todas las semillas aprobadas en `base_branch` |
@@ -84,6 +86,7 @@ Reglas para todas las skills:
 ### Despachar `sau-step`
 
 - Como mucho **3 agentes a la vez** en total, contando `sau-step` y `legal_agent`. Con 5 semillas: tres, y las otras dos cuando acaben las primeras.
+- **Semillas `tipo: actualizar` con DataForSEO en vivo.** Si el paso 3 de una semilla `actualizar` necesita DataForSEO en vivo (`sau:onpage-optimizer` sobre una URL ya publicada), no se la des a `sau-step`: `sau-step` devuelve `blocked` con ese motivo. Esa semilla se audita en la sesión principal y el resto de sus pasos siguen como siempre.
 - Antes de despacharlo, crea su worktree de `code_repo`: `git -C <code_repo_path> worktree add <dir> -b <branch_prefix><slug> origin/<base_branch>`, con `<dir>` fuera del checkout (por ejemplo `<padre de code_repo_path>/<repo>-sau-<slug>`). Si la rama ya existe (re-ejecución tras `cambiar`), reutilízala.
 - El brief es exactamente el de la especificación (§7, "Input"), con rutas absolutas. En `answers`, lo que la persona ya dijo para las preguntas que la skill de contenido haría (en tanda, lo que se acordó en P1). En `fix`, solo en una re-ejecución, los cambios que pidió en P2.
 - Despáchalo como `sau:sau-step` (su definición ya trae `isolation: worktree`).
@@ -118,12 +121,13 @@ Sigue la tabla del §3 de la especificación. Reglas:
    - Dos semillas que comparten keyword principal o intención se fusionan o se cambia una. Nunca dos páginas para la misma keyword.
    - `motion` y `legal`, `si` o `no`, los decide la persona en P1.
 5. **P1.** Enseña el reparto y para. Al aprobarlo, registra `gates.P1` con `seeds`. Nada se despacha antes.
-6. **Producción.** Un `sau-step` por semilla con `steps: [2, (2b), 3, C]`, máximo 3 a la vez. Para cada semilla con `legal: si`, despacha `legal_agent` en cuanto exista `S/draft.md` (cuenta en el máximo de 3). Una semilla que falla no para la tanda.
+6. **Producción.** Un `sau-step` por semilla con `steps: [2, (2b), 3, C]`, máximo 3 a la vez. Las semillas `actualizar` que necesiten DataForSEO en vivo se auditan en la sesión principal: si despachas una y `sau-step` devuelve `blocked` con ese motivo, haz tú el paso 3 y continúa. Para cada semilla con `legal: si`, despacha `legal_agent` en cuanto exista `S/draft.md` (cuenta en el máximo de 3). Una semilla que falla no para la tanda.
 7. **Después de cada handoff aceptado**, sin esperar al resto (cada rama se empuja al terminar su paso):
    - `git push -u origin <branch_prefix><slug>` desde su worktree, y `gh pr create --draft --base <base_branch>` en `code_repo`. `gate.sh` te pedirá permiso en cada uno; nunca reescribas el comando para esquivarlo.
    - Enseña cada nota de `publish_notes`. Si varias ramas necesitan la misma acción de la persona, júntalas en un solo aviso con las ramas ya escritas.
    - Saca el enlace del preview: `gh api "repos/<code_repo>/deployments?ref=<rama>"` → el primer `id` → `.../deployments/<id>/statuses` → `environment_url`, cuando esté listo. Comprueba que abre sin login (HTTP 200). Si no puedes abrirlo, dilo; no lo des por bueno.
 8. **Entrega (D).** Haz commit de las salidas de la tanda en su rama de `content_repo` y escribe `T/entrega.md`, una fila por semilla: keyword principal, enlace del preview, PR, puntuación on-page, legal (si lo hubo), avisos (incluidos `pendiente-compartido.md`, `open_questions` e hipótesis usadas). Las fallidas, como `fallida` con el motivo.
+   - **PR de las salidas.** Con el commit hecho, empuja la rama de salidas de `content_repo` (`<branch_prefix><site>-tanda-<fecha>`) y abre un PR hacia `base_branch`. Siempre con OK y pasando por `gate.sh` (te pedirá permiso en cada paso). Si `content_repo` es el mismo repositorio que `code_repo`, es un PR aparte de los de código. Se fusiona al cerrar, con OK.
 9. **P2 por semilla.** Ver §6. `cambiar: …` vuelve a despachar solo esa semilla con `fix`, sobre su misma rama.
 10. **P3 por semilla**, de una en una, en el orden del reparto. Conflictos en `tanda.shared_files`: se quedan las líneas de las dos páginas. Después de cada fusión, los `checks` en `base_branch`.
 11. **Pasos 4 y 5, una vez**, con todas las aprobadas en `base_branch`. El código de enlaces va en su propio PR, por P2 y P3 como una semilla.
@@ -139,7 +143,7 @@ En cada puerta: comprueba tú las precondiciones del §4 de la especificación, 
   1. P2 registrada y no caducada.
   2. Ejecuta tú todos los `checks` del perfil en la rama, en orden; todos salen con 0. Un fallo se enseña y para.
   3. Última pasada: nada de lo que el brief prohíbe publicar queda en el diff (`[PRIVADO]`, `[OBJETIVO]`, términos de `forbidden_terms_file`, funciones o datos que el brief retira). Si arreglas algo, di qué y por qué.
-  4. Con OK: en modo página, push y PR hacia `base_branch` (en tanda, el PR en borrador ya existe: `gh pr ready`). **Aviso SAR** si `sar_register` es `true`: "toca registrar este cambio en SAR con `change-tracker` ahora que se abre el PR; la revisión a 15 días no tiene fecha hasta P4".
+  4. Con OK: en modo página, push y PR hacia `base_branch` (en tanda, el PR en borrador ya existe: `gh pr ready`). Si en modo página `content_repo` es el mismo repositorio que `code_repo`, las salidas y `estado.json` van en esa misma rama y PR; si es otro, su rama de salidas se empuja y se abre al cerrar (ver Cierre). **Aviso SAR** si `sar_register` es `true`: "toca registrar este cambio en SAR con `change-tracker` ahora que se abre el PR; la revisión a 15 días no tiene fecha hasta P4".
   5. Fusión solo con OK explícito (`gh pr merge <n> --merge`). Registra `pr`, `merged_commit` y `checks`.
 - **P4.**
   1. P3 registrada.
@@ -147,10 +151,10 @@ En cada puerta: comprueba tú las precondiciones del §4 de la especificación, 
   3. PR de release `<base_branch>` → `<production_branch>` y fusión, con OK.
   4. Enseña `publish_notes` otra vez.
   5. Publicado = despliegue de producción de ese commit en `READY` (o `success` en el estado del deployment de GitHub), y la página y sus redirecciones responden en `https://<domain>`. Un merge no es publicar. Hasta comprobarlo, no registras P4.
-  6. Si `request_indexing` es `true`: lista de todas las URL publicadas o cambiadas, en `locale` y en cada uno de `alternate_locales`, para que la persona pida la indexación; anota la fecha. La revisión a 15 días cuenta desde que el buscador enseña el title nuevo, no desde el despliegue.
+  6. Si `request_indexing` es `true`: lista de todas las URL publicadas o cambiadas, en `locale` y en cada uno de `alternate_locales`, para que la persona pida la indexación; anota la fecha. La revisión a 15 días cuenta desde que el buscador enseña el title nuevo, no desde el despliegue. A los 7 días se comprueba que Google muestra el title nuevo; si no lo muestra, se vuelve a pedir la indexación. Si `sar_register` es `true`, lo hace SAR; si no, recuérdalo a la persona.
   7. **Aviso SAR** si `sar_register` es `true`: "toca dar a SAR (`change-tracker`) la fecha de producción, para que la revisión a 15 días tenga fecha".
   8. Registra `release_pr`, `deployment`, `live_urls` e `indexing_requested`.
-- **Cierre.** Con P4 registrada y evidencia de los pasos 4 y 5: registra `close` con `notes_shown: true` y enseña, una vez, cada nota de `close_notes` del perfil. Si `sar_register` es `true`, di que SAR (`performance-review`) se hace cargo de la página. Si el perfil tiene `linear`, propón cerrar las tareas con todo hecho; lo que quede, como recordatorio, sin crearlo sin OK.
+- **Cierre.** Con P4 registrada y evidencia de los pasos 4 y 5: haz commit de las salidas y de `estado.json` en la rama de salidas de `content_repo` (`<branch_prefix><slug>`; en tanda, la de la tanda) y, con OK y pasando por `gate.sh`, empújala y abre un PR hacia `base_branch`, salvo que ya vaya en el PR de código (modo página con `content_repo` igual a `code_repo`). Recuerda fusionarlo con OK de la persona. Después registra `close` con `notes_shown: true` y enseña, una vez, cada nota de `close_notes` del perfil. Si `sar_register` es `true`, di que SAR (`performance-review`) se hace cargo de la página. Si el perfil tiene `linear`, propón cerrar las tareas con todo hecho; lo que quede, como recordatorio, sin crearlo sin OK.
 
 ## Hooks del plugin
 
@@ -176,4 +180,4 @@ Sostienen lo que no puede depender de que te acuerdes. No los esquives: si uno p
 
 ## Credits
 
-Created for the Galileo Studio skills catalog as the orchestrator of the `sau` plugin. No upstream source; the steps, gates, batch protocol and handoff format follow `docs/adr/0003-sau-plugin.md` and `plugins/sau/docs/states-and-gates.md`, generalized from the company's SEO Auto Upgrade process, and the structure mirrors `delivering-changes` in the `delivery` plugin.
+Original: Galileo Studio internal SEO skills, adapted for the sau plugin.
