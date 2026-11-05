@@ -50,7 +50,7 @@ The plugin holds no site data. Briefs, outputs, forbidden terms, competitor list
 - **Profile discovery.** Hooks find profiles under the session's git root and match written files by their repository's `origin` remote. A checkout with a different remote, or a session started outside the content repository, is not covered; the hook stays silent rather than blocking unrelated work.
 - **Legacy layouts.** Pages made before the plugin may keep outputs at the root of `output_dir`, and the first tanda kept motion plans in a shared folder. State detection accepts both layouts read-only; new units always use the documented layout.
 - **Deviation from the batch protocol.** Today a seed agent pushes its branch and opens a draft pull request. In the plugin the orchestrator does it, so every push meets `gate.sh` in a session that can ask. The protocol's lesson "push each branch when its step ends" becomes the orchestrator's job, right after each handoff.
-- **Entry point name.** Plugin skills are invoked by namespaced name (`sau:running-sau`). Whether a shorter `/sau` entry point is possible without a command file is still open.
+- **Entry point name.** Every plugin component keeps the plugin prefix (`/sau:running-sau`); a bare `/sau` is not possible from a plugin. Two thin command files give short entry points, `/sau:sigue` (next step) and `/sau:estado` (status), both delegating to `running-sau`. Commands are the older format; they were chosen over two extra skills so that the catalog's skill list and README tables stay one entry per real skill.
 
 ## Verification plan
 

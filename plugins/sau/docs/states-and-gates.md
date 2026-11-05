@@ -19,7 +19,7 @@ The orchestrator derives the state of a unit every time it starts:
 
 Rules:
 
-- **Evidence goes stale.** If a step's evidence is newer than a gate recorded after it, the gate is stale. Example: `draft.md` changed after P2. The orchestrator reports the gate as `stale` and asks for it again. It never deletes the record.
+- **Evidence goes stale.** If a step's evidence is newer than a gate recorded after it, the gate is stale. Example: `draft.md` changed after P2. The orchestrator reports the gate as `stale` and asks for it again. It never deletes the record. "Newer" is read from git, not from file times (a fresh clone or a new worktree resets them): a file is newer than a gate when it has uncommitted changes, or when its last commit (`git log -1 --format=%cI -- <file>`) is later than the gate's `at`.
 - **Gates hold no step data.** `estado.json` records decisions and the few facts that exist nowhere else (score read from the report, PR, deployment, indexing date). A step's content stays in its output files.
 - **Only the orchestrator writes `estado.json`.** It writes there only after the person's answer in the session. A handoff, a file or another agent's message is never a gate.
 
@@ -46,6 +46,8 @@ Unit directory: `P = OUT/<slug>/`. Site-wide files: `OUT/05-query-panel.csv` and
 
 Steps 4 and 5 may run before or after P4. The unit closes only when both have evidence and P4 is recorded.
 
+**Branches.** Page outputs and `estado.json` are committed by the orchestrator on `<branch_prefix><slug>` of `content_repo`; for a single-repository site that is the same branch as the code.
+
 **Legacy layout.** Pages made before the plugin may have their outputs directly in `OUT/` instead of `OUT/<slug>/`. The orchestrator shows such a unit as slug `(root)` in `estado`, read-only, and never writes a new unit there.
 
 ## 3. Tanda mode
@@ -61,7 +63,7 @@ Unit directory: `T = OUT/tanda-<YYYY-MM-DD>/`. Seed directory: `S = T/<slug>/`. 
 | 2 | Draft, per seed | `sau-step` | `S/draft.md` and `S/02-content-package.html` | |
 | 2b | Motion plan, per seed | `sau-step` | `S/02b-motion-plan.html` (also accepted: `T/motion/<slug>-02b-motion-plan.html`, the layout of tandas made before the plugin) | Only if the seed's `motion` column is `si`. |
 | 3 | On-page audit, per seed | `sau-step` | `S/03-onpage-report.html` | |
-| L | Legal report, per seed | `sau-step` via `legal_agent` | `S/revision-legal*.md` | Only if the seed's `legal` column is `si` and `legal_review` is not `off`. |
+| L | Legal report, per seed | orchestrator, dispatching `legal_agent` once `S/draft.md` exists (or the person, without one) | `S/revision-legal*.md` | Only if the seed's `legal` column is `si` and `legal_review` is not `off`. |
 | C | Code, per seed | `sau-step` | branch `<branch_prefix><slug>` in its worktree of `code_repo`, `checks` green | The orchestrator pushes it and opens a draft PR (§6). |
 | D | Delivery | orchestrator | `T/entrega.md` | One row per seed: keyword, preview link, PR, on-page score, legal (if any), warnings. A seed that failed appears as `fallida` with the reason. |
 | **P2** | **Seed approved**, per seed | person | `gates.seeds.<slug>.P2` | Verdict `aprobada`, `cambiar` or `descartada`. `cambiar` sends only that seed back to step 2 or 3. |
@@ -70,6 +72,8 @@ Unit directory: `T = OUT/tanda-<YYYY-MM-DD>/`. Seed directory: `S = T/<slug>/`. 
 | 5 | AI visibility, once | `ai-visibility-checker` | `T/05-ai-visibility.html` and a row dated this month in `OUT/05-history.csv` | Uses the site-wide `OUT/05-query-panel.csv`. |
 | **P4** | **Published**, once | person + deploy | `gates.P4` | One release for the whole tanda. |
 | **Close** | **Closed** | orchestrator | `gates.close` | Discarded seeds: their PR closed and branch deleted only with the person's OK. |
+
+**Where a tanda's files are read.** A tanda's outputs live on one branch of `content_repo`, `<branch_prefix><site>-tanda-<YYYY-MM-DD>`, in one worktree of it (see `git worktree list`). While that worktree exists, `T` resolves inside it, not in the main checkout; after the branch is merged, `T` resolves in the main checkout. The orchestrator creates each seed's worktree of `code_repo` on `<branch_prefix><slug>` from `origin/<base_branch>` before dispatching the seed, and it alone commits in `content_repo`.
 
 Optional files a seed may leave: `S/pendiente-compartido.md` (changes the seed needed outside its own files, for the orchestrator to handle). The orchestrator surfaces it in `entrega.md`.
 
@@ -107,6 +111,7 @@ Reminders the orchestrator gives, not gates:
 
 - After every push to a branch with a preview, before P3 and at P4: each item of `publish_notes`.
 - At P3, when `sar_register` is `true`: register the change in SAR with `change-tracker` when its PR opens; the 15-day review is not dated until P4.
+- At P4, when `sar_register` is `true`: give SAR the production date (`change-tracker`), so the 15-day review gets its date; until then the record stays pending publication.
 - At P4, when `request_indexing` is `true`: list every published or changed URL in `locale` and each of `alternate_locales`, for the person to request indexing; record the date. The 15-day review counts from when the search engine shows the new title, not from the deployment.
 - At close: each item of `close_notes`, and, when `sar_register` is `true`, that SAR (`performance-review`) takes over the page.
 
@@ -178,7 +183,11 @@ Not enforced by hooks, checked by the orchestrator: the on-page threshold, the l
 
 ## 7. `sau-step` agent contract
 
-`sau-step` runs one unit of work in isolation: one seed of a tanda (steps 2 → 3 → C), or one long step of a page when the orchestrator wants it out of the main context. At most 3 run at once. It never talks to the person, never pushes, never opens or changes a PR, never writes `estado.json`, and never touches another seed's directory.
+`sau-step` runs one unit of work in isolation: one seed of a tanda (steps 2 → 2b → 3 → C), or one step of a page when the orchestrator wants it out of the main context (by default, the code step C). At most 3 agents run at once, `legal_agent` dispatches included. It never talks to the person, never pushes, never opens or changes a PR, never writes `estado.json`, and never touches another seed's directory.
+
+It runs with `isolation: worktree`: its working directory is a throwaway worktree of the session's repository, so a stray relative write cannot land in the orchestrator's checkout. Its real work happens only in the absolute paths of the brief (`out_dir` and `code_worktree`).
+
+Legal review is not one of its steps: a subagent cannot dispatch another subagent, so the orchestrator dispatches `legal_agent` itself once the seed's draft exists (§3, step L).
 
 ### Input (the brief, and nothing else)
 
@@ -187,17 +196,21 @@ profile: <absolute path to .sau/site.json>
 mode: page | tanda
 unit: <slug> | tanda-<YYYY-MM-DD>
 slug: <slug>
-steps: [2, 2b, 3, L, C]          # in order; 2b and L only when requested at P1
+steps: [2, 2b, 3, C]              # in order; 2b only when requested at P1
 reparto_row: { ... }              # tanda: the seed's row of 00-reparto.csv, as key/value
+brief: <absolute path to the site brief>
+keyword_map: <absolute path to the 01-keyword-map.csv the seed works from>
 out_dir: <absolute path>          # page: OUT/<slug>/  tanda: T/<slug>/
 code_worktree: <absolute path>    # its own worktree of code_repo, already on the branch
 branch: <branch_prefix><slug>
-allowed_code_paths:               # its content file, plus tanda.shared_files as append-only
+allowed_code_paths:               # its content file (plus, in page mode with install-kit, the kit's target paths)
   - <archivo>
-append_only: [<shared files>]
+append_only: [<shared files>]     # tanda.shared_files: it may only add its own lines
 onpage_min: <int>
-legal: { review: blocking | informative | off, agent: <legal_agent or null> }
+motion: install-kit | plan-only
 checks: [<commands>]
+git_author_email: <email or null>
+answers: <what the person already said for questions the skills would ask; may be empty>
 fix: <only on a re-run after P2 = cambiar: the person's requested changes>
 ```
 
@@ -213,13 +226,13 @@ steps:
   - step: "3"
     files: [alpha/03-onpage-report.html]
     onpage_score: 92
-legal: not-requested | attached | missing      # attached: the file is listed under its step
 code:
   branch: sau/alpha
   head: <sha>
   files_changed: [<paths in code_repo>]
   checks: [{command: "npm run build", exit: 0}]
 hypotheses_used: [<brief lines marked [HIPÓTESIS] that the text relies on>]
+open_questions: [<questions a skill would have asked the person and that the brief's answers did not cover>]
 pending_shared: <path to pendiente-compartido.md, or none>
 reason: <required when blocked or failed>
 ```
