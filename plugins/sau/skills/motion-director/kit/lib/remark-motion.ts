@@ -6,6 +6,7 @@ import type { ContainerDirective, LeafDirective, TextDirective } from "mdast-uti
 // (dependencia de remark-rehype y react-markdown). Sin esta línea, el archivo no compila fuera
 // de un proyecto que ya cargue esos tipos por otro lado.
 import type {} from "mdast-util-to-hast";
+import type { ElementContent } from "hast";
 
 /**
  * Bloques de movimiento admitidos en el Markdown del blog (catálogo SAU).
@@ -128,6 +129,16 @@ function listToRows(list: List) {
   }
 }
 
+/** Cifra con su unidad aparte («16–24 GB» → «16–24» + `<span class="motion-figure-unit"> GB</span>`, espacio fino U+202F). */
+function figureChildren(value: string): ElementContent[] {
+  const i = value.lastIndexOf(" ");
+  if (i <= 0) return [{ type: "text", value }];
+  return [
+    { type: "text", value: value.slice(0, i).replace(/ /g, "\u202F") },
+    { type: "element", tagName: "span", properties: { className: ["motion-figure-unit"] }, children: [{ type: "text", value: `\u202F${value.slice(i + 1)}` }] },
+  ];
+}
+
 /** `cifras`: lista → `<dl>`; cada elemento → `<div><dt>explicación</dt><dd class="motion-figure-value">…</dd></div>`. */
 function listToFigures(list: List) {
   (list.data ??= {}).hName = "dl";
@@ -142,7 +153,7 @@ function listToFigures(list: List) {
           hName: "dd",
           hProperties: { className: ["motion-figure-value"] },
           hChildren: [
-            { type: "element", tagName: "span", properties: { className: ["motion-mask-inner"] }, children: [{ type: "text", value: plainText(lead as RootContent[]) }] },
+            { type: "element", tagName: "span", properties: { className: ["motion-mask-inner"] }, children: figureChildren(plainText(lead as RootContent[])) },
           ],
         },
       });

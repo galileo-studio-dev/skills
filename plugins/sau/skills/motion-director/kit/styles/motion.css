@@ -15,6 +15,10 @@
   /* Piezas de 2026-11 (encabezado, bento, cifras, filas, esquema, órbita).
      Colores derivados de los tokens de shadcn de la web; cada web puede sobrescribirlos. */
   --motion-stagger-step: 7%;
+  /* Tipografías: las de next/font (Geist en Galileo) si existen. `--font-mono` de Tailwind 4 con
+     `@theme inline` no llega a :root, por eso se mira primero la variable de next/font. */
+  --motion-font-sans: var(--font-geist-sans, var(--font-sans, ui-sans-serif, system-ui, sans-serif));
+  --motion-font-mono: var(--font-geist-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace));
   --motion-line: color-mix(in srgb, var(--primary) 70%, transparent);
   --motion-hairline: color-mix(in srgb, var(--foreground) 10%, transparent);
   --motion-surface: var(--background);
@@ -323,7 +327,7 @@
     grid-row: 1;
     grid-column: 1;
     display: block;
-    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-family: var(--motion-font-mono);
     font-size: 0.75rem;
     line-height: 2.25rem;
     color: color-mix(in srgb, var(--motion-muted) 70%, transparent);
@@ -436,9 +440,10 @@
   }
 
   /* El número va arriba a la vista, pero después de su explicación en el DOM. */
+  /* En sans (como el H2), no en mono: en mono el espacio de «16–24 GB» abre un hueco de un carácter. */
   .motion-figure-value {
     order: -1;
-    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-family: var(--motion-font-sans);
     font-size: clamp(2.5rem, 2rem + 2vw, 3.5rem);
     font-weight: 500;
     line-height: 1.05;
@@ -449,6 +454,14 @@
 
   .motion-figure-value > .motion-mask-inner {
     display: inline-block;
+  }
+
+  .motion-figure-unit {
+    margin-left: 0.2em;
+    font-size: 0.5em;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--motion-accent);
   }
 
   .motion-figure-note {
@@ -583,7 +596,7 @@
 
   .motion-diagram-sublabel {
     margin-top: -0.25rem;
-    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-family: var(--motion-font-mono);
     font-size: 0.6875rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -712,7 +725,7 @@
 
   .motion-orbit-core-sublabel {
     margin-top: -0.375rem;
-    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-family: var(--motion-font-mono);
     font-size: 0.6875rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -913,7 +926,7 @@
   }
 
   .motion-rows dt {
-    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-family: var(--motion-font-mono);
     font-size: 1.125rem;
     font-weight: 500;
     letter-spacing: -0.01em;

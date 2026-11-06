@@ -31,12 +31,26 @@ type FigureProps = {
   note?: ReactNode;
 };
 
+/**
+ * Separa la unidad de la cifra («16–24 GB» → «16–24» + «GB»): la unidad va más pequeña y en color de
+ * acento. El espacio pasa a fino sin salto (U+202F): no abre hueco ni se parte. Sin espacio, no hay unidad.
+ */
+export function splitUnit(value: string): { number: string; unit: string | null } {
+  const i = value.lastIndexOf(" ");
+  if (i <= 0) return { number: value, unit: null };
+  return { number: value.slice(0, i).replace(/ /g, "\u202F"), unit: `\u202F${value.slice(i + 1)}` };
+}
+
 export function Figure({ value, label, note }: FigureProps) {
+  const { number, unit } = splitUnit(value);
   return (
     <div>
       <dt>{label}</dt>
       <dd className="motion-figure-value">
-        <span className="motion-mask-inner">{value}</span>
+        <span className="motion-mask-inner">
+          {number}
+          {unit ? <span className="motion-figure-unit">{unit}</span> : null}
+        </span>
       </dd>
       {note ? <dd className="motion-figure-note">{note}</dd> : null}
     </div>

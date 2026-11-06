@@ -84,12 +84,16 @@ if (!escribir) {
   if (MOTION_CONTAINERS.includes("cifras")) {
     const f = await leer("cifras.md");
     const c = await leer("cifras-casos.md");
-    const valores = [...f.matchAll(/<dd class="motion-figure-value"><span class="motion-mask-inner">([^<]+)<\/span><\/dd>/g)].map((m) => m[1]);
+    const valores = [...f.matchAll(/<dd class="motion-figure-value"><span class="motion-mask-inner">(.*?)<\/dd>/g)]
+      .map((m) => m[1].replace(/<[^>]+>/g, ""));
+    reglas.push(["cifras: la unidad va en span.motion-figure-unit («GB», «%»)",
+      cuenta(f, /<span class="motion-figure-unit"> (GB|%)<\/span>/g) === 2]);
     const negritas = [...readFileSync(join(fixtures, "cifras.md"), "utf8").matchAll(/^- \*\*([^*]+)\*\*/gm)].map((m) => m[1]);
     reglas.push(
       ["cifras: dl > div ×3, cada uno con dt y dd.motion-figure-value > span.motion-mask-inner",
         f.includes("<dl>") && cuenta(f, /<div>\s*<dt>[^<]+<\/dt>\s*<dd class="motion-figure-value"><span class="motion-mask-inner">/g) === 3],
-      ["cifras: el texto de cada negrita es idéntico al original", valores.length === 3 && valores.join("|") === negritas.join("|")],
+      ["cifras: el texto de cada negrita es idéntico al original (salvo espacios finos U+202F)", valores.length === 3 && valores.join("|").replace(/\u202F/g, " ") === negritas.join("|")],
+      ["cifras: los espacios de la cifra pasan a espacio fino sin salto (U+202F)", valores.some((v) => v.includes("\u202F")) && valores.every((v) => !v.includes(" "))],
       ["cifras: un elemento sin negrita no lleva .motion-figure-value y la página sigue",
         cuenta(c, /motion-figure-value/g) === 1 && c.includes("<dt>Elemento sin negrita: se queda como texto, sin máscara.</dt>")],
     );

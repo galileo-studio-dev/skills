@@ -293,26 +293,42 @@ async function capturas(browser) {
   console.log("\n[capturas] inicio, mitad y final del recorrido de cada pieza");
   if (process.env.BANCO_CAPTURAS === "0") { aviso("omitidas por BANCO_CAPTURAS=0"); return; }
   mkdirSync(capturasDir, { recursive: true });
-  const ctx = await browser.newContext({ viewport: VIEW, reducedMotion: "no-preference" });
-  const page = await ctx.newPage();
-  await page.goto(URL, { waitUntil: "networkidle" });
-  for (const e of registro) {
-    const sec = await page.locator(sel(e.id)).first().elementHandle();
-    const h = await sec.evaluate((el) => el.getBoundingClientRect().height);
-    const base = await posicionBase(page, sec);
-    // p = fracción de la pieza ya dentro del viewport desde abajo; la última toma la deja entera y centrada.
-    for (const [nombre, p] of [["inicio", 0.1], ["mitad", 0.5], ["final", null]]) {
-      const top = p === null ? Math.max(40, (VIEW.height - h) / 2) : VIEW.height - Math.min(p * h, VIEW.height - 40);
-      await colocarBase(page, base, top);
-      const y0 = Math.max(0, Math.floor(top - 70));
-      const y1 = Math.min(VIEW.height, Math.ceil(top + h + 70));
-      const clip = { x: 0, y: y0, width: VIEW.width, height: Math.max(120, y1 - y0) };
-      await page.screenshot({ path: join(capturasDir, `${e.id}-${nombre}.png`), clip: { ...clip, height: Math.min(clip.height, VIEW.height - clip.y) } });
+  // 1280 (nombres de siempre, <id>-<fase>.png) y los anchos del revisor estético: 1440 y 390 (<id>-<ancho>-<fase>).
+  // Las de 1440 y 390 van en JPEG (calidad 75) para que el total no pase de unos 2 MB.
+  const anchos = [
+    { vp: VIEW, sufijo: "", tipo: "png" },
+    { vp: { width: 1440, height: 900 }, sufijo: "-1440", tipo: "jpeg" },
+    { vp: { width: 390, height: 844 }, sufijo: "-390", tipo: "jpeg" },
+  ];
+  let n = 0;
+  for (const { vp, sufijo, tipo } of anchos) {
+    const ctx = await browser.newContext({ viewport: vp, reducedMotion: "no-preference" });
+    const page = await ctx.newPage();
+    await page.goto(URL, { waitUntil: "networkidle" });
+    await page.evaluate(() => document.fonts.ready);
+    for (const e of registro) {
+      const sec = await page.locator(sel(e.id)).first().elementHandle();
+      const h = await sec.evaluate((el) => el.getBoundingClientRect().height);
+      const base = await posicionBase(page, sec);
+      // p = fracción de la pieza ya dentro del viewport desde abajo; la última toma la deja entera y centrada.
+      for (const [nombre, p] of [["inicio", 0.1], ["mitad", 0.5], ["final", null]]) {
+        const top = p === null ? Math.max(40, (vp.height - h) / 2) : vp.height - Math.min(p * h, vp.height - 40);
+        await colocarBase(page, base, top);
+        const y0 = Math.max(0, Math.floor(top - 70));
+        const y1 = Math.min(vp.height, Math.ceil(top + h + 70));
+        const clip = { x: 0, y: y0, width: vp.width, height: Math.max(120, y1 - y0) };
+        const ext = tipo === "png" ? "png" : "jpg";
+        await page.screenshot({
+          path: join(capturasDir, `${e.id}${sufijo}-${nombre}.${ext}`), type: tipo, ...(tipo === "jpeg" ? { quality: 75 } : {}),
+          clip: { ...clip, height: Math.min(clip.height, vp.height - clip.y) },
+        });
+        n++;
+      }
     }
+    await ctx.close();
   }
-  await ctx.close();
-  const total = readdirSync(capturasDir).filter((f) => f.endsWith(".png")).reduce((s, f) => s + statSync(join(capturasDir, f)).size, 0);
-  ok(`${registro.length * 3} capturas en evals/sau/motion/capturas/ (${(total / 1024).toFixed(0)} KB)`);
+  const total = readdirSync(capturasDir).filter((f) => /\.(png|jpg)$/.test(f)).reduce((s, f) => s + statSync(join(capturasDir, f)).size, 0);
+  ok(`${n} capturas de inicio/mitad/final a 1280, 1440 y 390 px en evals/sau/motion/capturas/ (${(total / 1024).toFixed(0)} KB en total)`);
 }
 
 // ---------------------------------------------------------------- contratos de las piezas en prueba
@@ -460,7 +476,7 @@ contratos.push(["cifras", async (browser) => {
   const mitad = await leer();
   await colocarSeccion(page, "cifras", 50);
   const fin = await leer();
-  check(ini.join("|") === "4|16–24 GB|4 %" && ini.join() === mitad.join() && mitad.join() === fin.join(),
+  check(ini.join("|").replace(/\u202F/g, " ") === "4|16–24 GB|4 %" && ini.join() === mitad.join() && mitad.join() === fin.join(),
     `cifras: los valores no cambian con el scroll (sin contador): ${fin.join(" · ")}`);
   const arbol = await page.locator(`${sel("cifras")} dl`).ariaSnapshot();
   const iLabel = arbol.indexOf("capas, todas dentro"), iValor = arbol.indexOf("16–24 GB");
@@ -723,6 +739,31 @@ contratos.push(["orbita", async (browser) => {
   }
 }]);
 
+/** Las capturas llevan la tipografía de Galileo: Geist (texto) y Geist Mono (etiquetas y cifras). */
+async function tipografia(browser) {
+  console.log("\n[tipografía] el muestrario usa Geist y Geist Mono, como galileo-studio-web");
+  const ctx = await browser.newContext({ viewport: VIEW });
+  const page = await ctx.newPage();
+  await page.goto(URL, { waitUntil: "networkidle" });
+  await page.evaluate(() => document.fonts.ready);
+  const r = await page.evaluate(() => {
+    const fam = (q) => { const e = document.querySelector(q); return e ? getComputedStyle(e).fontFamily : null; };
+    const cargadas = [...document.fonts].filter((f) => f.status === "loaded").map((f) => f.family);
+    return {
+      cargadas,
+      sans: [fam("h1"), fam(".motion-heading h2"), fam(".motion-bento-title"), fam(".motion-figure-value")],
+      mono: [fam(".motion-kicker"), fam(".motion-rows dt"), fam(".motion-diagram-sublabel")],
+    };
+  });
+  const esSans = (f) => !!f && /geist/i.test(f.split(",")[0]) && !/mono/i.test(f.split(",")[0]);
+  const esMono = (f) => !!f && /geist.*mono|mono.*geist/i.test(f.split(",")[0]);
+  check(r.cargadas.some((f) => /geist/i.test(f) && !/mono/i.test(f)) && r.cargadas.some((f) => /geist.*mono|mono.*geist/i.test(f)),
+    "Geist y Geist Mono cargadas (document.fonts)", r.cargadas.join(", "));
+  check(r.sans.every(esSans), "texto, títulos y cifras en Geist", r.sans.join(" | "));
+  check(r.mono.filter(Boolean).every(esMono) && r.mono.some(Boolean), "etiquetas mono en Geist Mono", r.mono.join(" | "));
+  await ctx.close();
+}
+
 async function ejecutarContratos(browser) {
   console.log("\n[contratos] comprobaciones propias de cada pieza en prueba");
   const ids = new Set(registro.map((e) => e.id));
@@ -749,6 +790,7 @@ try {
     await movimientoReducido(navegador);
     await sinSoporteEmulado(navegador);
     await firefoxReal();
+    await tipografia(navegador);
     await ejecutarContratos(navegador);
     await capturas(navegador);
     console.log(`\nnivel 3: ${oks} ok, ${fallos} fallos`);
