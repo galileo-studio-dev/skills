@@ -1,7 +1,7 @@
 // Muestrario del banco de motion. Cada pieza del catálogo aparece aquí en una
 // <section data-pieza="<id>"> con el mismo id que su entrada en ../../../piezas.json.
 // Ver LEEME.md: «Registrar una pieza nueva».
-import { Reveal, Steps, Comparison, ComparisonColumn, PullQuote, SectionHeading, Rows, Row, Bento, BentoItem } from "@/components/motion";
+import { Reveal, Steps, Comparison, ComparisonColumn, PullQuote, SectionHeading, Rows, Row, Bento, BentoItem, Figures, Figure } from "@/components/motion";
 
 // Piezas en prueba (2026-11): textos tomados de /ia-onpremise de galileo-studio-web
 // (messages/es.json, clave iaOnpremise.*), para ver las piezas con contenido real de Galileo.
@@ -145,6 +145,30 @@ export default function Muestrario() {
             <li><strong>Coste previsible.</strong> Sin pago por uso.</li>
           </ul>
         </Bento>
+      </section>
+      <Espacio />
+
+      {/* Cifras publicadas en /ia-onpremise (galileo-studio-web, messages/es.json); ver fixtures/markdown/cifras.md. */}
+      <section data-pieza="cifras">
+        <Figures>
+          <dl>
+            <Figure
+              value="4"
+              label="capas, todas dentro de tu infraestructura."
+              note="Fuente: guía IA on-premise, «Cómo se integra con tus sistemas»."
+            />
+            <Figure
+              value="16–24 GB"
+              label="de memoria de GPU suelen bastar para un primer caso de uso con un equipo pequeño."
+              note="Fuente: guía IA on-premise, requisitos y preguntas frecuentes."
+            />
+            <Figure
+              value="4 %"
+              label="del volumen de negocio anual global (o 20 millones de euros, si es mayor): multa máxima del RGPD."
+              note="Fuente: guía IA on-premise, «Normativa, al día de octubre de 2026»."
+            />
+          </dl>
+        </Figures>
       </section>
       <Espacio />
 

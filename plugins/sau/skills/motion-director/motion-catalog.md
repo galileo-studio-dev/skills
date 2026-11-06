@@ -25,6 +25,7 @@ Sus fichas están al final de este catálogo («Fichas en prueba»). Tipo «de b
 |---|---|---|---|---|
 | `encabezado-seccion` | Automática | Cada sección numerada de una página de servicio. | `SectionHeading` + `SectionKicker` | Solo TSX |
 | `bento` | De bloque | 2–8 elementos paralelos con título y frase. | `Bento` + `BentoItem` | `:::bento{columnas=3}` + lista |
+| `cifras` | De bloque | 2–4 datos clave con fuente. Máximo una. | `Figures` + `Figure` | `:::cifras` + lista |
 | `filas` | De bloque | 2–6 pares etiqueta + texto corto. | `Rows` + `Row` | `:::filas` + lista |
 
 ## `reveal` (automática)
@@ -150,3 +151,20 @@ Piezas de la tabla «En prueba». No se asignan hasta el OK de Pelayo.
 ```
 
 - **TSX:** `<Bento columns={4} variant="grid" numbered><ul><BentoItem title="…" icon={<ShieldCheck />}>…</BentoItem></ul></Bento>`
+
+## `cifras` (en prueba; de bloque)
+
+- **Qué hace:** de 2 a 4 cifras clave en fila. El número sube por máscara (como un H2) y su explicación sube detrás. Sin contador: el número final está siempre en el HTML.
+- **Contenido válido:** de 2 a 4 cifras que **ya están en el borrador con su fuente** (nunca se inventa una cifra; si es un claim, pasa por revisión legal). Valor corto (hasta 8 caracteres) y explicación de una frase. Como máximo **una por página**.
+- **No usar si:** las cifras no tienen fuente, hay más de 4 (usar `filas` o una tabla) o el número no es lo importante (`bento`).
+- **Markdown** (la primera negrita de cada elemento es la cifra; el resto, la explicación). Ejemplo con cifras publicadas en `/ia-onpremise` de Galileo:
+
+```markdown
+:::cifras
+- **4** capas, todas dentro de tu infraestructura.
+- **16–24 GB** de memoria de GPU suelen bastar para un primer caso de uso.
+- **4 %** del volumen de negocio anual global (o 20 millones de euros, si es mayor): multa máxima del RGPD.
+:::
+```
+
+- **TSX:** `<Figures><dl><Figure value="4" label="capas, todas dentro de tu infraestructura" note="Fuente: …" /></dl></Figures>`

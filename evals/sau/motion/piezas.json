@@ -152,6 +152,22 @@
         ".motion-bento > ul > li"
       ],
       "markdown": "bento.md"
+    },
+    {
+      "id": "cifras",
+      "pieza": "cifras",
+      "textos": [
+        "capas, todas dentro de tu infraestructura.",
+        "16–24 GB",
+        "4 %",
+        "de memoria de GPU suelen bastar para un primer caso de uso",
+        "multa máxima del RGPD"
+      ],
+      "animados": [
+        ".motion-figure-value > .motion-mask-inner",
+        ".motion-figures dt"
+      ],
+      "markdown": "cifras.md"
     }
   ]
 }

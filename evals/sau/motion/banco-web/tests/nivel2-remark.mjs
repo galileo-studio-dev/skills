@@ -81,6 +81,19 @@ if (!escribir) {
       ["bento: con atributos malos el contenido sigue", m.includes("Atributo desconocido.") && m.includes("Columnas fuera de rango.")],
     );
   }
+  if (MOTION_CONTAINERS.includes("cifras")) {
+    const f = await leer("cifras.md");
+    const c = await leer("cifras-casos.md");
+    const valores = [...f.matchAll(/<dd class="motion-figure-value"><span class="motion-mask-inner">([^<]+)<\/span><\/dd>/g)].map((m) => m[1]);
+    const negritas = [...readFileSync(join(fixtures, "cifras.md"), "utf8").matchAll(/^- \*\*([^*]+)\*\*/gm)].map((m) => m[1]);
+    reglas.push(
+      ["cifras: dl > div ×3, cada uno con dt y dd.motion-figure-value > span.motion-mask-inner",
+        f.includes("<dl>") && cuenta(f, /<div>\s*<dt>[^<]+<\/dt>\s*<dd class="motion-figure-value"><span class="motion-mask-inner">/g) === 3],
+      ["cifras: el texto de cada negrita es idéntico al original", valores.length === 3 && valores.join("|") === negritas.join("|")],
+      ["cifras: un elemento sin negrita no lleva .motion-figure-value y la página sigue",
+        cuenta(c, /motion-figure-value/g) === 1 && c.includes("<dt>Elemento sin negrita: se queda como texto, sin máscara.</dt>")],
+    );
+  }
   if (MOTION_CONTAINERS.includes("filas")) {
     const f = await leer("filas.md");
     const c = await leer("filas-casos.md");

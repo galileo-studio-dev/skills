@@ -448,6 +448,37 @@ contratos.push(["bento-rejilla", async (browser) => {
   await red.close();
 }]);
 
+contratos.push(["cifras", async (browser) => {
+  const ctx = await browser.newContext({ viewport: VIEW, reducedMotion: "no-preference" });
+  const page = await ctx.newPage();
+  await page.goto(URL, { waitUntil: "networkidle" });
+  const valores = page.locator(`${sel("cifras")} .motion-figure-value`);
+  const leer = () => valores.evaluateAll((els) => els.map((e) => e.textContent));
+  await colocarSeccion(page, "cifras", VIEW.height - 5);
+  const ini = await leer();
+  await colocarSeccion(page, "cifras", VIEW.height * 0.5);
+  const mitad = await leer();
+  await colocarSeccion(page, "cifras", 50);
+  const fin = await leer();
+  check(ini.join("|") === "4|16–24 GB|4 %" && ini.join() === mitad.join() && mitad.join() === fin.join(),
+    `cifras: los valores no cambian con el scroll (sin contador): ${fin.join(" · ")}`);
+  const arbol = await page.locator(`${sel("cifras")} dl`).ariaSnapshot();
+  const iLabel = arbol.indexOf("capas, todas dentro"), iValor = arbol.indexOf("16–24 GB");
+  const iPrimerValor = arbol.search(/:\s*"?4"?\s*$/m);
+  check(iLabel >= 0 && iValor > iLabel && (iPrimerValor === -1 || iPrimerValor > iLabel),
+    "cifras: orden de lectura explicación → valor", arbol.split("\n").slice(0, 6).join(" / "));
+  await ctx.close();
+  const red = await browser.newContext({ viewport: VIEW, reducedMotion: "reduce" });
+  const pr = await red.newPage();
+  await pr.goto(URL, { waitUntil: "networkidle" });
+  await colocarSeccion(pr, "cifras", VIEW.height * 0.5);
+  const r = await pr.locator(`${sel("cifras")} .motion-mask-inner, ${sel("cifras")} dt, ${sel("cifras")} .motion-figure-value`).evaluateAll((els) =>
+    els.map((e) => [getComputedStyle(e).transform, getComputedStyle(e).overflow]));
+  check(r.every(([t]) => t === "none") && r.every(([, o]) => o !== "clip"),
+    "cifras: con reduce, transform none y sin recorte (overflow: clip solo con movimiento)", JSON.stringify(r));
+  await red.close();
+}]);
+
 async function ejecutarContratos(browser) {
   console.log("\n[contratos] comprobaciones propias de cada pieza en prueba");
   const ids = new Set(registro.map((e) => e.id));

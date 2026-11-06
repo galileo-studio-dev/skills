@@ -370,6 +370,81 @@
     }
   }
 
+  /* cifras */
+  .motion-figures > dl {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem 2rem;
+    margin: 0;
+  }
+
+  .motion-figures > dl > div {
+    --motion-col: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--motion-hairline);
+  }
+
+  .motion-figures dt {
+    color: var(--motion-muted);
+    line-height: 1.6;
+  }
+
+  .motion-figures dd {
+    margin: 0;
+  }
+
+  /* El número va arriba a la vista, pero después de su explicación en el DOM. */
+  .motion-figure-value {
+    order: -1;
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-size: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--foreground);
+  }
+
+  .motion-figure-value > .motion-mask-inner {
+    display: inline-block;
+  }
+
+  .motion-figure-note {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: color-mix(in srgb, var(--motion-muted) 75%, transparent);
+  }
+
+  @media (min-width: 40rem) {
+    .motion-figures > dl {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .motion-figures > dl > div:nth-child(2n) {
+      --motion-col: 1;
+    }
+  }
+
+  /* Desde 64rem, tantas columnas como cifras (máximo 4). */
+  @media (min-width: 64rem) {
+    .motion-figures > dl {
+      grid-template-columns: none;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(0, 1fr);
+    }
+
+    .motion-figures > dl > div:nth-child(3) {
+      --motion-col: 2;
+    }
+
+    .motion-figures > dl > div:nth-child(4) {
+      --motion-col: 3;
+    }
+  }
+
   /* filas */
   .motion-rows > dl {
     margin: 0;
@@ -526,6 +601,35 @@
       animation-timeline: view();
       animation-range: entry calc(5% + var(--motion-col) * var(--motion-stagger-step))
         entry calc(60% + var(--motion-col) * var(--motion-stagger-step));
+    }
+
+    /* ---- cifras: cada cifra tiene su línea de tiempo (el valor solo mide ~60 px, regla 2.9);
+       el valor sube por máscara y la explicación detrás, escalonado por columna ---- */
+    .motion-figures > dl > div {
+      view-timeline: --motion-figure block;
+    }
+
+    .motion-figure-value {
+      overflow: clip;
+      overflow-clip-margin: 0.1em;
+    }
+
+    .motion-figure-value > .motion-mask-inner {
+      animation: motion-mask-up linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: --motion-figure;
+      animation-range: entry calc(10% + var(--motion-col) * var(--motion-stagger-step))
+        entry calc(70% + var(--motion-col) * var(--motion-stagger-step));
+    }
+
+    .motion-figures dt,
+    .motion-figure-note {
+      --motion-rise: 12px;
+      animation: motion-rise linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: --motion-figure;
+      animation-range: entry calc(20% + var(--motion-col) * var(--motion-stagger-step))
+        entry calc(80% + var(--motion-col) * var(--motion-stagger-step));
     }
 
     /* ---- filas: cada fila sube con su propia view() (mide más de 40 px); el separador

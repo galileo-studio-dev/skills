@@ -7,3 +7,4 @@ export { PullQuote } from "./pull-quote";
 export { SectionHeading, SectionKicker } from "./section-heading";
 export { Rows, Row } from "./rows";
 export { Bento, BentoItem } from "./bento";
+export { Figures, Figure } from "./figures";
