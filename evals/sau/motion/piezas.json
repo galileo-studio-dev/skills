@@ -1,0 +1,47 @@
+{
+  "_ayuda": "Registro de piezas del banco. Una entrada por caso de prueba. Ver LEEME.md. `pieza` = nombre en motion-catalog.md; `id` = <section data-pieza=id> del muestrario; `animados` = selectores (dentro de la sección) de los elementos que se animan y se comprueban en estado inicial y final; `textos` = frases que deben estar en el HTML sin JavaScript; `markdown` = fixture de fixtures/markdown/ (o null si la pieza no tiene sintaxis Markdown).",
+  "piezas": [
+    {
+      "id": "reveal-rise",
+      "pieza": "reveal",
+      "textos": ["Este párrafo sube y aparece al entrar en pantalla"],
+      "animados": [".motion-reveal"],
+      "markdown": null
+    },
+    {
+      "id": "reveal-mask",
+      "pieza": "reveal",
+      "textos": ["Título de sección con máscara"],
+      "animados": [".motion-mask-inner"],
+      "markdown": null
+    },
+    {
+      "id": "reveal-grupo",
+      "pieza": "reveal",
+      "textos": ["Tarjeta uno del grupo escalonado", "Tarjeta dos del grupo escalonado", "Tarjeta tres del grupo escalonado"],
+      "animados": [".motion-reveal"],
+      "markdown": null
+    },
+    {
+      "id": "pasos",
+      "pieza": "pasos",
+      "textos": ["Diagnóstico.", "Revisamos procesos y datos.", "Prototipo.", "Despliegue.", "Lo integramos en tu equipo."],
+      "animados": [".motion-steps > ol > li"],
+      "markdown": "pasos.md"
+    },
+    {
+      "id": "comparativa",
+      "pieza": "comparativa",
+      "textos": ["Software genérico", "No conoce tus documentos.", "Solución a medida", "Datos bajo tu control."],
+      "animados": [".motion-compare > *"],
+      "markdown": "comparativa.md"
+    },
+    {
+      "id": "cita-destacada",
+      "pieza": "cita-destacada",
+      "textos": ["Una buena solución empieza en tus propios datos."],
+      "animados": [".motion-pull-quote"],
+      "markdown": "cita-destacada.md"
+    }
+  ]
+}

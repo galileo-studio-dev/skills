@@ -1,0 +1,9 @@
+/* ROTO: @keyframes que anima width (provoca layout). */
+@keyframes motion-grow {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}

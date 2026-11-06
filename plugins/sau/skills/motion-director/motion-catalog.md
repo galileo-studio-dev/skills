@@ -87,3 +87,5 @@ Una buena solución empieza en tus propios datos.
 3. Cumple `motion-rules.md`: solo `transform` y `opacity`, CSS de scroll, movimiento reducido.
 4. Añade la pieza a este catálogo.
 5. Ejecuta `<py|python3> ${CLAUDE_PLUGIN_ROOT}/skills/motion-director/kit/install_kit.py --root <code_repo_path>` y los `checks` del perfil (por ejemplo, la compilación de la web).
+6. Registra la pieza en el banco de pruebas (`evals/sau/motion/LEEME.md`, «Registrar una pieza nueva»): entrada en `piezas.json`, fixture Markdown y sección en el muestrario.
+7. Ejecuta `evals/sau/motion/run.sh --nivel todo` y debe salir en verde; la pieza entra en este catálogo solo después, con el OK de Pelayo a las capturas (`evals/sau/motion/capturas/`).

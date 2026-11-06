@@ -1,0 +1,9 @@
+/* ROTO: animación en bucle. El banco debe fallar (nivel 1). */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .motion-roto {
+      animation: motion-rise 2s linear infinite;
+      animation-timeline: view();
+    }
+  }
+}

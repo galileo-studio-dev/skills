@@ -1,0 +1,39 @@
+@import "tailwindcss";
+@import "./motion.css";
+
+/* El kit se copia aquí con install_kit.py y está en .gitignore: Tailwind lo ignoraría. */
+@source "../components/motion";
+
+:root {
+  --background: #0b0f14;
+  --foreground: #e8eef5;
+  --primary: #4ade80;
+  --muted: #151b23;
+  --border: #2a3441;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, sans-serif;
+  margin: 0;
+}
+
+/* Solo del banco: la raíz como en las webs reales (ver motion.css, regla de overflow-x). */
+.banco-raiz {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.banco-espacio {
+  height: 110vh;
+}

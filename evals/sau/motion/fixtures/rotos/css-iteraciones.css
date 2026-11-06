@@ -1,0 +1,10 @@
+/* ROTO: más de una repetición. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .motion-roto {
+      animation-name: motion-rise;
+      animation-iteration-count: 3;
+      animation-timeline: view();
+    }
+  }
+}

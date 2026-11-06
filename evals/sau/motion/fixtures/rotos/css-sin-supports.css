@@ -1,0 +1,5 @@
+/* ROTO: animación fuera de @supports(view()) y de reduced-motion. */
+.motion-roto {
+  animation: motion-rise linear both;
+  animation-timeline: view();
+}

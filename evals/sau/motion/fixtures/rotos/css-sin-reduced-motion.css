@@ -1,0 +1,7 @@
+/* ROTO: animación con @supports pero sin respetar prefers-reduced-motion. */
+@supports (animation-timeline: view()) {
+  .motion-roto {
+    animation: motion-rise linear both;
+    animation-timeline: view();
+  }
+}

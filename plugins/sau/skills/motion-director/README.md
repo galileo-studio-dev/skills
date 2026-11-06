@@ -64,3 +64,4 @@ La skill solo deja la propuesta en el plan. No genera el vídeo.
 
 - No edites los archivos copiados en `src/`. Edita `kit/` y vuelve a instalar.
 - Una pieza nueva sigue los pasos de "Añadir una pieza nueva" en `motion-catalog.md`.
+- Antes de dar por buena una pieza nueva o un cambio en `kit/`: `evals/sau/motion/run.sh --nivel todo` debe salir en verde (la pieza entra en el catálogo solo después, con el OK de Pelayo a las capturas).
