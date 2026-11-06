@@ -4,19 +4,25 @@
 /* El kit se copia aquí con install_kit.py y está en .gitignore: Tailwind lo ignoraría. */
 @source "../components/motion";
 
+/* Tokens del tema oscuro de galileo-studio-web (src/app/globals.css), para que las capturas
+   se vean en el lenguaje de Galileo. El kit solo usa estas variables, nunca colores fijos. */
 :root {
-  --background: #0b0f14;
-  --foreground: #e8eef5;
-  --primary: #4ade80;
-  --muted: #151b23;
-  --border: #2a3441;
+  --background: #030609;
+  --foreground: #f4f7fb;
+  --card: #07131b;
+  --primary: #8aceb3;
+  --muted: #0a161f;
+  --muted-foreground: #9cb5c4;
+  --border: #15414b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
   --color-primary: var(--primary);
   --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
 }
 

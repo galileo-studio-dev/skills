@@ -51,8 +51,11 @@ El blog es código propio de cada web, así que esta conexión se hace a mano un
    - Exporta `blogRemarkPlugins = [remarkDirective, remarkMotion]` (si el blog ya usa `remarkGfm` u otros plugins, añádelos a la misma lista).
    - Renderiza `h2` con `<Reveal as="h2" variant="mask">`, y `h3` y `blockquote` con `<Reveal>`.
    - Añade un renderizador `div` que lee `data-motion` y devuelve `Steps`, `Comparison`, `ComparisonColumn` o `PullQuote`. Un valor desconocido devuelve un `<div>` normal.
+   - Piezas en prueba (ver «En prueba» en `motion-catalog.md`): cuando salgan de prueba, el mismo renderizador devolverá también `Bento` (`bento`), `Figures` (`cifras`) y `Rows` (`filas`), pasando el `<ul>`/`<dl>` del Markdown como hijo. Mientras tanto no hace falta: un `<div data-motion>` sin renderizador propio se ve como un `<div>` normal.
 2. En la página del post, pasa `remarkPlugins={blogRemarkPlugins}` a `ReactMarkdown`.
 3. Pasa ese componente a `install_kit.py` con `--blog-file` para comprobar la conexión (busca el nombre `blogRemarkPlugins`).
+
+`kit/lib/remark-motion.ts` importa los tipos de `mdast-util-to-hast` (`import type {} from "mdast-util-to-hast"`). Ese paquete llega con `remark-rehype` o `react-markdown`; si la web no tiene ninguno de los dos y no compila, añade `mdast-util-to-hast` a `devDependencies`.
 
 ## Vídeo opcional
 

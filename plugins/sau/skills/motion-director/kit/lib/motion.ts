@@ -29,6 +29,21 @@ export const STAGGER = {
 /** Desplazamiento vertical de entrada, en píxeles. */
 export const RISE_DISTANCE = 24;
 
+/** Paso del escalonado en animaciones de scroll, en fracción del rango (7 %). Equivale a STAGGER.base. */
+export const SCROLL_STAGGER_STEP = 0.07;
+
+/**
+ * Órbita: aplastado de la elipse y tramo que avanza cada anillo al cruzar la sección.
+ * Espejo de las variables `--motion-orbit-*` de motion.css. Los fija el kit para que no haya solapes.
+ */
+export const ORBIT = {
+  squash: 0.55,
+  squashCompact: 0.85,
+  sweepDeg: { outer: 24, middle: 36, inner: 52 },
+  radii: { outer: 46, middle: 32, inner: 19 }, // % del ancho del escenario
+  maxNodes: { outer: 4, middle: 3, inner: 2 },
+} as const;
+
 /** Opciones de viewport para framer-motion: cada elemento entra una sola vez. */
 export const VIEWPORT_ONCE = { once: true, amount: 0.3 } as const;
 

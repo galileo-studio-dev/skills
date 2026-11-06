@@ -4,3 +4,4 @@ export { Reveal } from "./reveal";
 export { Steps } from "./steps";
 export { Comparison, ComparisonColumn } from "./comparison";
 export { PullQuote } from "./pull-quote";
+export { SectionHeading, SectionKicker } from "./section-heading";

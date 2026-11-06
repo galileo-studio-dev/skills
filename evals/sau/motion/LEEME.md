@@ -81,5 +81,5 @@ Después: `evals/sau/motion/run.sh --nivel todo`, mirar las capturas nuevas y pe
 
 - Chromium y Firefox de Playwright, en Windows/Linux de escritorio. Safari no.
 - Rendimiento real (LCP, INP) sobre una web de verdad: aquí solo CLS y la ausencia de animación en el H1.
-- `blog-markdown.patch` (citado en el catálogo) no existe en el plugin: el banco no comprueba la conexión del
-  blog salvo el marcador de `--blog-file`.
+- La conexión del blog es código propio de cada web («Conectar el blog a mano» en el `README.md` de
+  motion-director): el banco no la comprueba salvo el marcador de `--blog-file`.

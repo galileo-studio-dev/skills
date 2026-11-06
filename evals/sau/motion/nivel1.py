@@ -247,8 +247,8 @@ def nombres_definidos(archivos: list[Path]) -> set[str]:
     return out
 
 
-def filas_resumen(catalogo: str) -> list[list[str]]:
-    sec = re.search(r"## Resumen\n(.*?)(?=\n## )", catalogo, flags=re.S)
+def filas_resumen(catalogo: str, titulo: str = "Resumen") -> list[list[str]]:
+    sec = re.search(rf"## {titulo}[^\n]*\n(.*?)(?=\n## |\Z)", catalogo, flags=re.S)
     filas = []
     if not sec:
         return filas
@@ -264,10 +264,23 @@ def comprobar_coherencia(director: Path, archivos_comp: list[Path]) -> None:
     index_ts = (director / "kit" / "components" / "index.ts").read_text(encoding="utf-8")
     remark_ts = (director / "kit" / "lib" / "remark-motion.ts").read_text(encoding="utf-8")
 
-    filas = filas_resumen(catalogo)
-    if not filas:
+    asignables = filas_resumen(catalogo)
+    if not asignables:
         anotar("FAIL", "coherencia: tabla «Resumen» del catálogo legible", "no se encontró")
         return
+    # «En prueba»: piezas en el kit que motion-director aún no asigna (falta el OK de Pelayo).
+    # Cuentan para la coherencia kit <-> catálogo <-> banco igual que las de «Resumen».
+    en_prueba = filas_resumen(catalogo, "En prueba")
+    nombres_a = {re.sub(r"`", "", f[0]).strip() for f in asignables if f and f[0].strip()}
+    nombres_p = {re.sub(r"`", "", f[0]).strip() for f in en_prueba if f and f[0].strip()}
+    if nombres_a & nombres_p:
+        anotar("FAIL", "coherencia: ninguna pieza está a la vez en «Resumen» y en «En prueba»", ", ".join(sorted(nombres_a & nombres_p)))
+    if en_prueba:
+        anotar("ok", f"coherencia: {len(nombres_p)} piezas en prueba, separadas de las {len(nombres_a)} asignables")
+        skill = director / "SKILL.md"
+        if not (skill.exists() and "En prueba" in skill.read_text(encoding="utf-8")):
+            anotar("FAIL", "coherencia: SKILL.md de motion-director dice que no asigna las piezas «En prueba»", "falta la mención en SKILL.md")
+    filas = asignables + en_prueba
     exportados = nombres_exportados(index_ts)
     definidos = nombres_definidos(archivos_comp)
 
@@ -349,6 +362,212 @@ def comprobar_coherencia(director: Path, archivos_comp: list[Path]) -> None:
             anotar("FAIL", "coherencia: cada pieza de la tabla tiene su sección", pieza)
 
 
+# ---------------------------------------------------------------- contratos de las piezas (N1)
+# Clase raíz de cada componente: debe estar en la regla `.overflow-x-hidden:has(…)` de motion.css.
+CLASE_RAIZ = {
+    "reveal.tsx": "motion-reveal",
+    "steps.tsx": "motion-steps",
+    "comparison.tsx": "motion-compare",
+    "pull-quote.tsx": "motion-pull-quote",
+    "section-heading.tsx": "motion-heading",
+    "bento.tsx": "motion-bento",
+    "figures.tsx": "motion-figures",
+    "rows.tsx": "motion-rows",
+    "diagram.tsx": "motion-diagram",
+    "orbit.tsx": "motion-orbit",
+}
+COLOR_LITERAL = re.compile(r"#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(")
+
+
+def _etiqueta_con(src: str, clase: str) -> list[str]:
+    """Etiquetas JSX de apertura que contienen `clase` (pueden ocupar varias líneas)."""
+    return re.findall(rf"<[a-zA-Z][^<>]*?\b{re.escape(clase)}\b[^<>]*>", src, flags=re.S)
+
+
+def _sin_not(selector: str) -> str:
+    out, i = "", 0
+    while i < len(selector):
+        if selector.startswith(":not(", i):
+            prof, i = 1, i + 5
+            while i < len(selector) and prof:
+                prof += {"(": 1, ")": -1}.get(selector[i], 0)
+                i += 1
+        else:
+            out += selector[i]
+            i += 1
+    return out
+
+
+def _dentro_de_animacion(b: Bloque) -> bool:
+    anc = [norm(a) for a in b.ancestros()]
+    return any(a.startswith("@supports") and "animation-timeline" in a for a in anc) and any(
+        a.startswith("@media") and "prefers-reduced-motion: no-preference" in a for a in anc
+    )
+
+
+def _animaciones(b: Bloque) -> list[str]:
+    nombres = []
+    for prop, valor in b.decls:
+        if prop in ("animation", "animation-name"):
+            nombres += re.findall(r"\bmotion-[a-z-]+\b", valor)
+    return nombres
+
+
+def _props_keyframes(bloques: list[Bloque], nombre: str) -> set[str]:
+    props: set[str] = set()
+    for kf in bloques:
+        if kf.preludio.lower().startswith("@keyframes") and kf.preludio.split()[-1] == nombre:
+            for fr in kf.hijos:
+                props |= {p for p, _ in fr.decls if p != "animation-timing-function"}
+    return props
+
+
+def _decl(b: Bloque, prop: str) -> str | None:
+    vals = [v for p, v in b.decls if p == prop]
+    return norm(vals[-1]).strip() if vals else None
+
+
+def comprobar_contratos(director: Path) -> None:
+    kit = director / "kit"
+    comp = kit / "components"
+    css = (kit / "styles" / "motion.css").read_text(encoding="utf-8")
+    bloques = list(recorrer(parsear_css(css)))
+    install = (kit / "install_kit.py").read_text(encoding="utf-8")
+    reglas = [b for b in bloques if b.preludio and not b.preludio.startswith("@") and b.padre is not None
+              and not (b.padre.preludio.lower().startswith("@keyframes"))]
+
+    # Todo componente del kit lo instala install_kit.py.
+    sin_instalar = sorted(p.name for p in comp.iterdir() if p.suffix in (".tsx", ".ts") and f'"{p.name}"' not in install)
+    if sin_instalar:
+        anotar("FAIL", "contrato: install_kit.py (FILES) lista cada archivo de kit/components", ", ".join(sin_instalar))
+    else:
+        anotar("ok", "contrato: install_kit.py (FILES) lista cada archivo de kit/components")
+
+    # La clase raíz de cada pieza está en la regla de contenedor de página.
+    has = re.search(r"\.overflow-x-hidden:has\(([^)]*)\)", css)
+    en_has = set(re.findall(r"\.(motion-[a-z-]+)", has.group(1))) if has else set()
+    faltan = sorted(c for f, c in CLASE_RAIZ.items() if (comp / f).exists() and c not in en_has)
+    if faltan:
+        anotar("FAIL", "contrato: la clase raíz de cada pieza está en .overflow-x-hidden:has(…)", ", ".join(faltan))
+    else:
+        anotar("ok", "contrato: la clase raíz de cada pieza está en .overflow-x-hidden:has(…)")
+
+    def fallo_si(cond: bool, nombre: str, detalle: str = "") -> None:
+        anotar("FAIL" if cond else "ok", nombre, detalle if cond else "")
+
+    def solo_transform(clase: str) -> list[str]:
+        malos = []
+        for b in reglas:
+            if clase in b.preludio:
+                for n in _animaciones(b):
+                    extra = _props_keyframes(bloques, n) - {"transform"}
+                    if extra:
+                        malos.append(f"{b.preludio}: {n} anima {', '.join(sorted(extra))}")
+        return malos
+
+    # encabezado-seccion
+    f = comp / "section-heading.tsx"
+    if f.exists():
+        src = sin_comentarios_js(f.read_text(encoding="utf-8"))
+        for clase in ("motion-kicker-index", "motion-kicker-line"):
+            tags = _etiqueta_con(src, clase)
+            fallo_si(not tags or any('aria-hidden="true"' not in t for t in tags),
+                     f"contrato encabezado-seccion: «{clase}» lleva aria-hidden=\"true\"", f"{tags or 'no encontrado'}")
+        fallo_si(not (re.search(r'as\?:\s*"h2"\s*\|\s*"h3"', src) and re.search(r'as:\s*\w+\s*=\s*"h2"', src)),
+                 "contrato encabezado-seccion: el título va en h2 (o h3 con `as`)")
+        malos = solo_transform("motion-kicker-line")
+        fallo_si(bool(malos) or not any("motion-kicker-line" in b.preludio and _animaciones(b) for b in reglas),
+                 "contrato encabezado-seccion: .motion-kicker-line anima solo transform", "; ".join(malos) or "sin animación")
+        fallo_si(not any(re.search(r"\.motion-heading\s*$", b.preludio) and "--motion-heading" in (_decl(b, "view-timeline") or "")
+                         for b in reglas),
+                 "contrato encabezado-seccion: .motion-heading declara view-timeline: --motion-heading")
+
+    # bento
+    f = comp / "bento.tsx"
+    if f.exists():
+        src = sin_comentarios_js(f.read_text(encoding="utf-8"))
+        tags = _etiqueta_con(src, "motion-bento-icon")
+        fallo_si(not tags or any('aria-hidden="true"' not in t for t in tags), "contrato bento: el icono lleva aria-hidden=\"true\"")
+        fallo_si("motion-bento-body" not in src, "contrato bento: BentoItem envuelve el contenido en .motion-bento-body")
+        fallo_si(bool(re.search(r"\bindex\b|--motion-index", src)), "contrato bento: sin `index` ni --motion-index (el escalonado es CSS)")
+        malos = []
+        for b in reglas:
+            if not _animaciones(b):
+                continue
+            for s in b.preludio.split(","):
+                s2 = _sin_not(s)
+                if "motion-bento" in s2 and re.search(r'data-variant="?grid"?', s2) and re.search(r"\bli\s*$", s2.strip()):
+                    malos.append(s.strip())
+        fallo_si(bool(malos), "contrato bento: la variante grid no anima la celda (li), solo .motion-bento-body", "; ".join(malos))
+
+    # cifras
+    f = comp / "figures.tsx"
+    if f.exists():
+        src = sin_comentarios_js(f.read_text(encoding="utf-8"))
+        fallo_si(bool(re.search(r"requestAnimationFrame|setInterval|setTimeout", src)), "contrato cifras: sin contador (ni requestAnimationFrame ni temporizadores)")
+        malos = [b.preludio for b in reglas if "motion-figure-value" in b.preludio
+                 and (_decl(b, "overflow") or "").startswith("clip") and not _dentro_de_animacion(b)]
+        fallo_si(bool(malos), "contrato cifras: .motion-figure-value solo recorta (overflow: clip) dentro de @supports … no-preference", "; ".join(malos))
+
+    # filas
+    f = comp / "rows.tsx"
+    if f.exists():
+        antes = [b for b in reglas if "motion-rows" in b.preludio and "::before" in b.preludio]
+        fallo_si(not any(_decl(b, "content") in ('""', "''") for b in antes), "contrato filas: el separador es ::before con content: \"\"")
+        malos = solo_transform("motion-rows")
+        fallo_si(bool(malos), "contrato filas: el separador solo anima transform", "; ".join(malos))
+
+    # esquema
+    f = comp / "diagram.tsx"
+    if f.exists():
+        src = sin_comentarios_js(f.read_text(encoding="utf-8"))
+        svgs = re.findall(r"<svg\b[^<>]*>", src, flags=re.S)
+        fallo_si(not svgs or any('aria-hidden="true"' not in s for s in svgs), "contrato esquema: el svg de conectores lleva aria-hidden=\"true\"")
+        fallo_si(bool(re.search(r"stroke-dash(offset|array)", quitar_comentarios(css))),
+                 "contrato esquema: motion.css no usa stroke-dashoffset ni stroke-dasharray")
+        fallo_si(not re.search(r"\bcaption:\s*string", src), "contrato esquema: `caption` es obligatorio en el tipo")
+        fallo_si(not re.search(r"nodes\.length\s*<\s*3\s*\|\|\s*nodes\.length\s*>\s*7", src) or "throw new Error" not in src,
+                 "contrato esquema: el componente rechaza menos de 3 o más de 7 nodos")
+        fallo_si("<figcaption" not in src, "contrato esquema: lleva figcaption")
+
+    # órbita
+    f = comp / "orbit.tsx"
+    if f.exists():
+        src_raw = f.read_text(encoding="utf-8")
+        src = sin_comentarios_js(src_raw)
+        fallo_si(bool(re.search(r"animateMotion|requestAnimationFrame|framer-motion", src)),
+                 "contrato órbita: sin animateMotion, requestAnimationFrame ni framer-motion")
+        orb = [b for b in reglas if "motion-orbit" in b.preludio]
+        malos = []
+        for b in orb:
+            for prop, valor in b.decls:
+                v = valor.lower()
+                if prop.startswith("animation") and ("infinite" in v or (prop in ("animation", "animation-duration") and re.search(r"\b\d*\.?\d+m?s\b", v))):
+                    malos.append(f"{b.preludio}: {prop}: {valor}")
+        fallo_si(bool(malos), "contrato órbita: sin infinite ni duración en segundos (todo con animation-timeline)", "; ".join(malos))
+
+        def firma(nombre: str) -> set[tuple]:
+            out = set()
+            for b in orb:
+                if nombre in _animaciones(b):
+                    anim = _decl(b, "animation") or ""
+                    tf = _decl(b, "animation-timing-function") or ("linear" if re.search(r"\blinear\b", anim) else "?")
+                    out.add((_decl(b, "animation-timeline"), _decl(b, "animation-range"), tf))
+            return out
+        s1, s2 = firma("motion-orbit-spin"), firma("motion-orbit-counter")
+        fallo_si(not s1 or s1 != s2, "contrato órbita: spin y counter con la misma línea de tiempo, rango y curva",
+                 f"spin {sorted(map(str, s1))} / counter {sorted(map(str, s2))}")
+        tags = _etiqueta_con(src, "motion-orbit-stage")
+        fallo_si(not tags or any('aria-hidden="true"' not in t for t in tags) or "<figcaption" not in src,
+                 "contrato órbita: el escenario lleva aria-hidden=\"true\" y hay figcaption")
+        fallo_si(not re.search(r"\bcaption:\s*string", src), "contrato órbita: `caption` es obligatorio en el tipo")
+        fallo_si(not re.search(r"outer\.length\s*<\s*1\s*\|\|\s*outer\.length\s*>\s*4", src) or "throw new Error" not in src,
+                 "contrato órbita: el componente exige de 1 a 4 nodos exteriores")
+        lit = [b.preludio for b in orb if any(COLOR_LITERAL.search(v) for _, v in b.decls)]
+        lit += ["orbit.tsx"] if COLOR_LITERAL.search(src) else []
+        fallo_si(bool(lit), "contrato órbita: sin colores literales (#…, rgb(…)) en orbit.tsx ni en .motion-orbit*", "; ".join(lit))
+
+
 def main() -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -367,6 +586,7 @@ def main() -> int:
     comprobar_css(css)
     archivos = comprobar_componentes(comp)
     comprobar_coherencia(director, archivos)
+    comprobar_contratos(director)
 
     fallos = 0
     for estado, nombre, detalle in resultados:

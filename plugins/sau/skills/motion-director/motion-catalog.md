@@ -1,7 +1,8 @@
 # Catálogo de piezas de movimiento
 
-Lista cerrada. `motion-director` solo asigna piezas de esta lista.
+Lista cerrada. `motion-director` solo asigna piezas de la tabla «Resumen».
 Cada pieza existe en `kit/components/` y se instala en `src/components/motion/`.
+Las piezas de «En prueba» también están en el kit, pero **no se asignan** hasta que Pelayo dé el OK a sus capturas.
 
 Reglas de uso: `motion-rules.md`.
 
@@ -13,6 +14,16 @@ Reglas de uso: `motion-rules.md`.
 | `pasos` | Destacada | Un proceso de 3–6 pasos en orden. | `Steps` | `:::pasos` + lista numerada |
 | `comparativa` | Destacada | Dos opciones frente a frente (A frente a B). | `Comparison` + `ComparisonColumn` | `::::comparativa` + dos `:::columna[Título]` |
 | `cita-destacada` | Destacada | La frase clave de la página. Máximo una. | `PullQuote` | `:::cita-destacada` |
+
+## En prueba — pendientes del OK de Pelayo; motion-director no las asigna
+
+Están en el kit y pasan el banco de pruebas (`evals/sau/motion/`), pero Pelayo aún no ha dado el OK a sus capturas.
+`motion-director` **no las asigna** ni las propone en el plan. Pasar una pieza de aquí a «Resumen» es un cambio aparte, con ese OK.
+Sus fichas están al final de este catálogo («Fichas en prueba»). Tipo «de bloque» y dosis: `motion-rules.md`, sección 3.
+
+| Pieza | Tipo | Cuándo usarla | Componente | Sintaxis en Markdown |
+|---|---|---|---|---|
+| `encabezado-seccion` | Automática | Cada sección numerada de una página de servicio. | `SectionHeading` + `SectionKicker` | Solo TSX |
 
 ## `reveal` (automática)
 
@@ -83,9 +94,23 @@ Una buena solución empieza en tus propios datos.
 ## Añadir una pieza nueva
 
 1. Crea el componente en `kit/components/` y sus estilos en `kit/styles/motion.css`.
-2. Si tiene sintaxis Markdown, añade su nombre a `MOTION_CONTAINERS` en `kit/lib/remark-motion.ts`. Añade también el caso en `blog-markdown.patch`.
+2. Si tiene sintaxis Markdown, añade su nombre a `MOTION_CONTAINERS` en `kit/lib/remark-motion.ts`, y sus atributos admitidos a la lista blanca de atributos. Añade también el caso al renderizador `div` del blog de cada web (ver «Conectar el blog a mano» en `README.md`).
 3. Cumple `motion-rules.md`: solo `transform` y `opacity`, CSS de scroll, movimiento reducido.
-4. Añade la pieza a este catálogo.
-5. Ejecuta `<py|python3> ${CLAUDE_PLUGIN_ROOT}/skills/motion-director/kit/install_kit.py --root <code_repo_path>` y los `checks` del perfil (por ejemplo, la compilación de la web).
-6. Registra la pieza en el banco de pruebas (`evals/sau/motion/LEEME.md`, «Registrar una pieza nueva»): entrada en `piezas.json`, fixture Markdown y sección en el muestrario.
-7. Ejecuta `evals/sau/motion/run.sh --nivel todo` y debe salir en verde; la pieza entra en este catálogo solo después, con el OK de Pelayo a las capturas (`evals/sau/motion/capturas/`).
+4. Añade el componente a `FILES` en `kit/install_kit.py`, a `kit/components/index.ts` y su clase a la regla `.overflow-x-hidden:has(…)` de `motion.css`.
+5. Escribe su contrato en el banco de pruebas (`evals/sau/motion/`) y pásalo antes de añadirla al catálogo.
+6. Añade la pieza a la tabla «En prueba» de este catálogo, con su sección. Pasa a «Resumen» solo con el OK de Pelayo a las capturas.
+7. Ejecuta `<py|python3> ${CLAUDE_PLUGIN_ROOT}/skills/motion-director/kit/install_kit.py --root <code_repo_path>` y los `checks` del perfil (por ejemplo, la compilación de la web).
+8. Registra la pieza en el banco de pruebas (`evals/sau/motion/LEEME.md`, «Registrar una pieza nueva»): entrada en `piezas.json`, fixture Markdown y sección en el muestrario.
+9. Ejecuta `evals/sau/motion/run.sh --nivel todo` y debe salir en verde; la pieza entra en «Resumen» solo después, con el OK de Pelayo a las capturas (`evals/sau/motion/capturas/`).
+
+## Fichas en prueba
+
+Piezas de la tabla «En prueba». No se asignan hasta el OK de Pelayo.
+
+## `encabezado-seccion` (en prueba; automática)
+
+- **Qué hace:** abre una sección con número mono («02»), una línea fina que se dibuja de izquierda a derecha, la etiqueta en mono, el H2 que sube por máscara y una descripción que sube después.
+- **Contenido válido:** número de sección, una etiqueta corta en texto real, el H2 y, si hace falta, un párrafo de descripción (la cápsula de respuesta). Una por sección H2 numerada; no cuenta en la dosis.
+- **Markdown:** no tiene. Solo TSX: necesita número y etiqueta, que un `## H2` no tiene, y los H2 del blog ya entran por máscara con `reveal`.
+- **TSX:** `<SectionHeading index="02" eyebrow="Por qué" title="…" description="…" />`. `SectionKicker` sirve para una etiqueta suelta (se ve estática).
+- **No usar en:** el hero (allí va el H1, que nunca se anima), el blog ni secciones sin H2.

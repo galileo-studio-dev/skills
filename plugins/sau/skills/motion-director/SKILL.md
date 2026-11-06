@@ -23,6 +23,7 @@ De esta skill (`${CLAUDE_PLUGIN_ROOT}/skills/motion-director/`):
 
 1. `motion-rules.md` — reglas de marca, de SEO y de dosis. Son obligatorias.
 2. `motion-catalog.md` — las únicas piezas que puedes usar.
+   - Solo las de la tabla «Resumen». Las de «En prueba» (pendientes del OK de Pelayo) no se asignan ni se proponen, aunque `motion-rules.md` ya las nombre.
 
 Del sitio (según el perfil):
 

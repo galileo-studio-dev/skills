@@ -12,6 +12,26 @@
   --motion-ease-brand: cubic-bezier(0.16, 1, 0.3, 1);
   --motion-ease-exit: cubic-bezier(0.32, 0, 0.67, 0);
   --motion-rise: 24px;
+  /* Piezas de 2026-11 (encabezado, bento, cifras, filas, esquema, órbita).
+     Colores derivados de los tokens de shadcn de la web; cada web puede sobrescribirlos. */
+  --motion-stagger-step: 7%;
+  --motion-line: color-mix(in srgb, var(--primary) 70%, transparent);
+  --motion-hairline: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --motion-surface: var(--background);
+  --motion-accent: var(--primary);
+  --motion-muted: var(--muted-foreground, color-mix(in srgb, var(--foreground) 65%, transparent));
+  --motion-orbit-stroke: var(--primary);
+  --motion-orbit-glow: color-mix(in srgb, var(--primary) 22%, transparent);
+  --motion-orbit-squash: 0.85; /* móvil: casi círculos */
+  --motion-orbit-sweep-outer: 24deg;
+  --motion-orbit-sweep-middle: 36deg;
+  --motion-orbit-sweep-inner: 52deg;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --motion-orbit-squash: 0.55;
+  }
 }
 
 @keyframes motion-rise {
@@ -43,6 +63,24 @@
   }
 }
 
+@keyframes motion-draw-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes motion-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes motion-pop {
   from {
     opacity: 0;
@@ -63,7 +101,13 @@
     .motion-mask,
     .motion-steps,
     .motion-compare,
-    .motion-pull-quote
+    .motion-pull-quote,
+    .motion-heading,
+    .motion-bento,
+    .motion-figures,
+    .motion-rows,
+    .motion-diagram,
+    .motion-orbit
   ) {
   overflow-x: clip;
 }
@@ -126,6 +170,28 @@
   display: none;
 }
 
+/* Estructura estática de las piezas de 2026-11. En la capa `components`: las clases de
+   utilidad de la web (Tailwind) pueden sobrescribirla. Las animaciones quedan fuera de capas. */
+@layer components {
+  /* encabezado-seccion */
+  .motion-kicker-index {
+    display: inline-block;
+  }
+
+  .motion-kicker-line {
+    display: block;
+    flex: none;
+    width: 2rem;
+    height: 1px;
+    background: linear-gradient(to right, var(--motion-line), transparent);
+    transform-origin: left;
+  }
+
+  .motion-kicker[data-align="center"] .motion-kicker-line {
+    transform-origin: center;
+  }
+}
+
 /* Animación (solo con soporte y sin preferencia de movimiento reducido) */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
@@ -173,6 +239,45 @@
       animation: motion-draw-y linear both;
       animation-timeline: view();
       animation-range: entry 20% cover 60%;
+    }
+
+    /* ---- encabezado-seccion: todo sobre la línea de tiempo del encabezado (regla 2.9) ---- */
+    .motion-heading {
+      view-timeline: --motion-heading block;
+    }
+
+    .motion-heading .motion-kicker-index {
+      --motion-rise: 8px;
+      animation: motion-rise linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: --motion-heading;
+      animation-range: entry 0% entry 45%;
+    }
+
+    .motion-heading .motion-kicker-line {
+      animation: motion-draw-x linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: --motion-heading;
+      animation-range: entry 5% entry 55%;
+    }
+
+    .motion-heading .motion-kicker-label {
+      animation: motion-fade linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: --motion-heading;
+      animation-range: entry 10% entry 55%;
+    }
+
+    .motion-heading > .motion-mask > .motion-mask-inner {
+      animation-timeline: --motion-heading;
+      animation-range: entry 15% entry 75%;
+    }
+
+    .motion-heading > .motion-heading-desc {
+      animation: motion-rise linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: --motion-heading;
+      animation-range: entry 25% entry 85%;
     }
   }
 }

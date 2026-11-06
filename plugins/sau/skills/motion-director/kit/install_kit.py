@@ -42,6 +42,7 @@ FILES = {
     KIT / "components" / "steps.tsx": "src/components/motion/steps.tsx",
     KIT / "components" / "comparison.tsx": "src/components/motion/comparison.tsx",
     KIT / "components" / "pull-quote.tsx": "src/components/motion/pull-quote.tsx",
+    KIT / "components" / "section-heading.tsx": "src/components/motion/section-heading.tsx",
     KIT / "components" / "index.ts": "src/components/motion/index.ts",
     KIT / "lib" / "motion.ts": "src/lib/motion.ts",
     KIT / "lib" / "remark-motion.ts": "src/lib/remark-motion.ts",
