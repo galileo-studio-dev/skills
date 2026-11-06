@@ -148,8 +148,11 @@ export function Orbit({
         <div className="motion-orbit-core-pos">
           <div className="motion-orbit-core">
             <span className="motion-orbit-core-icon">{core.icon}</span>
-            <span className="motion-orbit-core-label">{core.label}</span>
-            {core.sublabel ? <span className="motion-orbit-core-sublabel">{core.sublabel}</span> : null}
+            {/* Una sola pastilla opaca para etiqueta y sublabel: el anillo interior pasa por detrás, sin huecos. */}
+            <span className="motion-orbit-core-text">
+              <span className="motion-orbit-core-label">{core.label}</span>
+              {core.sublabel ? <span className="motion-orbit-core-sublabel">{core.sublabel}</span> : null}
+            </span>
           </div>
         </div>
       </div>

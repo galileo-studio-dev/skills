@@ -489,12 +489,43 @@ contratos.push(["cifras", async (browser) => {
   const fin = await leer();
   check(ini.join("|").replace(/\u202F/g, " ") === "4|16–24 GB|4 %" && ini.join() === mitad.join() && mitad.join() === fin.join(),
     `cifras: los valores no cambian con el scroll (sin contador): ${fin.join(" · ")}`);
+  // Revisión v2 (P2-7): el mismo hueco antes de la unidad en todas las cifras.
+  const huecos = await page.locator(`${sel("cifras")} .motion-figure-unit`).evaluateAll((us) => us.map((u) => {
+    const num = u.previousSibling; const r = document.createRange(); r.selectNodeContents(num);
+    const finNum = r.getBoundingClientRect().right;
+    const txt = [...u.childNodes].find((n) => n.nodeType === 3); const r2 = document.createRange(); r2.selectNodeContents(txt);
+    return { u: txt.textContent, hueco: r2.getBoundingClientRect().left - finNum };
+  }));
+  check(huecos.length === 2 && huecos.every((h) => h.hueco > 0) && Math.abs(huecos[0].hueco - huecos[1].hueco) <= 1.5,
+    `cifras: mismo hueco antes de la unidad (${huecos.map((h) => `${h.u} ${h.hueco.toFixed(1)} px`).join(", ")})`);
   const arbol = await page.locator(`${sel("cifras")} dl`).ariaSnapshot();
   const iLabel = arbol.indexOf("capas, todas dentro"), iValor = arbol.indexOf("16–24 GB");
   const iPrimerValor = arbol.search(/:\s*"?4"?\s*$/m);
   check(iLabel >= 0 && iValor > iLabel && (iPrimerValor === -1 || iPrimerValor > iLabel),
     "cifras: orden de lectura explicación → valor", arbol.split("\n").slice(0, 6).join(" / "));
   await ctx.close();
+  // Revisión v2 (P2-8): sin viudas (última línea de una sola palabra) en explicaciones y notas a 390 px.
+  {
+    const m = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
+    const pm = await m.newPage();
+    await pm.goto(URL, { waitUntil: "networkidle" });
+    const viudas = await pm.locator(`${sel("cifras")} dt, ${sel("cifras")} .motion-figure-note`).evaluateAll((els) => els.flatMap((e) => {
+      const tn = document.createTreeWalker(e, NodeFilter.SHOW_TEXT); const palabras = [];
+      for (let n = tn.nextNode(); n; n = tn.nextNode()) {
+        for (const m of n.textContent.matchAll(/\S+/g)) {
+          const r = document.createRange(); r.setStart(n, m.index); r.setEnd(n, m.index + m[0].length);
+          palabras.push({ w: m[0], top: Math.round(r.getBoundingClientRect().top) });
+        }
+      }
+      const ultima = Math.max(...palabras.map((p) => p.top));
+      const enUltima = palabras.filter((p) => p.top === ultima);
+      const lineas = new Set(palabras.map((p) => p.top)).size;
+      return lineas > 1 && enUltima.length < 2 ? [`«${enUltima.map((p) => p.w).join(" ")}» en «${e.textContent.trim().slice(0, 40)}…»`] : [];
+    }));
+    check(viudas.length === 0, "cifras: sin viudas en explicaciones y notas a 390 px", viudas.join("; "));
+    await m.close();
+  }
+
   const red = await browser.newContext({ viewport: VIEW, reducedMotion: "reduce" });
   const pr = await red.newPage();
   await pr.goto(URL, { waitUntil: "networkidle" });
@@ -842,7 +873,7 @@ contratos.push(["orbita", async (browser) => {
       const icono = { width: s.querySelector(".motion-orbit-core-icon").offsetWidth }; // sin la escala de su entrada
       const plano = s.querySelector(".motion-orbit-plane");
       const pos = s.querySelector(".motion-orbit-core-pos");
-      const opaco = [".motion-orbit-core-label", ".motion-orbit-core-sublabel"].map((q) => {
+      const opaco = [".motion-orbit-core-text"].map((q) => {
         const bg = getComputedStyle(s.querySelector(q)).backgroundColor;
         const m = bg.match(/rgba?\(([^)]*)\)/); const v = m ? m[1].split(",").map(Number) : [0, 0, 0, 0];
         return v.length === 3 || v[3] === 1;
@@ -869,6 +900,33 @@ contratos.push(["orbita", async (browser) => {
     check(esperados.every((x) => ley.some((l) => l.t === x && l.visible)) && ley.filter((l) => l.anillo === "middle").every((l) => l.borde === "dashed"),
       "orbita: a 390 px la leyenda nombra también los iconos del anillo medio (en estilo secundario)", JSON.stringify(ley));
     await m.close();
+  }
+
+  // Revisión v2 (P2-5, P2-6): una sola pastilla en el núcleo, y la sombra de los chips no llega al pie.
+  for (const ancho of [1440, 1280, 768]) {
+    const c = await browser.newContext({ viewport: { width: ancho, height: 800 }, reducedMotion: "no-preference" });
+    const p = await c.newPage();
+    await p.goto(URL, { waitUntil: "networkidle" });
+    const st = await p.locator(`${sel("orbita")} .motion-orbit-stage`).elementHandle();
+    let minimo = Infinity;
+    for (const q of [0.02, 0.26, 0.5, 0.74, 0.98]) {
+      await colocarCover(p, st, q, 800);
+      const d = await p.locator(`${sel("orbita")} .motion-orbit`).evaluate((f) => {
+        const pie = f.querySelector("figcaption").getBoundingClientRect().top;
+        return Math.min(...[...f.querySelectorAll('.motion-orbit-chip[data-kind="chip"], .motion-orbit-chip[data-kind="icon"]')].map((ch) => {
+          const r = ch.getBoundingClientRect();
+          const sombra = getComputedStyle(ch).boxShadow.match(/(-?[\d.]+)px (-?[\d.]+)px ([\d.]+)px/);
+          const alcance = sombra ? parseFloat(sombra[2]) + parseFloat(sombra[3]) : 0; // desplazamiento + difuminado
+          return pie - (r.bottom + alcance);
+        }));
+      });
+      minimo = Math.min(minimo, d);
+    }
+    const pastilla = await p.locator(`${sel("orbita")} .motion-orbit-core-text`).evaluate((e) => ({
+      hijos: e.children.length, bg: getComputedStyle(e).backgroundColor }));
+    check(minimo >= 0, `orbita: a ${ancho} px la sombra de los chips no llega al pie (margen mín. ${minimo.toFixed(0)} px)`);
+    check(pastilla.hijos === 2 && !/rgba\([^)]*, 0\)/.test(pastilla.bg), `orbita: a ${ancho} px etiqueta y sublabel del núcleo en una sola pastilla opaca`);
+    await c.close();
   }
 
   // Movimiento reducido: nada se mueve y cada nodo está en su ángulo de partida.

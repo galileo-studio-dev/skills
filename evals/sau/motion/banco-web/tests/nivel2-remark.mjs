@@ -88,7 +88,7 @@ if (!escribir) {
     const valores = [...f.matchAll(/<dd class="motion-figure-value"><span class="motion-mask-inner">(.*?)<\/dd>/g)]
       .map((m) => m[1].replace(/<[^>]+>/g, ""));
     reglas.push(["cifras: la unidad va en span.motion-figure-unit («GB», «%»)",
-      cuenta(f, /<span class="motion-figure-unit"> (GB|%)<\/span>/g) === 2]);
+      cuenta(f, /<span class="motion-figure-unit"><span class="motion-figure-space"> <\/span>(GB|%)<\/span>/g) === 2]);
     const negritas = [...readFileSync(join(fixtures, "cifras.md"), "utf8").matchAll(/^- \*\*([^*]+)\*\*/gm)].map((m) => m[1]);
     reglas.push(
       ["cifras: dl > div ×3, cada uno con dt y dd.motion-figure-value > span.motion-mask-inner",

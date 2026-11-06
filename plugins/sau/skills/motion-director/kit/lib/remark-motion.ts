@@ -146,7 +146,15 @@ function figureChildren(value: string): ElementContent[] {
   if (i <= 0) return [{ type: "text", value }];
   return [
     { type: "text", value: value.slice(0, i).replace(/ /g, "\u202F") },
-    { type: "element", tagName: "span", properties: { className: ["motion-figure-unit"] }, children: [{ type: "text", value: `\u202F${value.slice(i + 1)}` }] },
+    {
+      type: "element",
+      tagName: "span",
+      properties: { className: ["motion-figure-unit"] },
+      children: [
+        { type: "element", tagName: "span", properties: { className: ["motion-figure-space"] }, children: [{ type: "text", value: "\u202F" }] },
+        { type: "text", value: value.slice(i + 1) },
+      ],
+    },
   ];
 }
 
