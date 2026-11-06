@@ -15,11 +15,11 @@ navegador). Un `2` no cuenta como pasado: la pieza no entra en el catálogo.
 
 | Nivel | Qué | Archivo | Necesita |
 |---|---|---|---|
-| 1 | `@keyframes` solo con `transform`/`opacity` (`offset-*` = aviso); sin `infinite` ni más de 1 repetición; toda animación dentro de `@supports (animation-timeline: view())` y `@media (prefers-reduced-motion: no-preference)`; componentes sin `"use client"`, hooks ni framer-motion; catálogo ↔ `kit/components` ↔ `index.ts` ↔ `MOTION_CONTAINERS` ↔ `piezas.json` | `nivel1.py` | Python 3 |
-| 2a | Cada `fixtures/markdown/*.md` pasa por `remark-motion.ts` y da el HTML de su `.expected.html`; bloque desconocido sin movimiento; `Nota:importante` se conserva | `banco-web/tests/nivel2-remark.mjs` | Node ≥ 22.6, `banco-web/node_modules` |
-| 2b | `install_kit.py` sobre `fixtures/web-minima/`: `--check` rojo → instalar → `--check` verde → segunda instalación sin cambios; detecta archivos alterados; `--blog-file` | `nivel2_instalador.py` | Python 3 |
-| 3 | Con JS desactivado todo el texto está en el HTML; el H1 sin animación y CLS = 0 al hacer scroll; con `reducedMotion: reduce` ninguna animación; sin `animation-timeline` (emulado en Chromium y Firefox real) todo visible a opacidad 1; cada elemento animado empieza oculto/desplazado y termina a opacidad 1; capturas | `banco-web/tests/nivel3.mjs` | Node, `npm ci`, navegadores de Playwright (red la primera vez) |
-| autoprueba | Aplica 12 defectos de `fixtures/rotos/` a una copia del kit y exige que el nivel 1 falle; y que el nivel 2a falle sin `pasos` en `MOTION_CONTAINERS` | `autoprueba.py` | Python 3 (+ Node para el caso remark) |
+| 1 | `@keyframes` solo con `transform`/`opacity` (`offset-*` = aviso); sin `infinite` ni más de 1 repetición; toda animación dentro de `@supports (animation-timeline: view())` y `@media (prefers-reduced-motion: no-preference)`; componentes sin `"use client"`, hooks ni framer-motion; catálogo («Resumen» + «En prueba») ↔ `kit/components` ↔ `index.ts` ↔ `MOTION_CONTAINERS` ↔ `piezas.json`; `FILES` de `install_kit.py` y la regla `:has()` cubren cada componente; ninguna pieza con `overflow: hidden`; **contratos N1** de cada pieza en prueba (aria-hidden, sin contador, sin `stroke-dashoffset`, spin = counter en la órbita, sin colores literales…) | `nivel1.py` | Python 3 |
+| 2a | Cada `fixtures/markdown/*.md` pasa por `remark-motion.ts` y da el HTML de su `.expected.html`; bloque desconocido sin movimiento; `Nota:importante` se conserva; contratos N2 de `bento`, `cifras` y `filas` (atributos de la lista blanca, `dl`/`dt`/`dd`, negrita idéntica, enlaces dentro de `dd`) | `banco-web/tests/nivel2-remark.mjs` | Node ≥ 22.6, `banco-web/node_modules` |
+| 2b | `install_kit.py` sobre `fixtures/web-minima/`: `--check` rojo → instalar → `--check` verde → segunda instalación sin cambios; detecta archivos alterados; informa FALTA si falta un componente; `FILES` lista todos los componentes; `--blog-file` | `nivel2_instalador.py` | Python 3 |
+| 3 | Con JS desactivado todo el texto está en el HTML; el H1 sin animación y CLS = 0 al hacer scroll; con `reducedMotion: reduce` ninguna animación; sin `animation-timeline` (emulado en Chromium y Firefox real) todo visible a opacidad 1; cada elemento animado empieza oculto/desplazado y termina a opacidad 1; **contratos N3** de cada pieza en prueba (función `contratos.push([...])` de `nivel3.mjs`); capturas | `banco-web/tests/nivel3.mjs` | Node, `npm ci`, navegadores de Playwright (red la primera vez) |
+| autoprueba | Aplica 26 defectos (`fixtures/rotos/` y cambios de texto con `reemplazar`, al menos uno por pieza en prueba) a una copia del kit y exige que el nivel 1 falle; y que el nivel 2a falle sin `pasos` en `MOTION_CONTAINERS` | `autoprueba.py` | Python 3 (+ Node para el caso remark) |
 
 `run.sh` instala `banco-web/node_modules` (`npm ci`) y los navegadores (`npx playwright install chromium firefox`)
 si faltan. Si no hay red, esos niveles salen como «NO EJECUTADO».
@@ -32,6 +32,8 @@ copia ahí con `install_kit.py` (`scripts/preparar.mjs`); esas copias están en 
 `BANCO_PUERTO` (3917), `BANCO_SIN_FIREFOX=1`, `BANCO_CAPTURAS=0`.
 
 Las capturas (`capturas/<id>-inicio|mitad|final.png`) son para que Pelayo dé el OK visual a una pieza nueva.
+Algunos contratos añaden capturas a otros anchos (`<id>-375-…`, `orbita-768-…`) y de detalle
+(`esquema-radial-guiones-*`, `orbita-nitidez-chip.png`, a densidad 2×).
 Se regeneran en cada pasada; si pesan más de 2 MB en total, no se commitean.
 
 ## Registrar una pieza nueva
@@ -50,7 +52,7 @@ Cuatro cosas, en este orden. El nivel 1 falla si falta alguna.
    }
    ```
 
-   - `pieza`: el nombre exacto de la primera columna de la tabla «Resumen» de `motion-catalog.md`.
+   - `pieza`: el nombre exacto de la primera columna de la tabla «Resumen» o «En prueba» de `motion-catalog.md`.
    - `id`: identificador del caso, único; es el `data-pieza` de su sección en el muestrario.
    - `textos`: frases que deben estar en el HTML sin JavaScript (todo el texto visible de la pieza).
    - `animados`: selectores CSS, relativos a la sección, de los elementos que se animan. El nivel 3 comprueba
@@ -67,10 +69,15 @@ Cuatro cosas, en este orden. El nivel 1 falla si falta alguna.
    los textos de `piezas.json`, seguida de `<Espacio />`. Importa el componente de `@/components/motion`
    (se copia desde el kit al preparar). No uses piezas de motion en la cabecera: es el LCP.
 
-4. **Catálogo y kit**: el componente en `kit/components/` y exportado en `index.ts`; el contenedor en
-   `MOTION_CONTAINERS` si lo tiene; la fila y la sección `## \`pieza\`` en `motion-catalog.md`.
+4. **Catálogo y kit**: el componente en `kit/components/`, exportado en `index.ts` y en `FILES` de
+   `install_kit.py`; su clase raíz en `.overflow-x-hidden:has(…)` (y en `CLASE_RAIZ` de `nivel1.py`); el
+   contenedor en `MOTION_CONTAINERS` si lo tiene; la fila en la tabla **«En prueba»** y la sección
+   `## \`pieza\`` en `motion-catalog.md`.
+5. **Contratos**: sus comprobaciones N1 (`comprobar_contratos` de `nivel1.py`), N2 (`nivel2-remark.mjs`) y N3
+   (`contratos.push` en `nivel3.mjs`), y al menos un defecto en `autoprueba.py`.
 
-Después: `evals/sau/motion/run.sh --nivel todo`, mirar las capturas nuevas y pedir el OK de Pelayo.
+Después: `evals/sau/motion/run.sh --nivel todo`, mirar las capturas nuevas y pedir el OK de Pelayo. Con su OK,
+la fila pasa de «En prueba» a «Resumen» (cambio aparte).
 
 ## Autoprueba: añadir un defecto roto
 
