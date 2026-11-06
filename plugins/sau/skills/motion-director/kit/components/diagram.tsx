@@ -108,8 +108,31 @@ export function Diagram({
   // Paso de entrada de cada nodo: 0, 1, 2… según `order` (o su posición en la lista).
   const sorted = nodes.map((n, i) => ({ id: n.id, key: n.order ?? i, i })).sort((a, b) => a.key - b.key || a.i - b.i);
   const step = new Map(sorted.map((s, k) => [s.id, k]));
-  const last = nodes.length - 1;
   const ordered = sorted.map((s) => byId.get(s.id)!);
+  const r2 = (v: number) => Math.round(v * 100) / 100;
+
+  // Paso de cada cable: max(paso de su origen + 1, paso de su destino − 0,6). Así el origen ya se ve
+  // cuando sale la línea, y el destino aparece 0,6 pasos después de que la línea empiece (a unos dos
+  // tercios de su recorrido): la línea «lleva» al nodo. Si hace falta, el destino se retrasa.
+  const nodeStep = new Map(step);
+  const edgeStep = new Map<DiagramEdge, number>();
+  const wires = edges.filter((e) => !(e.cut || e.dashed)).sort((a, b) => step.get(a.to)! - step.get(b.to)!);
+  for (const e of wires) {
+    const s = r2(Math.max(nodeStep.get(e.from)! + 1, nodeStep.get(e.to)! - 0.6));
+    edgeStep.set(e, s);
+    nodeStep.set(e.to, r2(Math.max(nodeStep.get(e.to)!, s + 0.6)));
+  }
+  // En fila, cada nodo (salvo el primero) recibe el cable del anterior con la misma regla.
+  const rowEdge: number[] = [];
+  const rowNode: number[] = [];
+  ordered.forEach((_, k) => {
+    if (k === 0) { rowNode.push(0); rowEdge.push(0); return; }
+    const s = r2(Math.max(rowNode[k - 1] + 1, k - 0.6));
+    rowEdge.push(s);
+    rowNode.push(r2(Math.max(k, s + 0.6)));
+  });
+  // Conexiones cortadas y discontinuas: las últimas, con fundido.
+  const last = Math.max(...nodeStep.values());
   const id = `motion-wire-${slug(caption)}`;
 
   if (layout === "row") {
@@ -117,7 +140,11 @@ export function Diagram({
       <figure className={cn("motion-diagram", className)} data-motion="esquema" data-layout="row">
         <ol className="motion-diagram-row">
           {ordered.map((n, k) => (
-            <li key={n.id} data-emphasis={n.emphasis ? "" : undefined} style={{ "--motion-step": k } as CSSProperties}>
+            <li
+              key={n.id}
+              data-emphasis={n.emphasis ? "" : undefined}
+              style={{ "--motion-step": rowNode[k], "--motion-edge-step": rowEdge[k] } as CSSProperties}
+            >
               <NodeBody n={n} />
             </li>
           ))}
@@ -127,7 +154,8 @@ export function Diagram({
     );
   }
 
-  const box = perimeter?.box ?? { left: 3, top: 12, right: 18, bottom: 3 };
+  // Por defecto, simétrico: deja una columna a cada lado para nodos externos y queda centrado con el pie.
+  const box = perimeter?.box ?? { left: 10, top: 12, right: 10, bottom: 3 };
   return (
     <figure
       className={cn("motion-diagram", className)}
@@ -162,9 +190,7 @@ export function Diagram({
             const a = byId.get(e.from)!;
             const b = byId.get(e.to)!;
             const faded = e.cut || e.dashed;
-            // El conector va a la par con su destino: empieza 0,6 pasos antes que su nodo destino.
-            // Los cortados y discontinuos entran los últimos, con un fundido.
-            const s = faded ? last + 0.4 : step.get(e.to)! - 0.6;
+            const s = faded ? r2(last + 0.4) : edgeStep.get(e)!;
             return (
               <line
                 key={i}
@@ -176,6 +202,7 @@ export function Diagram({
                 strokeDasharray={faded ? "3 5" : undefined}
                 data-kind={e.cut ? "cut" : faded ? "dashed" : "wire"}
                 data-to={e.to}
+                data-from-step={nodeStep.get(e.from)}
                 style={{ "--motion-step": s, transformOrigin: `${a.x}px ${a.y}px` } as CSSProperties}
               />
             );
@@ -192,7 +219,7 @@ export function Diagram({
                 key={i}
                 aria-hidden="true"
                 className="motion-diagram-cut"
-                style={{ left: `${a.x! + (b.x! - a.x!) * f}%`, top: `${a.y! + (b.y! - a.y!) * f}%`, "--motion-step": last + 0.4 } as CSSProperties}
+                style={{ left: `${a.x! + (b.x! - a.x!) * f}%`, top: `${a.y! + (b.y! - a.y!) * f}%`, "--motion-step": r2(last + 0.4) } as CSSProperties}
               >
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <circle cx="12" cy="12" r="9" />
@@ -207,7 +234,7 @@ export function Diagram({
               key={n.id}
               data-emphasis={n.emphasis ? "" : undefined}
               data-outside={n.outside ? "" : undefined}
-              style={{ left: `${n.x}%`, top: `${n.y}%`, "--motion-step": step.get(n.id)! } as CSSProperties}
+              style={{ left: `${n.x}%`, top: `${n.y}%`, "--motion-step": nodeStep.get(n.id)! } as CSSProperties}
             >
               <NodeBody n={n} />
             </li>

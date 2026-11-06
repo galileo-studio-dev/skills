@@ -554,7 +554,7 @@ async function estadoEsquema(fig) {
     }));
     const pasoDe = new Map([...f.querySelectorAll(".motion-diagram-nodes > li")].map((li, k) => [k, parseFloat(li.style.getPropertyValue("--motion-step"))]));
     const lineas = [...f.querySelectorAll("line")].map((l) => ({
-      tipo: l.dataset.kind, paso: parseFloat(l.style.getPropertyValue("--motion-step")),
+      tipo: l.dataset.kind, paso: parseFloat(l.style.getPropertyValue("--motion-step")), pasoOrigen: parseFloat(l.dataset.fromStep),
       escala: escala(getComputedStyle(l).transform), op: parseFloat(getComputedStyle(l).opacity),
       animacion: getComputedStyle(l).animationName, a: l.dataset.to,
     }));
@@ -601,12 +601,22 @@ async function contratoEsquema(browser, id) {
     const otros = estructura.lineas.filter((l) => l.tipo !== "wire");
     check(otros.every((o) => cables.every((c) => o.paso > c.paso) && o.animacion === "motion-fade"),
       `${id}: las conexiones cortadas entran las últimas y con fundido (no escalan)`, JSON.stringify(otros));
+    // Revisión v2 (P2-1): el cable no sale antes de que su origen se vea (paso ≥ paso del origen + 1).
+    check(cables.every((c) => c.paso >= c.pasoOrigen + 1 - 1e-6),
+      `${id}: cada cable sale cuando su nodo de origen ya está (paso ≥ origen + 1)`, JSON.stringify(cables.map((c) => [c.pasoOrigen, c.paso])));
+  } else {
+    const pasos = await fig.evaluate((f) => [...f.querySelectorAll(".motion-diagram-row > li")].map((li) => [
+      parseFloat(li.style.getPropertyValue("--motion-step")), parseFloat(li.style.getPropertyValue("--motion-edge-step"))]));
+    check(pasos.slice(1).every(([n, e], k) => e >= pasos[k][0] + 1 - 1e-6 && Math.abs(n - (e + 0.6)) < 1e-6),
+      `${id}: cada conector de la fila sale cuando el nodo anterior ya está y lleva a su nodo (${pasos.map(([n, e]) => `${e}→${n}`).join(", ")})`);
   }
 
   // Orden del recorrido: a mitad, el nodo 0 se ve antes que el 3.
   await colocarCover(page, fig, 0.3);
   const r = await estadoEsquema(fig);
-  const n0 = r.nodos.find((n) => n.paso === 0), n3 = r.nodos.find((n) => n.paso === 3);
+  // Por orden de entrada (los pasos ya no son enteros: un destino puede retrasarse para esperar a su cable).
+  const porPaso = [...r.nodos].sort((x, y) => x.paso - y.paso);
+  const n0 = porPaso[0], n3 = porPaso[3];
   check(n0 && n3 && n0.op > n3.op && n0.op > 0.3, `${id}: a mitad, el nodo 0 se ve antes que el 3 (${n0?.op.toFixed(2)} > ${n3?.op.toFixed(2)})`);
 
   // Al final, cada conector llega al centro del icono de su nodo (±4 px).
@@ -655,6 +665,33 @@ async function contratoEsquema(browser, id) {
     }));
     const s = solapes(rects);
     check(s.length === 0, `${id}: a ${ancho} px ninguna etiqueta se pisa con otra`, s.join("; "));
+    const holgura = await p.locator(`${sel(id)} .motion-diagram`).evaluate((f) => {
+      const st = f.querySelector(".motion-diagram-stage");
+      if (!st) return null;
+      const S = st.getBoundingClientRect();
+      const tiles = [...f.querySelectorAll(".motion-diagram-nodes > li")].map((li) => li.querySelector(".motion-diagram-icon").getBoundingClientRect());
+      let min = Infinity, peor = "";
+      const lis = [...f.querySelectorAll(".motion-diagram-nodes > li")];
+      const li2txt = (r) => lis.find((li) => { const q = li.querySelector(".motion-diagram-icon").getBoundingClientRect(); return q.left === r.left && q.top === r.top; })?.textContent.trim() ?? "?";
+      for (const l of f.querySelectorAll("line")) {
+        const x1 = S.left + (+l.getAttribute("x1") / 100) * S.width, y1 = S.top + (+l.getAttribute("y1") / 100) * S.height;
+        const x2 = S.left + (+l.getAttribute("x2") / 100) * S.width, y2 = S.top + (+l.getAttribute("y2") / 100) * S.height;
+        for (const r of tiles) {
+          const cx = (r.left + r.right) / 2, cy = (r.top + r.bottom) / 2;
+          // Los nodos de los extremos del cable no cuentan.
+          if (Math.hypot(cx - x1, cy - y1) < 2 || Math.hypot(cx - x2, cy - y2) < 2) continue;
+          // Distancia del segmento al rectángulo (muestreo fino del segmento).
+          for (let k = 0; k <= 200; k++) {
+            const x = x1 + ((x2 - x1) * k) / 200, y = y1 + ((y2 - y1) * k) / 200;
+            const dx = Math.max(r.left - x, 0, x - r.right), dy = Math.max(r.top - y, 0, y - r.bottom);
+            const d = Math.hypot(dx, dy);
+            if (d < min) { min = d; peor = `cable a ${l.dataset.to} (${x1.toFixed(0)},${y1.toFixed(0)})→(${x2.toFixed(0)},${y2.toFixed(0)}) junto al tile ${li2txt(r)} [${r.left.toFixed(0)},${r.top.toFixed(0)} ${r.width.toFixed(0)}px]`; }
+          }
+        }
+      }
+      return { min, peor };
+    });
+    if (holgura !== null) check(holgura.min >= 12, `${id}: a ${ancho} px ningún cable pasa pegado a un nodo que no es suyo (mín. ${holgura.min === Infinity ? "—" : holgura.min.toFixed(0)} px)`, holgura.peor);
     const fuera = rects.filter((q) => q.l < 0 || q.r > ancho);
     check(fuera.length === 0, `${id}: a ${ancho} px todos los nodos caben en la pantalla`, fuera.map((q) => q.n).join(", "));
     if (fila) {
@@ -883,6 +920,41 @@ async function tipografia(browser) {
   await ctx.close();
 }
 
+/** Revisión v2 (F-14): ninguna pieza queda recortada, ni por el viewport ni por un contenedor con overflow. */
+async function sinRecortes(browser) {
+  console.log("\n[recortes] ninguna pieza queda cortada por la ventana ni por un contenedor (1280, 1440, 390)");
+  for (const vp of [VIEW, { width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    const ctx = await browser.newContext({ viewport: vp, reducedMotion: "reduce" });
+    const page = await ctx.newPage();
+    await page.goto(URL, { waitUntil: "networkidle" });
+    const malos = await page.evaluate((ancho) => {
+      const out = [];
+      for (const sec of document.querySelectorAll("section[data-pieza]")) {
+        // Elementos con caja de cada pieza (sin decorado que se sale a propósito: halos).
+        const els = [sec, ...sec.querySelectorAll("[class*='motion-'], [data-motion], li, dt, dd, h2, h3, p, figcaption")]
+          .filter((e) => !/motion-orbit-halo|motion-diagram-node::before/.test(e.className?.baseVal ?? e.className ?? ""));
+        for (const e of els) {
+          const r = e.getBoundingClientRect();
+          if (r.width === 0 || r.height === 0) continue;
+          if (r.left < -1 || r.right > ancho + 1) { out.push(`${sec.dataset.pieza}: ${e.tagName.toLowerCase()}.${String(e.className?.baseVal ?? e.className).split(" ")[0]} fuera de la ventana (${r.left.toFixed(0)}–${r.right.toFixed(0)})`); continue; }
+          for (let a = e.parentElement; a && a !== document.body; a = a.parentElement) {
+            const cs = getComputedStyle(a);
+            if (cs.overflowX === "visible" && cs.overflowY === "visible") continue;
+            const c = a.getBoundingClientRect();
+            if (r.left < c.left - 1 || r.right > c.right + 1) {
+              out.push(`${sec.dataset.pieza}: ${e.tagName.toLowerCase()}.${String(e.className?.baseVal ?? e.className).split(" ")[0]} recortado por ${a.tagName.toLowerCase()}.${String(a.className).split(" ")[0]} (overflow-x ${cs.overflowX})`);
+              break;
+            }
+          }
+        }
+      }
+      return [...new Set(out)];
+    }, vp.width);
+    check(malos.length === 0, `a ${vp.width} px ninguna pieza queda recortada`, malos.slice(0, 6).join("; "));
+    await ctx.close();
+  }
+}
+
 async function ejecutarContratos(browser) {
   console.log("\n[contratos] comprobaciones propias de cada pieza en prueba");
   const ids = new Set(registro.map((e) => e.id));
@@ -910,6 +982,7 @@ try {
     await sinSoporteEmulado(navegador);
     await firefoxReal();
     await tipografia(navegador);
+    await sinRecortes(navegador);
     await ejecutarContratos(navegador);
     await capturas(navegador);
     console.log(`\nnivel 3: ${oks} ok, ${fallos} fallos`);

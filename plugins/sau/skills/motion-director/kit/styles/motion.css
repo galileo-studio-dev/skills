@@ -724,6 +724,7 @@
   }
 
   .motion-diagram-nodes > li[data-outside] .motion-diagram-label {
+    white-space: nowrap;
     color: var(--motion-muted);
     text-decoration: line-through;
     text-decoration-color: color-mix(in srgb, var(--motion-cut) 50%, transparent);
@@ -1388,10 +1389,10 @@
       animation-range: cover calc(20% + var(--motion-step) * 3.25%) cover calc(27.5% + var(--motion-step) * 3.25%);
     }
 
-    /* En la fila, el conector de un nodo es suyo (::before) y su paso es el del nodo menos 0,6. */
+    /* En la fila, el conector de un nodo es suyo (::before) y lleva su propio paso (--motion-edge-step). */
     .motion-diagram-row > li + li::before {
       animation-name: motion-draw-x;
-      animation-range: cover calc(20% + (var(--motion-step) - 0.6) * 3.25%) cover calc(27.5% + (var(--motion-step) - 0.6) * 3.25%);
+      animation-range: cover calc(20% + var(--motion-edge-step) * 3.25%) cover calc(27.5% + var(--motion-edge-step) * 3.25%);
     }
 
     .motion-diagram-edges line:not([data-kind="wire"]),

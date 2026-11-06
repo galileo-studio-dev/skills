@@ -17,7 +17,11 @@ const Icono = ({ d }: { d: string }) => (
 
 export default function Muestrario() {
   return (
-    <main className="banco-raiz overflow-x-hidden">
+    // Estructura como una web real: columnas de contenido (56rem) con `overflow-x-hidden` (el kit las
+    // pasa a `clip`) y, fuera de ellas, una sección ancha. Una sección ancha DENTRO de una columna con
+    // overflow-x-hidden se cortaría (revisión estética v2, F-14).
+    <main className="banco-pagina">
+      <div className="banco-raiz overflow-x-hidden">
       {/* La cabecera NO usa piezas de motion: el H1 es el elemento LCP. */}
       <header style={{ minHeight: "140vh" }}>
         <h1 style={{ fontSize: "2.5rem", paddingTop: "4rem" }}>Muestrario de movimiento de marca</h1>
@@ -95,8 +99,10 @@ export default function Muestrario() {
       </section>
       <Espacio />
 
-      {/* Sección ancha (hasta 76rem), como las de /ia-onpremise: el bento de 4 columnas solo se abre
-          en contenedores de 60rem o más (consulta de contenedor). */}
+      </div>
+
+      {/* Sección ancha (hasta 76rem), como las de /ia-onpremise, fuera de la columna con overflow-x-hidden:
+          el bento de 4 columnas solo se abre en contenedores de 60rem o más (consulta de contenedor). */}
       <section data-pieza="bento-rejilla" className="banco-ancho">
         <Bento columns={4} variant="grid" numbered>
           <ul>
@@ -117,6 +123,7 @@ export default function Muestrario() {
       </section>
       <Espacio />
 
+      <div className="banco-raiz overflow-x-hidden">
       {/* Contenedor estrecho (el de la página, unos 53rem): el mismo bento de 4 columnas va en 2 × 2. */}
       <section data-pieza="bento-tarjetas">
         <Bento columns={4}>
@@ -180,21 +187,21 @@ export default function Muestrario() {
       <section data-pieza="esquema-radial">
         <Diagram
           caption="Tu servidor es el centro: documentos, sistemas, accesos y auditoría se quedan dentro de tu red, y la conexión a una API pública está cortada."
-          perimeter={{ label: "Tu red", box: { left: 3, top: 12, right: 18, bottom: 3 } }}
+          perimeter={{ label: "Tu red" }}
           nodes={[
-            { id: "srv", label: "Tu servidor", sublabel: "On-premise", x: 42, y: 50, emphasis: true, icon: <Icono d="M4 5h16v6H4zM4 13h16v6H4zM8 8h.01M8 16h.01" /> },
-            { id: "doc", label: "Documentos", x: 15, y: 32, icon: <Icono d="M7 3h7l5 5v13H7zM14 3v5h5" /> },
-            { id: "sis", label: "Sistemas", x: 15, y: 78, icon: <Icono d="M5 6c0-1.5 3-3 7-3s7 1.5 7 3-3 3-7 3-7-1.5-7-3zM5 6v12c0 1.5 3 3 7 3s7-1.5 7-3V6" /> },
-            { id: "acc", label: "Accesos", x: 69, y: 78, icon: <Icono d="M9 11a3 3 0 100-6 3 3 0 000 6zM3 20c0-3 3-5 6-5s6 2 6 5M16 5a3 3 0 010 6M18 15c2 .5 3 2.5 3 5" /> },
-            { id: "aud", label: "Auditoría", x: 69, y: 32, icon: <Icono d="M9 4h6M7 4h10v17H7zM10 10h4M10 14h4" /> },
-            { id: "api", label: "API pública", x: 90, y: 5, outside: true, icon: <Icono d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18M4 8h16M4 16h16" /> },
+            { id: "srv", label: "Tu servidor", sublabel: "On-premise", x: 50, y: 52, emphasis: true, icon: <Icono d="M4 5h16v6H4zM4 13h16v6H4zM8 8h.01M8 16h.01" /> },
+            { id: "doc", label: "Documentos", x: 20, y: 40, icon: <Icono d="M7 3h7l5 5v13H7zM14 3v5h5" /> },
+            { id: "sis", label: "Sistemas", x: 20, y: 82, icon: <Icono d="M5 6c0-1.5 3-3 7-3s7 1.5 7 3-3 3-7 3-7-1.5-7-3zM5 6v12c0 1.5 3 3 7 3s7-1.5 7-3V6" /> },
+            { id: "acc", label: "Accesos", x: 80, y: 82, icon: <Icono d="M9 11a3 3 0 100-6 3 3 0 000 6zM3 20c0-3 3-5 6-5s6 2 6 5M16 5a3 3 0 010 6M18 15c2 .5 3 2.5 3 5" /> },
+            { id: "aud", label: "Auditoría", x: 80, y: 40, icon: <Icono d="M9 4h6M7 4h10v17H7zM10 10h4M10 14h4" /> },
+            { id: "api", label: "API pública", x: 93, y: 5, outside: true, icon: <Icono d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18M4 8h16M4 16h16" /> },
           ]}
           edges={[
             { from: "srv", to: "doc" },
             { from: "srv", to: "aud" },
             { from: "srv", to: "sis" },
             { from: "srv", to: "acc" },
-            { from: "srv", to: "api", cut: true, cutAt: 0.7 },
+            { from: "srv", to: "api", cut: true, cutAt: 0.66 },
           ]}
         />
       </section>
@@ -252,6 +259,7 @@ export default function Muestrario() {
         </Rows>
       </section>
       <Espacio />
+      </div>
     </main>
   );
 }

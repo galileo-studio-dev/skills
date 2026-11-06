@@ -49,8 +49,8 @@ body {
   height: 110vh;
 }
 
-/* Solo del banco: sección más ancha que la raíz (hasta 76rem), centrada en la ventana. */
+/* Solo del banco: sección más ancha que la columna (hasta 76rem), centrada y fuera de la columna con overflow. */
 .banco-ancho {
   width: min(calc(100vw - 3rem), 76rem);
-  margin-left: calc((100% - min(calc(100vw - 3rem), 76rem)) / 2);
+  margin-inline: auto;
 }

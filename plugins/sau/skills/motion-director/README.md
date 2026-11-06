@@ -42,6 +42,8 @@ El instalador:
 
 Es idempotente: si todo está al día, no cambia nada.
 
+**Aviso: secciones a todo el ancho y `overflow-x-hidden`.** En las páginas con piezas, el kit cambia la raíz `overflow-x-hidden` a `overflow-x: clip`, para que `view()` funcione (regla 2.8 de `motion-rules.md`). Con `clip`, igual que con `hidden`, cualquier sección que se salga del ancho de esa raíz (una sección *full-bleed*, o un bento ancho de 4 columnas dentro de una columna de 56rem) **se corta por los lados**. Esas secciones van fuera del contenedor con `overflow-x-hidden`, o el recorte se pone en un envoltorio por sección. El banco de pruebas lo comprueba: ninguna pieza puede quedar recortada a 1280, 1440 ni 390 px.
+
 ## Conectar el blog a mano
 
 El blog es código propio de cada web, así que esta conexión se hace a mano una vez. El kit ya no conecta el blog automáticamente; el parche concreto de cada web vive en el repo privado de esa web. Solo hace falta si el sitio tiene blog con Markdown.
