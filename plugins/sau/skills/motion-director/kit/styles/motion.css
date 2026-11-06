@@ -72,6 +72,15 @@
   }
 }
 
+@keyframes motion-grow {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
 @keyframes motion-fade {
   from {
     opacity: 0;
@@ -445,6 +454,147 @@
     }
   }
 
+  /* esquema */
+  .motion-diagram {
+    margin: 0;
+  }
+
+  .motion-diagram-stage {
+    position: relative;
+    aspect-ratio: var(--motion-diagram-aspect, 4 / 3);
+  }
+
+  .motion-diagram-edges {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .motion-diagram-edges line {
+    stroke: var(--motion-line);
+    stroke-width: 1.25;
+    vector-effect: non-scaling-stroke;
+    transform-box: view-box;
+  }
+
+  .motion-diagram-nodes {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* El punto (x, y) es el centro del icono: los conectores llegan al icono, no a la etiqueta. */
+  .motion-diagram-nodes > li {
+    --motion-diagram-icon: 2.75rem;
+    position: absolute;
+    transform: translate(-50%, calc(var(--motion-diagram-icon) / -2));
+  }
+
+  .motion-diagram-nodes > li[data-emphasis] {
+    --motion-diagram-icon: 4rem;
+  }
+
+  .motion-diagram-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 8rem;
+    text-align: center;
+  }
+
+  .motion-diagram-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--motion-diagram-icon);
+    height: var(--motion-diagram-icon);
+    border: 1px solid color-mix(in srgb, var(--motion-accent) 30%, transparent);
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--motion-accent) 8%, var(--motion-surface));
+    color: var(--motion-accent);
+  }
+
+  .motion-diagram-icon > svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .motion-diagram-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: var(--motion-accent);
+  }
+
+  .motion-diagram-nodes > li[data-emphasis] .motion-diagram-icon {
+    border-color: color-mix(in srgb, var(--motion-accent) 70%, transparent);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--motion-accent) 8%, transparent),
+      0 0 48px color-mix(in srgb, var(--motion-accent) 25%, transparent);
+  }
+
+  .motion-diagram-nodes > li[data-emphasis] .motion-diagram-icon > svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  /* Fondo opaco: los conectores pasan por debajo de la etiqueta, no por encima. */
+  .motion-diagram-label {
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.375rem;
+    background: var(--motion-surface);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--foreground);
+  }
+
+  .motion-diagram-sublabel {
+    margin-top: -0.25rem;
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--motion-muted);
+  }
+
+  /* Margen amplio: las etiquetas de los nodos de abajo sobresalen del escenario. */
+  .motion-diagram-caption {
+    margin-top: 3rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    text-align: center;
+    color: var(--motion-muted);
+  }
+
+  @media (max-width: 47.99rem) {
+    .motion-diagram-stage {
+      aspect-ratio: 1 / 1;
+    }
+
+    .motion-diagram-label {
+      font-size: 11px;
+    }
+
+    .motion-diagram-sublabel {
+      display: none;
+    }
+
+    .motion-diagram-nodes > li {
+      --motion-diagram-icon: 2.25rem;
+    }
+
+    .motion-diagram-nodes > li[data-emphasis] {
+      --motion-diagram-icon: 3rem;
+    }
+
+    .motion-diagram-node {
+      max-width: 5.5rem;
+    }
+  }
+
   /* filas */
   .motion-rows > dl {
     margin: 0;
@@ -630,6 +780,26 @@
       animation-timeline: --motion-figure;
       animation-range: entry calc(20% + var(--motion-col) * var(--motion-stagger-step))
         entry calc(80% + var(--motion-col) * var(--motion-stagger-step));
+    }
+
+    /* ---- esquema: todo sobre la línea de tiempo de la figura. Cada nodo entra en su paso
+       (--motion-step) y cada conector crece desde su nodo de origen, medio paso después ---- */
+    .motion-diagram {
+      view-timeline: --motion-diagram block;
+    }
+
+    .motion-diagram-node {
+      animation: motion-pop linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: --motion-diagram;
+      animation-range: cover calc(20% + var(--motion-step) * 3.5%) cover calc(30% + var(--motion-step) * 3.5%);
+    }
+
+    .motion-diagram-edges line {
+      animation: motion-grow linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: --motion-diagram;
+      animation-range: cover calc(20% + var(--motion-step) * 3.5%) cover calc(30% + var(--motion-step) * 3.5%);
     }
 
     /* ---- filas: cada fila sube con su propia view() (mide más de 40 px); el separador

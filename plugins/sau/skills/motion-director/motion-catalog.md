@@ -27,6 +27,7 @@ Sus fichas están al final de este catálogo («Fichas en prueba»). Tipo «de b
 | `bento` | De bloque | 2–8 elementos paralelos con título y frase. | `Bento` + `BentoItem` | `:::bento{columnas=3}` + lista |
 | `cifras` | De bloque | 2–4 datos clave con fuente. Máximo una. | `Figures` + `Figure` | `:::cifras` + lista |
 | `filas` | De bloque | 2–6 pares etiqueta + texto corto. | `Rows` + `Row` | `:::filas` + lista |
+| `esquema` | Destacada | Arquitectura o flujo de 3–7 nodos. Máximo dos. | `Diagram` | Solo TSX |
 
 ## `reveal` (automática)
 
@@ -168,3 +169,12 @@ Piezas de la tabla «En prueba». No se asignan hasta el OK de Pelayo.
 ```
 
 - **TSX:** `<Figures><dl><Figure value="4" label="capas, todas dentro de tu infraestructura" note="Fuente: …" /></dl></Figures>`
+
+## `esquema` (en prueba; destacada)
+
+- **Qué hace:** un esquema de 3–7 nodos unidos por conectores. Los nodos aparecen escalonados y cada conector crece desde su nodo de origen hacia el de destino, siguiendo el orden del recorrido.
+- **Contenido válido:** de 3 a 7 nodos con etiquetas de hasta 3 palabras, y un `caption` obligatorio que dice en una frase lo mismo que el dibujo. Como máximo **dos por página**.
+- **No usar si:** es una secuencia de pasos con texto largo (`pasos`), hay más de 7 nodos o los nodos necesitan más de 3 palabras.
+- **Markdown:** no tiene. Solo TSX: necesita coordenadas y conectores.
+- **TSX:** `<Diagram caption="…" nodes={[{ id: "doc", label: "Tu documento", x: 15, y: 50 }, …]} edges={[{ from: "doc", to: "srv" }]} />`
+- **No usar en:** el hero ni la primera pantalla.

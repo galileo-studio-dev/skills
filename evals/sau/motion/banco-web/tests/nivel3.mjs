@@ -479,6 +479,132 @@ contratos.push(["cifras", async (browser) => {
   await red.close();
 }]);
 
+/** Coloca la sección para que su línea de tiempo `cover` vaya por `p` (0 = asoma por abajo, 1 = sale por arriba). */
+async function colocarCover(page, handle, p, alto = VIEW.height) {
+  const base = await posicionBase(page, handle);
+  const h = await handle.evaluate((e) => e.getBoundingClientRect().height);
+  await desplazarA(page, base - alto + p * (alto + h));
+}
+
+/** Rectángulos que se pisan (con margen negativo de `holgura` px). */
+function solapes(rects, holgura = 0) {
+  const out = [];
+  for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) {
+    const a = rects[i], b = rects[j];
+    if (a.l + holgura < b.r && b.l + holgura < a.r && a.t + holgura < b.b && b.t + holgura < a.b) out.push(`${a.n} / ${b.n}`);
+  }
+  return out;
+}
+
+/** Capturas extra de una sección a otro ancho (inicio, mitad y final del cruce). */
+async function capturasAncho(browser, id, ancho, etiqueta = `${ancho}`) {
+  if (process.env.BANCO_CAPTURAS === "0") return;
+  const vp = { width: ancho, height: 800 };
+  const ctx = await browser.newContext({ viewport: vp, reducedMotion: "no-preference" });
+  const page = await ctx.newPage();
+  await page.goto(URL, { waitUntil: "networkidle" });
+  const sec = await page.locator(sel(id)).first().elementHandle();
+  const h = await sec.evaluate((e) => e.getBoundingClientRect().height);
+  const base = await posicionBase(page, sec);
+  for (const [nombre, top] of [["inicio", vp.height - h * 0.15], ["mitad", vp.height - h * 0.6], ["final", Math.max(20, (vp.height - h) / 2)]]) {
+    await colocarBase(page, base, top);
+    const y0 = Math.max(0, Math.floor(top - 40));
+    await page.screenshot({ path: join(capturasDir, `${id}-${etiqueta}-${nombre}.png`), clip: { x: 0, y: y0, width: vp.width, height: Math.min(vp.height - y0, Math.ceil(h + 80)) } });
+  }
+  await ctx.close();
+}
+
+async function contratoEsquema(browser, id) {
+  const ctx = await browser.newContext({ viewport: VIEW, reducedMotion: "no-preference" });
+  const page = await ctx.newPage();
+  await page.goto(URL, { waitUntil: "networkidle" });
+  const fig = await page.locator(`${sel(id)} .motion-diagram`).elementHandle();
+  // Posición intermedia: el primer nodo ya se ve y el último aún no.
+  await colocarCover(page, fig, 0.26);
+  const r = await fig.evaluate((f) => {
+    const nodos = [...f.querySelectorAll(".motion-diagram-nodes > li")].map((li) => ({
+      paso: parseFloat(li.style.getPropertyValue("--motion-step")), op: parseFloat(getComputedStyle(li.firstElementChild).opacity) }));
+    const aristas = [...f.querySelectorAll("line")].map((l) => {
+      const m = getComputedStyle(l).transform; const n = m === "none" ? [1] : m.match(/-?[\d.e+-]+/g).map(Number);
+      return { paso: parseFloat(l.style.getPropertyValue("--motion-step")), escala: n[0] };
+    });
+    return { nodos, aristas };
+  });
+  const n0 = r.nodos.find((n) => n.paso === 0), n3 = r.nodos.find((n) => n.paso === 3);
+  const pasosAristas = r.aristas.map((a) => a.paso);
+  const primera = r.aristas.filter((a) => a.paso === Math.min(...pasosAristas));
+  const ultima = r.aristas.filter((a) => a.paso === Math.max(...pasosAristas));
+  check(n0 && n3 && n0.op > n3.op && n0.op > 0.3, `${id}: a mitad, el nodo 0 se ve antes que el 3 (${n0?.op.toFixed(2)} > ${n3?.op.toFixed(2)})`);
+  check(primera.every((a) => a.escala > 0) && (Math.max(...pasosAristas) === Math.min(...pasosAristas) || ultima.every((a) => a.escala === 0)),
+    `${id}: crece la arista del primer nodo y aún no la del último (${primera.map((a) => a.escala.toFixed(2))} / ${ultima.map((a) => a.escala.toFixed(2))})`);
+
+  // Al final del rango cada conector llega al centro de su nodo destino (±4 px).
+  await colocarCover(page, fig, 0.7);
+  const fin = await fig.evaluate((f) => {
+    const centros = [...f.querySelectorAll(".motion-diagram-icon")].map((ic) => {
+      const b = ic.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 };
+    });
+    const stage = f.querySelector(".motion-diagram-stage").getBoundingClientRect();
+    return [...f.querySelectorAll("line")].map((l) => {
+      const b = l.getBoundingClientRect();
+      const x1 = +l.getAttribute("x1"), y1 = +l.getAttribute("y1"), x2 = +l.getAttribute("x2"), y2 = +l.getAttribute("y2");
+      const fx = x2 >= x1 ? b.right : b.left, fy = y2 >= y1 ? b.bottom : b.top;
+      const dx = stage.left + (x2 / 100) * stage.width, dy = stage.top + (y2 / 100) * stage.height;
+      const destino = centros.reduce((m, c) => (Math.hypot(c.x - dx, c.y - dy) < Math.hypot(m.x - dx, m.y - dy) ? c : m));
+      return Math.hypot(fx - destino.x, fy - destino.y);
+    });
+  });
+  check(fin.length > 0 && fin.every((d) => d <= 4), `${id}: al final cada conector llega a su nodo (desvío máx. ${Math.max(...fin).toFixed(1)} px)`);
+  await ctx.close();
+
+  // A 1280 y 375 px, ninguna etiqueta se pisa con otra (estado final).
+  for (const ancho of [1280, 375]) {
+    const c = await browser.newContext({ viewport: { width: ancho, height: 800 }, reducedMotion: "reduce" });
+    const p = await c.newPage();
+    await p.goto(URL, { waitUntil: "networkidle" });
+    const rects = await p.locator(`${sel(id)} .motion-diagram-node`).evaluateAll((els) => els.map((e) => {
+      const b = e.getBoundingClientRect(); return { n: e.textContent.trim(), l: b.left, r: b.right, t: b.top, b: b.bottom };
+    }));
+    const s = solapes(rects);
+    check(s.length === 0, `${id}: a ${ancho} px ninguna etiqueta se pisa con otra`, s.join("; "));
+    if (ancho === 375) {
+      const fuera = rects.filter((q) => q.l < 0 || q.r > ancho);
+      check(fuera.length === 0, `${id}: a 375 px todos los nodos caben en la pantalla`, fuera.map((q) => q.n).join(", "));
+    }
+    await c.close();
+  }
+
+  const red = await browser.newContext({ viewport: VIEW, reducedMotion: "reduce" });
+  const pr = await red.newPage();
+  await pr.goto(URL, { waitUntil: "networkidle" });
+  const tr = await pr.locator(`${sel(id)} line, ${sel(id)} .motion-diagram-node`).evaluateAll((els) => els.map((e) => getComputedStyle(e).transform));
+  check(tr.every((t) => t === "none"), `${id}: con reduce, nodos y conectores dibujados sin transformar`);
+  await red.close();
+  await capturasAncho(browser, id, 375);
+}
+
+contratos.push(["esquema-radial", async (browser) => {
+  await contratoEsquema(browser, "esquema-radial");
+  // Duda de diseño: guiones del conector discontinuo mientras crece (non-scaling-stroke + scale).
+  if (process.env.BANCO_CAPTURAS !== "0") {
+    const ctx = await browser.newContext({ viewport: VIEW, reducedMotion: "no-preference", deviceScaleFactor: 2 });
+    const page = await ctx.newPage();
+    await page.goto(URL, { waitUntil: "networkidle" });
+    const fig = await page.locator(`${sel("esquema-radial")} .motion-diagram`).elementHandle();
+    const linea = page.locator(`${sel("esquema-radial")} line[data-dashed]`);
+    for (const [nombre, p] of [["guiones-mitad", 0.235], ["guiones-final", 0.6]]) {
+      await colocarCover(page, fig, p);
+      const b = await page.locator(`${sel("esquema-radial")} .motion-diagram-stage`).boundingBox();
+      await page.screenshot({ path: join(capturasDir, `esquema-radial-${nombre}.png`),
+        clip: { x: b.x + b.width * 0.35, y: Math.max(0, b.y + b.height * 0.45), width: b.width * 0.3, height: Math.min(b.height * 0.55, VIEW.height - Math.max(0, b.y + b.height * 0.45)) } });
+      const esc = await linea.evaluate((l) => getComputedStyle(l).transform);
+      console.log(`  info esquema-radial: conector discontinuo en ${nombre}: transform ${esc}`);
+    }
+    await ctx.close();
+  }
+}]);
+contratos.push(["esquema-capas", (browser) => contratoEsquema(browser, "esquema-capas")]);
+
 async function ejecutarContratos(browser) {
   console.log("\n[contratos] comprobaciones propias de cada pieza en prueba");
   const ids = new Set(registro.map((e) => e.id));

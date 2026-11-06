@@ -168,6 +168,38 @@
         ".motion-figures dt"
       ],
       "markdown": "cifras.md"
+    },
+    {
+      "id": "esquema-radial",
+      "pieza": "esquema",
+      "textos": [
+        "Tu servidor es el centro: documentos, sistemas, accesos y auditoría se quedan dentro de tu red",
+        "Tu servidor",
+        "Documentos",
+        "Sistemas",
+        "Accesos",
+        "Auditoría",
+        "API pública"
+      ],
+      "animados": [
+        ".motion-diagram-node"
+      ],
+      "markdown": null
+    },
+    {
+      "id": "esquema-capas",
+      "pieza": "esquema",
+      "textos": [
+        "Cuatro capas, todas dentro de tu infraestructura",
+        "Interfaz",
+        "Orquestación",
+        "Inferencia",
+        "Tus datos"
+      ],
+      "animados": [
+        ".motion-diagram-node"
+      ],
+      "markdown": null
     }
   ]
 }

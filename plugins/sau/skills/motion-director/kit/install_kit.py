@@ -46,6 +46,7 @@ FILES = {
     KIT / "components" / "rows.tsx": "src/components/motion/rows.tsx",
     KIT / "components" / "bento.tsx": "src/components/motion/bento.tsx",
     KIT / "components" / "figures.tsx": "src/components/motion/figures.tsx",
+    KIT / "components" / "diagram.tsx": "src/components/motion/diagram.tsx",
     KIT / "components" / "index.ts": "src/components/motion/index.ts",
     KIT / "lib" / "motion.ts": "src/lib/motion.ts",
     KIT / "lib" / "remark-motion.ts": "src/lib/remark-motion.ts",

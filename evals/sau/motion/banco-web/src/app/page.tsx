@@ -1,7 +1,7 @@
 // Muestrario del banco de motion. Cada pieza del catálogo aparece aquí en una
 // <section data-pieza="<id>"> con el mismo id que su entrada en ../../../piezas.json.
 // Ver LEEME.md: «Registrar una pieza nueva».
-import { Reveal, Steps, Comparison, ComparisonColumn, PullQuote, SectionHeading, Rows, Row, Bento, BentoItem, Figures, Figure } from "@/components/motion";
+import { Reveal, Steps, Comparison, ComparisonColumn, PullQuote, SectionHeading, Rows, Row, Bento, BentoItem, Figures, Figure, Diagram } from "@/components/motion";
 
 // Piezas en prueba (2026-11): textos tomados de /ia-onpremise de galileo-studio-web
 // (messages/es.json, clave iaOnpremise.*), para ver las piezas con contenido real de Galileo.
@@ -169,6 +169,47 @@ export default function Muestrario() {
             />
           </dl>
         </Figures>
+      </section>
+      <Espacio />
+
+      <section data-pieza="esquema-radial">
+        <Diagram
+          caption="Tu servidor es el centro: documentos, sistemas, accesos y auditoría se quedan dentro de tu red, y la conexión a una API pública está cortada."
+          nodes={[
+            { id: "srv", label: "Tu servidor", sublabel: "On-premise", x: 50, y: 50, emphasis: true, icon: <Icono d="M4 5h16v6H4zM4 13h16v6H4zM8 8h.01M8 16h.01" /> },
+            { id: "doc", label: "Documentos", x: 18, y: 18, icon: <Icono d="M7 3h7l5 5v13H7zM14 3v5h5" /> },
+            { id: "sis", label: "Sistemas", x: 82, y: 18, icon: <Icono d="M4 6h16M4 12h16M4 18h16" /> },
+            { id: "acc", label: "Accesos", x: 18, y: 78, icon: <Icono d="M8 11V7a4 4 0 118 0v4M6 11h12v10H6z" /> },
+            { id: "aud", label: "Auditoría", x: 82, y: 78, icon: <Icono d="M9 4h6M7 4h10v17H7zM10 10h4M10 14h4" /> },
+            { id: "api", label: "API pública", x: 50, y: 90, icon: <Icono d="M5 5l14 14M7 12a5 5 0 015-5M12 17a5 5 0 005-5" /> },
+          ]}
+          edges={[
+            { from: "srv", to: "doc" },
+            { from: "srv", to: "sis" },
+            { from: "srv", to: "acc" },
+            { from: "srv", to: "aud" },
+            { from: "srv", to: "api", dashed: true },
+          ]}
+        />
+      </section>
+      <Espacio />
+
+      <section data-pieza="esquema-capas">
+        <Diagram
+          aspect="16/9"
+          caption="Cuatro capas, todas dentro de tu infraestructura: interfaz, orquestación, inferencia y tus datos."
+          nodes={[
+            { id: "ui", label: "Interfaz", sublabel: "Open WebUI", x: 12, y: 50, icon: <Icono d="M4 5h16v11H4zM9 20h6" /> },
+            { id: "orq", label: "Orquestación", sublabel: "RAG", x: 37, y: 50, icon: <Icono d="M6 6h4v4H6zM14 14h4v4h-4zM10 8h4v8" /> },
+            { id: "inf", label: "Inferencia", sublabel: "vLLM", x: 63, y: 50, icon: <Icono d="M8 8h8v8H8zM10 3v5M14 3v5M10 16v5M14 16v5" /> },
+            { id: "dat", label: "Tus datos", sublabel: "CRM · ERP", x: 88, y: 50, icon: <Icono d="M5 6c0-1.5 3-3 7-3s7 1.5 7 3-3 3-7 3-7-1.5-7-3zM5 6v12c0 1.5 3 3 7 3s7-1.5 7-3V6" /> },
+          ]}
+          edges={[
+            { from: "ui", to: "orq" },
+            { from: "orq", to: "inf" },
+            { from: "inf", to: "dat" },
+          ]}
+        />
       </section>
       <Espacio />
 
