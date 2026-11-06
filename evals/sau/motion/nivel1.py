@@ -455,6 +455,12 @@ def comprobar_contratos(director: Path) -> None:
     def fallo_si(cond: bool, nombre: str, detalle: str = "") -> None:
         anotar("FAIL" if cond else "ok", nombre, detalle if cond else "")
 
+    # Ninguna pieza crea un contenedor de scroll dentro de sí (overflow hidden/auto/scroll):
+    # view() de sus hijos mediría contra él y la animación no correría (regla 2.8). Usar `clip`.
+    scroll = [f"{b.preludio}: {p}: {v}" for b in reglas for p, v in b.decls
+              if p in ("overflow", "overflow-x", "overflow-y") and re.search(r"\b(hidden|auto|scroll)\b", v)]
+    fallo_si(bool(scroll), "contrato: ninguna pieza usa overflow hidden/auto/scroll (usar clip)", "; ".join(scroll))
+
     def solo_transform(clase: str) -> list[str]:
         malos = []
         for b in reglas:

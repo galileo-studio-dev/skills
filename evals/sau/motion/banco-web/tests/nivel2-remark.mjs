@@ -71,6 +71,16 @@ if (!escribir) {
   ];
   // Contratos N2 de las piezas en prueba (solo si su contenedor ya existe en el kit).
   const cuenta = (s, re) => (s.match(re) || []).length;
+  if (MOTION_CONTAINERS.includes("bento")) {
+    const b = await leer("bento.md");
+    const m = await leer("bento-atributos.md");
+    reglas.push(
+      ["bento: div[data-motion=bento][data-columns=3][data-numbered] con ul de 3 li",
+        /<div data-motion="bento" data-columns="3" data-numbered="">\s*<ul>/.test(b) && cuenta(b, /<li>/g) === 3],
+      ["bento: columnas=9 y color=rojo no producen atributos", !/data-columns|data-color|color=/.test(m) && cuenta(m, /data-motion="bento"/g) === 2],
+      ["bento: con atributos malos el contenido sigue", m.includes("Atributo desconocido.") && m.includes("Columnas fuera de rango.")],
+    );
+  }
   if (MOTION_CONTAINERS.includes("filas")) {
     const f = await leer("filas.md");
     const c = await leer("filas-casos.md");

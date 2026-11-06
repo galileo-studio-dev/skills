@@ -11,7 +11,7 @@ import type {} from "mdast-util-to-hast";
  * Bloques de movimiento admitidos en el Markdown del blog (catálogo SAU).
  * Mantener alineado con motion-catalog.md de la skill motion-director.
  */
-export const MOTION_CONTAINERS = ["pasos", "comparativa", "columna", "cita-destacada", "filas"] as const;
+export const MOTION_CONTAINERS = ["pasos", "comparativa", "columna", "cita-destacada", "filas", "bento"] as const;
 export type MotionContainer = (typeof MOTION_CONTAINERS)[number];
 
 type DirectiveNode = ContainerDirective | LeafDirective | TextDirective;

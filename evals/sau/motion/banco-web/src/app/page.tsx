@@ -1,12 +1,19 @@
 // Muestrario del banco de motion. Cada pieza del catálogo aparece aquí en una
 // <section data-pieza="<id>"> con el mismo id que su entrada en ../../../piezas.json.
 // Ver LEEME.md: «Registrar una pieza nueva».
-import { Reveal, Steps, Comparison, ComparisonColumn, PullQuote, SectionHeading, Rows, Row } from "@/components/motion";
+import { Reveal, Steps, Comparison, ComparisonColumn, PullQuote, SectionHeading, Rows, Row, Bento, BentoItem } from "@/components/motion";
 
 // Piezas en prueba (2026-11): textos tomados de /ia-onpremise de galileo-studio-web
 // (messages/es.json, clave iaOnpremise.*), para ver las piezas con contenido real de Galileo.
 
 const Espacio = () => <div className="banco-espacio" aria-hidden="true" />;
+
+/** Icono de trazo fino (sustituye a lucide-react en el banco, que no tiene dependencias de iconos). */
+const Icono = ({ d }: { d: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+    <path d={d} />
+  </svg>
+);
 
 export default function Muestrario() {
   return (
@@ -85,6 +92,59 @@ export default function Muestrario() {
           title="Por qué una pyme española debería considerar IA on-premise"
           description="Los cuatro motivos más habituales para instalar la IA en casa en lugar de contratarla como servicio."
         />
+      </section>
+      <Espacio />
+
+      <section data-pieza="bento-rejilla">
+        <Bento columns={4} variant="grid" numbered>
+          <ul>
+            <BentoItem title="Protección de datos de negocio" icon={<Icono d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z" />}>
+              <p>Datos de clientes, propuestas, proyectos o cifras financieras se procesan en tu infraestructura.</p>
+            </BentoItem>
+            <BentoItem title="RGPD y AI Act: control demostrable" icon={<Icono d="M12 3v18M5 7h14M7 7l-3 7h6zM17 7l-3 7h6z" />}>
+              <p>Si no envías datos personales a un proveedor de IA, tienes menos encargados del tratamiento y menos transferencias que justificar.</p>
+            </BentoItem>
+            <BentoItem title="Coste predecible a largo plazo" icon={<Icono d="M4 12a8 6 0 1016 0 8 6 0 10-16 0M12 9v6" />}>
+              <p>En on-premise, el coste principal es la infraestructura y su mantenimiento, y depende menos del número de usuarios.</p>
+            </BentoItem>
+            <BentoItem title="Personalización: una IA que conoce tu empresa" icon={<Icono d="M8 4h8v6h4v8h-6v-4H8z" />}>
+              <p>Con RAG trabaja sobre tu documentación interna; con integraciones, sobre tu CRM o tu ERP.</p>
+            </BentoItem>
+          </ul>
+        </Bento>
+      </section>
+      <Espacio />
+
+      <section data-pieza="bento-tarjetas">
+        <Bento columns={4}>
+          <ul>
+            <BentoItem title="Infraestructura" icon={<Icono d="M4 5h16v6H4zM4 13h16v6H4z" />}>
+              <p>Compra de un servidor con GPU o alquiler de un servidor dedicado.</p>
+            </BentoItem>
+            <BentoItem title="Implantación" icon={<Icono d="M12 3l4 9-4 9-4-9z" />}>
+              <p>Diagnóstico, despliegue, integraciones y piloto. Se paga una vez por caso de uso.</p>
+            </BentoItem>
+            <BentoItem title="Operación" icon={<Icono d="M12 8a4 4 0 100 8 4 4 0 000-8M12 2v3M12 19v3M2 12h3M19 12h3" />}>
+              <p>Mantenimiento, actualizaciones, energía o cuota del centro de datos, y soporte.</p>
+            </BentoItem>
+            <BentoItem title="Frente a la nube" muted icon={<Icono d="M7 18h10a4 4 0 000-8 6 6 0 00-11 2 3 3 0 001 6z" />}>
+              <p>Las suscripciones se pagan por usuario o por consumo cada mes.</p>
+            </BentoItem>
+          </ul>
+        </Bento>
+      </section>
+      <Espacio />
+
+      {/* Lo que produce el blog con :::bento{columnas=3 numerada} (fixtures/markdown/bento.md):
+          el renderizador `div` del blog devuelve <Bento> con la lista del Markdown dentro. */}
+      <section data-pieza="bento-blog">
+        <Bento columns={3} numbered>
+          <ul>
+            <li><strong>Datos en casa.</strong> Nada sale de tu red.</li>
+            <li><strong>Cumplimiento.</strong> RGPD y AI Act desde el diseño.</li>
+            <li><strong>Coste previsible.</strong> Sin pago por uso.</li>
+          </ul>
+        </Bento>
       </section>
       <Espacio />
 

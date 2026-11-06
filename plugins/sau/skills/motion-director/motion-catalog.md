@@ -24,6 +24,7 @@ Sus fichas están al final de este catálogo («Fichas en prueba»). Tipo «de b
 | Pieza | Tipo | Cuándo usarla | Componente | Sintaxis en Markdown |
 |---|---|---|---|---|
 | `encabezado-seccion` | Automática | Cada sección numerada de una página de servicio. | `SectionHeading` + `SectionKicker` | Solo TSX |
+| `bento` | De bloque | 2–8 elementos paralelos con título y frase. | `Bento` + `BentoItem` | `:::bento{columnas=3}` + lista |
 | `filas` | De bloque | 2–6 pares etiqueta + texto corto. | `Rows` + `Row` | `:::filas` + lista |
 
 ## `reveal` (automática)
@@ -132,3 +133,20 @@ Piezas de la tabla «En prueba». No se asignan hasta el OK de Pelayo.
 ```
 
 - **TSX:** `<Rows><dl><Row label="RGPD">Los datos personales no salen de la UE.</Row></dl></Rows>`
+
+## `bento` (en prueba; de bloque)
+
+- **Qué hace:** una rejilla de 2–8 tarjetas que suben escalonadas por columna, sin poner `index` a mano. Variante `grid` (solo TSX): tarjetas pegadas con separadores de 1 px, como las cuatro razones numeradas de `/ia-onpremise`.
+- **Contenido válido:** de 2 a 8 elementos paralelos, cada uno con un título corto y una o dos frases. Como máximo una por sección H2.
+- **No usar si:** hay orden (`pasos`), son dos opciones enfrentadas (`comparativa`), cada elemento es solo etiqueta y texto (`filas`) o lo principal es un número (`cifras`).
+- **Markdown** (`columnas` = 2, 3 o 4 y `numerada` son los únicos atributos; en Markdown siempre son tarjetas):
+
+```markdown
+:::bento{columnas=3 numerada}
+- **Datos en casa.** Nada sale de tu red.
+- **Cumplimiento.** RGPD y AI Act desde el diseño.
+- **Coste previsible.** Sin pago por uso.
+:::
+```
+
+- **TSX:** `<Bento columns={4} variant="grid" numbered><ul><BentoItem title="…" icon={<ShieldCheck />}>…</BentoItem></ul></Bento>`

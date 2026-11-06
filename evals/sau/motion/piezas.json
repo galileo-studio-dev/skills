@@ -107,6 +107,51 @@
         ".motion-rows > dl > div"
       ],
       "markdown": "filas.md"
+    },
+    {
+      "id": "bento-rejilla",
+      "pieza": "bento",
+      "textos": [
+        "Protección de datos de negocio",
+        "RGPD y AI Act: control demostrable",
+        "Coste predecible a largo plazo",
+        "Personalización: una IA que conoce tu empresa",
+        "Con RAG trabaja sobre tu documentación interna"
+      ],
+      "animados": [
+        ".motion-bento-body"
+      ],
+      "markdown": null
+    },
+    {
+      "id": "bento-tarjetas",
+      "pieza": "bento",
+      "textos": [
+        "Infraestructura",
+        "Implantación",
+        "Operación",
+        "Frente a la nube",
+        "Se paga una vez por caso de uso."
+      ],
+      "animados": [
+        ".motion-bento > ul > li"
+      ],
+      "markdown": null
+    },
+    {
+      "id": "bento-blog",
+      "pieza": "bento",
+      "textos": [
+        "Datos en casa.",
+        "Nada sale de tu red.",
+        "Cumplimiento.",
+        "Coste previsible.",
+        "Sin pago por uso."
+      ],
+      "animados": [
+        ".motion-bento > ul > li"
+      ],
+      "markdown": "bento.md"
     }
   ]
 }

@@ -390,6 +390,64 @@ contratos.push(["filas", async (browser) => {
   await red.close();
 }]);
 
+contratos.push(["bento-rejilla", async (browser) => {
+  const ctx = await browser.newContext({ viewport: VIEW, reducedMotion: "no-preference" });
+  const page = await ctx.newPage();
+  await page.goto(URL, { waitUntil: "networkidle" });
+  const cuerpos = page.locator(`${sel("bento-rejilla")} .motion-bento-body`);
+  const celdas = page.locator(`${sel("bento-rejilla")} .motion-bento > ul > li`);
+  const fila = await celdas.first().elementHandle();
+  const alto = await fila.evaluate((e) => e.getBoundingClientRect().height);
+  const base = await posicionBase(page, fila);
+  // Al principio de la entrada: celdas opacas y sin animar; cuerpos aún ocultos.
+  await colocarBase(page, base, VIEW.height - alto * 0.05);
+  const ini = await celdas.evaluateAll((els) => els.map((e) => {
+    const cs = getComputedStyle(e);
+    const a = cs.backgroundColor.match(/rgba\([^)]*,\s*([\d.]+)\)/);
+    return { op: parseFloat(cs.opacity), alfa: a ? parseFloat(a[1]) : 1, anim: cs.animationName, cuerpo: parseFloat(getComputedStyle(e.firstElementChild).opacity) };
+  }));
+  check(ini.every((c) => c.op === 1 && c.alfa === 1 && c.anim === "none") && ini.some((c) => c.cuerpo < 1),
+    "bento grid: al empezar, la celda es opaca y no se anima (solo el cuerpo)", JSON.stringify(ini));
+  // A 1280 px con 4 columnas: misma posición de scroll, opacidad decreciente de la 1 a la 4.
+  await colocarBase(page, base, VIEW.height - alto * 0.3);
+  const ops = await cuerpos.evaluateAll((els) => els.map((e) => parseFloat(getComputedStyle(e).opacity)));
+  check(ops.length === 4 && ops[0] > ops[1] && ops[1] > ops[2] && ops[2] > ops[3],
+    `bento: a 1280 px, escalonado por columna (opacidades ${ops.map((o) => o.toFixed(2)).join(" > ")})`);
+  await ctx.close();
+
+  // A 768 px (2 columnas): la tarjeta 3 abre la fila 2 y empieza igual que la 1.
+  const c2 = await browser.newContext({ viewport: { width: 768, height: 800 }, reducedMotion: "no-preference" });
+  const p2 = await c2.newPage();
+  await p2.goto(URL, { waitUntil: "networkidle" });
+  const cel2 = await p2.locator(`${sel("bento-rejilla")} .motion-bento > ul > li`).elementHandles();
+  const cols = await Promise.all(cel2.map((e) => e.evaluate((x) => getComputedStyle(x).getPropertyValue("--motion-col").trim())));
+  const medir = async (h) => {
+    const a = await h.evaluate((e) => e.getBoundingClientRect().height);
+    await colocarBase(p2, await posicionBase(p2, h), 800 - a * 0.3);
+    return h.evaluate((e) => parseFloat(getComputedStyle(e.firstElementChild).opacity));
+  };
+  const o1 = await medir(cel2[0]); const o3 = await medir(cel2[2]);
+  check(cols.join() === "0,1,0,1" && Math.abs(o1 - o3) < 0.03,
+    `bento: a 768 px la fila 2 empieza como la 1 (--motion-col ${cols.join()}; opacidad ${o1.toFixed(2)} / ${o3.toFixed(2)})`);
+  await c2.close();
+
+  // A 375 px (1 columna): todas con --motion-col 0.
+  const c3 = await browser.newContext({ viewport: { width: 375, height: 800 } });
+  const p3 = await c3.newPage();
+  await p3.goto(URL, { waitUntil: "networkidle" });
+  const todas = await p3.locator(".motion-bento > ul > li").evaluateAll((els) => els.map((e) => getComputedStyle(e).getPropertyValue("--motion-col").trim()));
+  check(todas.length > 0 && todas.every((c) => c === "0"), `bento: a 375 px todas las tarjetas con --motion-col 0 (${todas.length})`);
+  await c3.close();
+
+  const red = await browser.newContext({ viewport: VIEW, reducedMotion: "reduce" });
+  const pr = await red.newPage();
+  await pr.goto(URL, { waitUntil: "networkidle" });
+  await colocarSeccion(pr, "bento-rejilla", VIEW.height * 0.5);
+  const tr = await pr.locator(".motion-bento li, .motion-bento-body").evaluateAll((els) => els.map((e) => getComputedStyle(e).transform));
+  check(tr.every((t) => t === "none"), "bento: con reduce, transform none en celdas y cuerpos");
+  await red.close();
+}]);
+
 async function ejecutarContratos(browser) {
   console.log("\n[contratos] comprobaciones propias de cada pieza en prueba");
   const ids = new Set(registro.map((e) => e.id));

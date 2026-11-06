@@ -191,6 +191,185 @@
     transform-origin: center;
   }
 
+  /* bento */
+  .motion-bento > ul {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: motion-bento;
+  }
+
+  .motion-bento > ul > li {
+    --motion-col: 0;
+    position: relative;
+    counter-increment: motion-bento;
+    margin: 0;
+    padding: 1.75rem;
+    border: 1px solid var(--motion-hairline);
+    border-radius: 1.5rem;
+    background: color-mix(in srgb, var(--foreground) 2.5%, transparent);
+    color: var(--motion-muted);
+    font-size: 0.875rem;
+    line-height: 1.65;
+  }
+
+  .motion-bento > ul > li[data-muted] {
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--foreground) 15%, transparent);
+    background: transparent;
+  }
+
+  /* Variante rejilla: celdas pegadas; el fondo del ul hace de separador de 1 px.
+     La celda es opaca y no se anima: solo se anima su cuerpo (ver la animación). */
+  .motion-bento[data-variant="grid"] > ul {
+    gap: 1px;
+    /* clip, no hidden: `hidden` haría del ul un contenedor de scroll y view() no correría (regla 2.8). */
+    overflow: clip;
+    border: 1px solid var(--motion-hairline);
+    border-radius: 1.5rem;
+    background: var(--motion-hairline);
+  }
+
+  .motion-bento[data-variant="grid"] > ul > li {
+    border: 0;
+    border-radius: 0;
+    background: var(--motion-surface);
+    padding: 1.75rem 2rem 2rem;
+  }
+
+  .motion-bento-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    align-content: start;
+    height: 100%;
+  }
+
+  .motion-bento-body > :not(.motion-bento-icon) {
+    grid-column: 1 / -1;
+  }
+
+  .motion-bento-icon {
+    grid-row: 1;
+    grid-column: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid color-mix(in srgb, var(--motion-accent) 25%, transparent);
+    border-radius: 0.5rem;
+    background: color-mix(in srgb, var(--motion-accent) 6%, transparent);
+    color: var(--motion-accent);
+  }
+
+  .motion-bento-icon > svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .motion-bento:not([data-numbered]) .motion-bento-icon {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  /* Número "01", "02"… con contador CSS. `/ ""` = sin texto accesible (el número es decorativo). */
+  .motion-bento[data-numbered] .motion-bento-body::before,
+  .motion-bento[data-numbered] > ul > li:not(:has(> .motion-bento-body))::before {
+    content: counter(motion-bento, decimal-leading-zero);
+    content: counter(motion-bento, decimal-leading-zero) / "";
+    grid-row: 1;
+    grid-column: 1;
+    display: block;
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-size: 0.75rem;
+    line-height: 2.25rem;
+    color: color-mix(in srgb, var(--motion-muted) 70%, transparent);
+  }
+
+  .motion-bento[data-numbered] > ul > li:not(:has(> .motion-bento-body))::before {
+    line-height: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .motion-bento-title,
+  .motion-bento > ul > li > strong:first-child,
+  .motion-bento > ul > li > p:first-child > strong:first-child {
+    display: block;
+    margin: 2rem 0 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    color: var(--foreground);
+  }
+
+  .motion-bento > ul > li > strong:first-child,
+  .motion-bento > ul > li > p:first-child > strong:first-child {
+    margin: 0 0 0.5rem;
+  }
+
+  .motion-bento-text {
+    margin-top: 0.75rem;
+  }
+
+  .motion-bento li p {
+    margin: 0;
+  }
+
+  @media (min-width: 40rem) {
+    .motion-bento > ul {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .motion-bento > ul > li:nth-child(2n) {
+      --motion-col: 1;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .motion-bento:not([data-columns="2"]) > ul {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .motion-bento[data-columns="4"] > ul {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    /* 3 columnas (por defecto): 0, 1, 2 */
+    .motion-bento:not([data-columns="2"]):not([data-columns="4"]) > ul > li:nth-child(3n + 1) {
+      --motion-col: 0;
+    }
+
+    .motion-bento:not([data-columns="2"]):not([data-columns="4"]) > ul > li:nth-child(3n + 2) {
+      --motion-col: 1;
+    }
+
+    .motion-bento:not([data-columns="2"]):not([data-columns="4"]) > ul > li:nth-child(3n) {
+      --motion-col: 2;
+    }
+
+    /* 4 columnas: 0, 1, 2, 3 */
+    .motion-bento[data-columns="4"] > ul > li:nth-child(4n + 1) {
+      --motion-col: 0;
+    }
+
+    .motion-bento[data-columns="4"] > ul > li:nth-child(4n + 2) {
+      --motion-col: 1;
+    }
+
+    .motion-bento[data-columns="4"] > ul > li:nth-child(4n + 3) {
+      --motion-col: 2;
+    }
+
+    .motion-bento[data-columns="4"] > ul > li:nth-child(4n) {
+      --motion-col: 3;
+    }
+  }
+
   /* filas */
   .motion-rows > dl {
     margin: 0;
@@ -336,6 +515,17 @@
     .motion-heading > .motion-mask > .motion-mask-inner {
       animation-timeline: --motion-heading;
       animation-range: entry 15% entry 75%;
+    }
+
+    /* ---- bento: escalonado por columna (--motion-col). La variante grid no anima la celda,
+       solo su cuerpo, para que no se vea el color del separador antes de que entren ---- */
+    .motion-bento:not([data-variant="grid"]) > ul > li,
+    .motion-bento[data-variant="grid"] .motion-bento-body {
+      animation: motion-rise linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: view();
+      animation-range: entry calc(5% + var(--motion-col) * var(--motion-stagger-step))
+        entry calc(60% + var(--motion-col) * var(--motion-stagger-step));
     }
 
     /* ---- filas: cada fila sube con su propia view() (mide más de 40 px); el separador
