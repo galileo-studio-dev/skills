@@ -359,6 +359,37 @@ contratos.push(["encabezado-seccion", async (browser) => {
   await red.close();
 }]);
 
+contratos.push(["filas", async (browser) => {
+  const ctx = await browser.newContext({ viewport: VIEW, reducedMotion: "no-preference" });
+  const page = await ctx.newPage();
+  await page.goto(URL, { waitUntil: "networkidle" });
+  const fila = (await page.locator(`${sel("filas")} .motion-rows > dl > div`).elementHandles())[1];
+  const alto = await fila.evaluate((e) => e.getBoundingClientRect().height);
+  const base = await posicionBase(page, fila);
+  let ok3 = true, det = "";
+  for (const p of [0.1, 0.2, 0.3]) {
+    await colocarBase(page, base, VIEW.height - alto * p);
+    const r = await fila.evaluate((e) => ({
+      sep: getComputedStyle(e, "::before").transform, op: parseFloat(getComputedStyle(e).opacity),
+    }));
+    const sx = esc(r.sep).x;
+    det += ` [${p}] separador ${sx.toFixed(2)} / texto ${r.op.toFixed(2)}`;
+    if (!(sx > r.op && sx < 1.0001)) ok3 = false;
+  }
+  check(ok3, "filas: el separador va por delante del texto (scaleX > opacidad en posiciones intermedias)", det);
+  await ctx.close();
+  const red = await browser.newContext({ viewport: VIEW, reducedMotion: "reduce" });
+  const pr = await red.newPage();
+  await pr.goto(URL, { waitUntil: "networkidle" });
+  await colocarSeccion(pr, "filas", VIEW.height * 0.5);
+  const r = await pr.locator(`${sel("filas")} .motion-rows > dl > div + div`).evaluateAll((els) =>
+    els.map((e) => [getComputedStyle(e, "::before").transform, getComputedStyle(e).transform, e.getBoundingClientRect().width,
+      parseFloat(getComputedStyle(e, "::before").width)]));
+  check(r.length === 2 && r.every(([s, t, w, ws]) => s === "none" && t === "none" && Math.abs(w - ws) < 1),
+    "filas: con reduce, separadores a ancho completo y transform none", JSON.stringify(r));
+  await red.close();
+}]);
+
 async function ejecutarContratos(browser) {
   console.log("\n[contratos] comprobaciones propias de cada pieza en prueba");
   const ids = new Set(registro.map((e) => e.id));

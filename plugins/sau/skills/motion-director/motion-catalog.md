@@ -24,6 +24,7 @@ Sus fichas están al final de este catálogo («Fichas en prueba»). Tipo «de b
 | Pieza | Tipo | Cuándo usarla | Componente | Sintaxis en Markdown |
 |---|---|---|---|---|
 | `encabezado-seccion` | Automática | Cada sección numerada de una página de servicio. | `SectionHeading` + `SectionKicker` | Solo TSX |
+| `filas` | De bloque | 2–6 pares etiqueta + texto corto. | `Rows` + `Row` | `:::filas` + lista |
 
 ## `reveal` (automática)
 
@@ -114,3 +115,20 @@ Piezas de la tabla «En prueba». No se asignan hasta el OK de Pelayo.
 - **Markdown:** no tiene. Solo TSX: necesita número y etiqueta, que un `## H2` no tiene, y los H2 del blog ya entran por máscara con `reveal`.
 - **TSX:** `<SectionHeading index="02" eyebrow="Por qué" title="…" description="…" />`. `SectionKicker` sirve para una etiqueta suelta (se ve estática).
 - **No usar en:** el hero (allí va el H1, que nunca se anima), el blog ni secciones sin H2.
+
+## `filas` (en prueba; de bloque)
+
+- **Qué hace:** una lista de 2–6 pares etiqueta + texto (como la normativa de `/ia-onpremise`: RGPD, AI Act, España). Cada fila sube y el separador que tiene encima crece de izquierda a derecha.
+- **Contenido válido:** de 2 a 6 filas. Etiqueta de hasta 3 palabras; texto de 1 a 3 frases. Como máximo una por sección H2.
+- **No usar si:** hay orden temporal (`pasos`), las etiquetas son largas o cada fila necesita título y párrafos (`bento`), o son FAQ largas.
+- **Markdown** (la primera negrita es la etiqueta, sin el punto final; el resto, el texto):
+
+```markdown
+:::filas
+- **RGPD.** Los datos personales no salen de tu red.
+- **AI Act.** Obligaciones de transparencia según el riesgo.
+- **España.** La AESIA supervisa desde 2024.
+:::
+```
+
+- **TSX:** `<Rows><dl><Row label="RGPD">Los datos personales no salen de la UE.</Row></dl></Rows>`

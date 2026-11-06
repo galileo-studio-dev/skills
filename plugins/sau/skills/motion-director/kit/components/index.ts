@@ -5,3 +5,4 @@ export { Steps } from "./steps";
 export { Comparison, ComparisonColumn } from "./comparison";
 export { PullQuote } from "./pull-quote";
 export { SectionHeading, SectionKicker } from "./section-heading";
+export { Rows, Row } from "./rows";

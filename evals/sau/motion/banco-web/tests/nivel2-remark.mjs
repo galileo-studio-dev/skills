@@ -35,6 +35,9 @@ for (const f of readdirSync(fixtures).filter((x) => x.endsWith(".md")).sort()) {
   const html = String(await procesador.process(readFileSync(join(fixtures, f), "utf8")));
   const esperado = join(fixtures, f.replace(/\.md$/, ".expected.html"));
   if (escribir) {
+    let previo = null;
+    try { previo = readFileSync(esperado, "utf8"); } catch { /* nuevo */ }
+    if (previo !== null && normalizar(previo) === normalizar(html)) continue; // sin cambios: no tocar
     writeFileSync(esperado, html);
     console.log(`  escrito ${f.replace(/\.md$/, ".expected.html")}`);
     continue;
@@ -66,6 +69,18 @@ if (!escribir) {
     ["directivas de texto: sin data-motion", !(await leer("directivas-de-texto.md")).includes("data-motion")],
     ["cada contenedor de MOTION_CONTAINERS tiene fixture o es columna", MOTION_CONTAINERS.every((c) => c === "columna" || existe(c))],
   ];
+  // Contratos N2 de las piezas en prueba (solo si su contenedor ya existe en el kit).
+  const cuenta = (s, re) => (s.match(re) || []).length;
+  if (MOTION_CONTAINERS.includes("filas")) {
+    const f = await leer("filas.md");
+    const c = await leer("filas-casos.md");
+    reglas.push(
+      ["filas: dl con 3 div > dt + dd", cuenta(f, /<div>\s*<dt>[^<]+<\/dt>\s*<dd>/g) === 3 && f.includes("<dl>")],
+      ["filas: la etiqueta pierde el punto final", f.includes("<dt>RGPD</dt>")],
+      ["filas: un enlace del texto queda dentro de dd", /<dd>[^]*?<a href="\/ia-onpremise">[^]*?<\/dd>/.test(c)],
+      ["filas: un elemento sin negrita produce solo dd", /<div>\s*<dd>Fila sin negrita: solo texto\.<\/dd>\s*<\/div>/.test(c)],
+    );
+  }
   function existe(c) {
     return readdirSync(fixtures).some((x) => x === `${c}.md`);
   }

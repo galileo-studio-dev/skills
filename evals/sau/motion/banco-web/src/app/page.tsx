@@ -1,7 +1,7 @@
 // Muestrario del banco de motion. Cada pieza del catálogo aparece aquí en una
 // <section data-pieza="<id>"> con el mismo id que su entrada en ../../../piezas.json.
 // Ver LEEME.md: «Registrar una pieza nueva».
-import { Reveal, Steps, Comparison, ComparisonColumn, PullQuote, SectionHeading } from "@/components/motion";
+import { Reveal, Steps, Comparison, ComparisonColumn, PullQuote, SectionHeading, Rows, Row } from "@/components/motion";
 
 // Piezas en prueba (2026-11): textos tomados de /ia-onpremise de galileo-studio-web
 // (messages/es.json, clave iaOnpremise.*), para ver las piezas con contenido real de Galileo.
@@ -85,6 +85,26 @@ export default function Muestrario() {
           title="Por qué una pyme española debería considerar IA on-premise"
           description="Los cuatro motivos más habituales para instalar la IA en casa en lugar de contratarla como servicio."
         />
+      </section>
+      <Espacio />
+
+      <section data-pieza="filas">
+        <Rows>
+          <dl>
+            <Row label="RGPD">
+              Se aplica a cualquier empresa que trate datos personales, sea cual sea su tamaño. Las multas pueden llegar a
+              20 millones de euros o al 4 % del volumen de negocio anual global, la cifra mayor.
+            </Row>
+            <Row label="AI Act">
+              Reglamento (UE) 2024/1689, en vigor desde agosto de 2024 y de aplicación escalonada. El Ómnibus digital sobre
+              IA aplazó las obligaciones de los sistemas de alto riesgo al 2 de diciembre de 2027 (anexo III).
+            </Row>
+            <Row label="AEPD · AESIA">
+              En España, la AEPD supervisa el tratamiento de datos personales y ha publicado guías sobre IA; la AESIA es la
+              agencia estatal creada para supervisar la inteligencia artificial.
+            </Row>
+          </dl>
+        </Rows>
       </section>
       <Espacio />
     </main>

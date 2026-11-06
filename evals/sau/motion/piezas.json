@@ -91,6 +91,22 @@
         ".motion-heading-desc"
       ],
       "markdown": null
+    },
+    {
+      "id": "filas",
+      "pieza": "filas",
+      "textos": [
+        "RGPD",
+        "Se aplica a cualquier empresa que trate datos personales",
+        "AI Act",
+        "Reglamento (UE) 2024/1689",
+        "AEPD · AESIA",
+        "la AESIA es la agencia estatal creada para supervisar la inteligencia artificial"
+      ],
+      "animados": [
+        ".motion-rows > dl > div"
+      ],
+      "markdown": "filas.md"
     }
   ]
 }

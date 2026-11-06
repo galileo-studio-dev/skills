@@ -514,7 +514,7 @@ def comprobar_contratos(director: Path) -> None:
     if f.exists():
         antes = [b for b in reglas if "motion-rows" in b.preludio and "::before" in b.preludio]
         fallo_si(not any(_decl(b, "content") in ('""', "''") for b in antes), "contrato filas: el separador es ::before con content: \"\"")
-        malos = solo_transform("motion-rows")
+        malos = [m for m in solo_transform("motion-rows") if "::before" in m.rsplit(": motion-", 1)[0]]
         fallo_si(bool(malos), "contrato filas: el separador solo anima transform", "; ".join(malos))
 
     # esquema
