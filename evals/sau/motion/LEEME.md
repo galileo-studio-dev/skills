@@ -31,10 +31,12 @@ copia ahí con `install_kit.py` (`scripts/preparar.mjs`); esas copias están en 
 (en `banco-web/`) hace: instalar kit, `next build`, `next start` y las pruebas de Playwright. Variables:
 `BANCO_PUERTO` (3917), `BANCO_SIN_FIREFOX=1`, `BANCO_CAPTURAS=0`.
 
-Las capturas (`capturas/<id>-inicio|mitad|final.png`) son para que Pelayo dé el OK visual a una pieza nueva.
-Algunos contratos añaden capturas a otros anchos (`<id>-375-…`, `orbita-768-…`) y de detalle
-(`esquema-radial-guiones-*`, `orbita-nitidez-chip.png`, a densidad 2×).
-Se regeneran en cada pasada; si pesan más de 2 MB en total, no se commitean.
+Las capturas son para que Pelayo dé el OK visual a una pieza nueva, con la tipografía real de Galileo
+(el banco carga Geist y Geist Mono con el paquete `geist`; el nivel 3 comprueba que están cargadas y en uso):
+`capturas/<id>-inicio|mitad|final.png` a 1280 px y `<id>-1440-…jpg` / `<id>-390-…jpg` (los anchos del revisor
+estético) de todas las piezas. Algunos contratos añaden capturas a otros anchos (`orbita-768-…`, `-375-…`) y de
+detalle (`esquema-radial-detalle-*`, `orbita-nitidez-chip.png`, a densidad 2×).
+Se regeneran en cada pasada; si pesan más de 3 MB en total, no se commitean (las de 1440 y 390 van en JPEG).
 
 ## Registrar una pieza nueva
 

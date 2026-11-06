@@ -1377,7 +1377,7 @@
       animation: motion-pop linear both;
       animation-timing-function: var(--motion-ease-brand);
       animation-timeline: --motion-diagram;
-      animation-range: cover calc(23% + var(--motion-step) * 3.5%) cover calc(29% + var(--motion-step) * 3.5%);
+      animation-range: cover calc(23% + var(--motion-step) * 3.25%) cover calc(29% + var(--motion-step) * 3.25%);
     }
 
     .motion-diagram-edges line[data-kind="wire"],
@@ -1385,13 +1385,13 @@
       animation: motion-grow linear both;
       animation-timing-function: linear;
       animation-timeline: --motion-diagram;
-      animation-range: cover calc(20% + var(--motion-step) * 3.5%) cover calc(27.5% + var(--motion-step) * 3.5%);
+      animation-range: cover calc(20% + var(--motion-step) * 3.25%) cover calc(27.5% + var(--motion-step) * 3.25%);
     }
 
     /* En la fila, el conector de un nodo es suyo (::before) y su paso es el del nodo menos 0,6. */
     .motion-diagram-row > li + li::before {
       animation-name: motion-draw-x;
-      animation-range: cover calc(20% + (var(--motion-step) - 0.6) * 3.5%) cover calc(27.5% + (var(--motion-step) - 0.6) * 3.5%);
+      animation-range: cover calc(20% + (var(--motion-step) - 0.6) * 3.25%) cover calc(27.5% + (var(--motion-step) - 0.6) * 3.25%);
     }
 
     .motion-diagram-edges line:not([data-kind="wire"]),
@@ -1399,7 +1399,7 @@
       animation: motion-fade linear both;
       animation-timing-function: var(--motion-ease-brand);
       animation-timeline: --motion-diagram;
-      animation-range: cover calc(20% + var(--motion-step) * 3.5%) cover calc(28% + var(--motion-step) * 3.5%);
+      animation-range: cover calc(20% + var(--motion-step) * 3.25%) cover calc(28% + var(--motion-step) * 3.25%);
     }
 
     @media (max-width: 47.99rem) {

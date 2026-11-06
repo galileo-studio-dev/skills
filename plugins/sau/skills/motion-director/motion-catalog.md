@@ -142,6 +142,7 @@ Piezas de la tabla «En prueba». No se asignan hasta el OK de Pelayo.
 - **Qué hace:** una rejilla de 2–8 tarjetas que suben escalonadas por columna, sin poner `index` a mano. Variante `grid` (solo TSX): tarjetas pegadas con separadores de 1 px, como las cuatro razones numeradas de `/ia-onpremise`.
 - **Contenido válido:** de 2 a 8 elementos paralelos, cada uno con un título corto y una o dos frases. Como máximo una por sección H2.
 - **No usar si:** hay orden (`pasos`), son dos opciones enfrentadas (`comparativa`), cada elemento es solo etiqueta y texto (`filas`) o lo principal es un número (`cifras`).
+- **Columnas según el contenedor:** 4 columnas solo si el bento mide 60rem o más (si no, 2 × 2); 3 desde 48rem. En Markdown, el título de cada tarjeta (la primera negrita) pierde el punto final.
 - **Markdown** (`columnas` = 2, 3 o 4 y `numerada` son los únicos atributos; en Markdown siempre son tarjetas):
 
 ```markdown
@@ -159,6 +160,7 @@ Piezas de la tabla «En prueba». No se asignan hasta el OK de Pelayo.
 - **Qué hace:** de 2 a 4 cifras clave en fila. El número sube por máscara (como un H2) y su explicación sube detrás. Sin contador: el número final está siempre en el HTML.
 - **Contenido válido:** de 2 a 4 cifras que **ya están en el borrador con su fuente** (nunca se inventa una cifra; si es un claim, pasa por revisión legal). Valor corto (hasta 8 caracteres) y explicación de una frase. Como máximo **una por página**.
 - **No usar si:** las cifras no tienen fuente, hay más de 4 (usar `filas` o una tabla) o el número no es lo importante (`bento`).
+- **Unidad:** lo que va tras el último espacio de la cifra («GB», «%») sale más pequeño y en color de acento, con espacio fino sin salto. La cifra va en la fuente del texto (no en mono).
 - **Markdown** (la primera negrita de cada elemento es la cifra; el resto, la explicación). Ejemplo con cifras publicadas en `/ia-onpremise` de Galileo:
 
 ```markdown

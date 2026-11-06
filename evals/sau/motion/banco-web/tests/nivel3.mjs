@@ -273,7 +273,8 @@ async function firefoxReal() {
       for (const e of registro) {
         for (const s of e.animados) {
           for (const h of await page.locator(`${sel(e.id)} ${s}`).elementHandles()) {
-            await colocar(page, h, VIEW.height * 0.15);
+            // Igual que en Chromium: posición de diseño (sin la escala de la propia animación).
+            await colocarBase(page, await posicionBase(page, h), VIEW.height * 0.15);
             const b = await estado(h);
             check(b.opacity === 1 && identidad(b.transform), `Firefox ${e.id} «${s}»: termina visible`, JSON.stringify(b));
           }
@@ -677,6 +678,7 @@ async function contratoEsquema(browser, id) {
   const trFila = await pr.locator(`${sel(id)} .motion-diagram-row > li`).evaluateAll((els) => els.map((e) => getComputedStyle(e, "::before").transform));
   check([...tr, ...trFila].every((t) => t === "none"), `${id}: con reduce, nodos y conectores dibujados sin transformar`);
   await red.close();
+  await capturasAncho(browser, id, 375);
 }
 
 contratos.push(["esquema-radial", async (browser) => {
