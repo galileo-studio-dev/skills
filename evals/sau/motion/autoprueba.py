@@ -60,8 +60,18 @@ def fila_sin_componente(d: Path) -> None:
 def contenedor_fantasma(d: Path) -> None:
     f = d / "kit" / "lib" / "remark-motion.ts"
     t = f.read_text(encoding="utf-8")
-    assert '"cita-destacada"]' in t
-    f.write_text(t.replace('"cita-destacada"]', '"cita-destacada", "fantasma"]'), encoding="utf-8")
+    assert "MOTION_CONTAINERS = [" in t
+    f.write_text(t.replace("MOTION_CONTAINERS = [", 'MOTION_CONTAINERS = ["fantasma", ', 1), encoding="utf-8")
+
+
+def reemplazar(ruta: str, viejo: str, nuevo: str):
+    """Defecto que cambia un texto exacto de un archivo del kit (el texto debe existir)."""
+    def f(d: Path) -> None:
+        p = d / ruta
+        t = p.read_text(encoding="utf-8")
+        assert viejo in t, f"autoprueba desfasada: no encuentro {viejo!r} en {ruta}"
+        p.write_text(t.replace(viejo, nuevo, 1), encoding="utf-8")
+    return f
 
 
 def sin_export(d: Path) -> None:
@@ -88,6 +98,19 @@ CASOS = [
     ("pieza en catálogo sin componente", fila_sin_componente, "Holograma"),
     ("contenedor en remark-motion sin catálogo", contenedor_fantasma, "solo en remark-motion.ts: ['fantasma']"),
     ("componente sin exportar en index.ts", sin_export, "PullQuote"),
+    # Piezas en prueba (2026-11): un defecto propio de cada contrato.
+    ("encabezado: línea sin aria-hidden",
+     reemplazar("kit/components/section-heading.tsx", '<span aria-hidden="true" className="motion-kicker-line" />', '<span className="motion-kicker-line" />'),
+     "«motion-kicker-line» lleva aria-hidden"),
+    ("componente sin instalar en FILES",
+     reemplazar("kit/install_kit.py", '    KIT / "components" / "section-heading.tsx": "src/components/motion/section-heading.tsx",\n', ""),
+     "section-heading.tsx"),
+    ("pieza en la tabla «En prueba» y en «Resumen» a la vez",
+     reemplazar("motion-catalog.md", "| `cita-destacada` | Destacada |", "| `encabezado-seccion` | Automática | x | `SectionHeading` | Solo TSX |\n| `cita-destacada` | Destacada |"),
+     "a la vez en «Resumen» y en «En prueba»"),
+    ("SKILL.md sin la regla de «En prueba»",
+     reemplazar("SKILL.md", "Las de «En prueba»", "Las de la otra tabla"),
+     "SKILL.md de motion-director dice que no asigna"),
 ]
 
 

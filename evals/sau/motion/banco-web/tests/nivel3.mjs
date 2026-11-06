@@ -315,6 +315,59 @@ async function capturas(browser) {
   ok(`${registro.length * 3} capturas en evals/sau/motion/capturas/ (${(total / 1024).toFixed(0)} KB)`);
 }
 
+// ---------------------------------------------------------------- contratos de las piezas en prueba
+// Cada pieza nueva trae su contrato de navegador (propuestas/2026-11-06-piezas-nuevas.md). Se
+// ejecutan solo si su sección está en el muestrario.
+const parseMatriz = (t) => {
+  if (!t || t === "none") return { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+  const n = t.match(/-?[\d.e+-]+/g).map(Number);
+  return { a: n[0], b: n[1], c: n[2], d: n[3], e: n[4], f: n[5] };
+};
+const esc = (t) => { const m = parseMatriz(t); return { x: Math.hypot(m.a, m.b), y: Math.hypot(m.c, m.d) }; };
+const contratos = [];
+
+/** Desplaza para que la sección tenga su borde superior de diseño en `top`. */
+async function colocarSeccion(page, id, top) {
+  const h = await page.locator(sel(id)).first().elementHandle();
+  await colocarBase(page, await posicionBase(page, h), top);
+  return h;
+}
+
+contratos.push(["encabezado-seccion", async (browser) => {
+  const ctx = await browser.newContext({ viewport: VIEW, reducedMotion: "no-preference" });
+  const page = await ctx.newPage();
+  await page.goto(URL, { waitUntil: "networkidle" });
+  const linea = page.locator(`${sel("encabezado-seccion")} .motion-kicker-line`);
+  const cab = page.locator(`${sel("encabezado-seccion")} .motion-heading`);
+  const alto = await cab.evaluate((e) => e.getBoundingClientRect().height);
+  const base = await posicionBase(page, await cab.elementHandle());
+  // La línea va de entry 5 % a entry 55 % del encabezado (curva de marca): al 7 % de su entrada empieza.
+  await colocarBase(page, base, VIEW.height - alto * 0.07);
+  const s1 = esc(await linea.evaluate((e) => getComputedStyle(e).transform)).x;
+  await colocarBase(page, base, VIEW.height - alto * 0.07 - 40);
+  const s2 = esc(await linea.evaluate((e) => getComputedStyle(e).transform)).x;
+  check(s1 > 0 && s1 < 1 && s2 > 0 && s2 < 1 && Math.abs(s2 - s1) > 0.02,
+    `encabezado-seccion: la línea se dibuja con el scroll, no salta (scaleX ${s1.toFixed(2)} → ${s2.toFixed(2)} en 40 px)`);
+  await ctx.close();
+  const red = await browser.newContext({ viewport: VIEW, reducedMotion: "reduce" });
+  const pr = await red.newPage();
+  await pr.goto(URL, { waitUntil: "networkidle" });
+  await colocarSeccion(pr, "encabezado-seccion", VIEW.height * 0.5);
+  const r = await pr.locator(`${sel("encabezado-seccion")}`).evaluate((s) =>
+    [".motion-kicker-line", ".motion-mask-inner"].map((q) => { const cs = getComputedStyle(s.querySelector(q)); return [cs.animationName, cs.transform]; }));
+  check(r.every(([n, t]) => n === "none" && t === "none"), "encabezado-seccion: con reduce, línea y máscara con animation-name none y transform none", JSON.stringify(r));
+  await red.close();
+}]);
+
+async function ejecutarContratos(browser) {
+  console.log("\n[contratos] comprobaciones propias de cada pieza en prueba");
+  const ids = new Set(registro.map((e) => e.id));
+  for (const [id, fn] of contratos) {
+    if (!ids.has(id)) continue;
+    try { await fn(browser); } catch (err) { bad(`${id}: el contrato no se pudo ejecutar`, err.message.split("\n")[0]); }
+  }
+}
+
 // ---------------------------------------------------------------- principal
 const servidor = await arrancarServidor();
 let navegador = null;
@@ -332,6 +385,7 @@ try {
     await movimientoReducido(navegador);
     await sinSoporteEmulado(navegador);
     await firefoxReal();
+    await ejecutarContratos(navegador);
     await capturas(navegador);
     console.log(`\nnivel 3: ${oks} ok, ${fallos} fallos`);
     process.exitCode = fallos ? 1 : 0;

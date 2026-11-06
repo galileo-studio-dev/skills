@@ -85,13 +85,16 @@ function splitLead(item: ListItem): { lead: PhrasingContent[] | null; rest: Phra
   const [first, ...extra] = item.children as BlockContent[];
   if (!first || first.type !== "paragraph") return { lead: null, rest: [], extra: item.children as BlockContent[] };
   const kids = [...first.children];
-  if (kids[0]?.type !== "strong") return { lead: null, rest: kids, extra };
-  const lead = kids.shift() as PhrasingContent & { children: PhrasingContent[] };
-  if (kids[0]?.type === "text") {
-    kids[0] = { ...kids[0], value: kids[0].value.replace(/^\s+/, "") };
-    if (!kids[0].value) kids.shift();
+  const head = kids[0];
+  if (head?.type !== "strong") return { lead: null, rest: kids, extra };
+  kids.shift();
+  const next = kids[0];
+  if (next?.type === "text") {
+    const value = next.value.replace(/^\s+/, "");
+    if (value) kids[0] = { ...next, value };
+    else kids.shift();
   }
-  return { lead: lead.children, rest: kids, extra };
+  return { lead: head.children, rest: kids, extra };
 }
 
 /** Nodo de bloque que se convierte en `<tag>` con frases dentro (o con bloques, si hay más de un párrafo). */

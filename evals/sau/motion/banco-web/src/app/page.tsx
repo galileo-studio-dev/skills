@@ -1,7 +1,10 @@
 // Muestrario del banco de motion. Cada pieza del catálogo aparece aquí en una
 // <section data-pieza="<id>"> con el mismo id que su entrada en ../../../piezas.json.
 // Ver LEEME.md: «Registrar una pieza nueva».
-import { Reveal, Steps, Comparison, ComparisonColumn, PullQuote } from "@/components/motion";
+import { Reveal, Steps, Comparison, ComparisonColumn, PullQuote, SectionHeading } from "@/components/motion";
+
+// Piezas en prueba (2026-11): textos tomados de /ia-onpremise de galileo-studio-web
+// (messages/es.json, clave iaOnpremise.*), para ver las piezas con contenido real de Galileo.
 
 const Espacio = () => <div className="banco-espacio" aria-hidden="true" />;
 
@@ -70,6 +73,18 @@ export default function Muestrario() {
         <PullQuote>
           <p>Una buena solución empieza en tus propios datos.</p>
         </PullQuote>
+      </section>
+      <Espacio />
+
+      {/* ---------- Piezas en prueba ---------- */}
+
+      <section data-pieza="encabezado-seccion">
+        <SectionHeading
+          index="02"
+          eyebrow="Por qué"
+          title="Por qué una pyme española debería considerar IA on-premise"
+          description="Los cuatro motivos más habituales para instalar la IA en casa en lugar de contratarla como servicio."
+        />
       </section>
       <Espacio />
     </main>
