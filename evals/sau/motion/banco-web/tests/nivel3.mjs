@@ -540,36 +540,97 @@ async function capturasAncho(browser, id, ancho, etiqueta = `${ancho}`) {
   await ctx.close();
 }
 
+/** Estado de cada nodo y su conector en una posición de scroll (sirve para las dos disposiciones). */
+async function estadoEsquema(fig) {
+  return fig.evaluate((f) => {
+    const escala = (t) => { if (t === "none") return 1; const n = t.match(/-?[\d.e+-]+/g).map(Number); return Math.hypot(n[0], n[1]); };
+    const fila = f.dataset.layout === "row";
+    const nodos = [...f.querySelectorAll(fila ? ".motion-diagram-row > li" : ".motion-diagram-nodes > li")].map((li, k) => ({
+      id: k, paso: parseFloat(li.style.getPropertyValue("--motion-step")), op: parseFloat(getComputedStyle(li.querySelector(".motion-diagram-node")).opacity),
+      // En fila, el conector es el ::before del nodo (excepto el primero).
+      conector: fila && k > 0 ? escala(getComputedStyle(li, "::before").transform) : null,
+      pasoConector: fila && k > 0 ? parseFloat(li.style.getPropertyValue("--motion-step")) - 0.6 : null,
+    }));
+    const pasoDe = new Map([...f.querySelectorAll(".motion-diagram-nodes > li")].map((li, k) => [k, parseFloat(li.style.getPropertyValue("--motion-step"))]));
+    const lineas = [...f.querySelectorAll("line")].map((l) => ({
+      tipo: l.dataset.kind, paso: parseFloat(l.style.getPropertyValue("--motion-step")),
+      escala: escala(getComputedStyle(l).transform), op: parseFloat(getComputedStyle(l).opacity),
+      animacion: getComputedStyle(l).animationName, a: l.dataset.to,
+    }));
+    return { fila, nodos, lineas, pasoDe: [...pasoDe.values()] };
+  });
+}
+
 async function contratoEsquema(browser, id) {
   const ctx = await browser.newContext({ viewport: VIEW, reducedMotion: "no-preference" });
   const page = await ctx.newPage();
   await page.goto(URL, { waitUntil: "networkidle" });
   const fig = await page.locator(`${sel(id)} .motion-diagram`).elementHandle();
-  // Posición intermedia: el primer nodo ya se ve y el último aún no.
-  await colocarCover(page, fig, 0.26);
-  const r = await fig.evaluate((f) => {
-    const nodos = [...f.querySelectorAll(".motion-diagram-nodes > li")].map((li) => ({
-      paso: parseFloat(li.style.getPropertyValue("--motion-step")), op: parseFloat(getComputedStyle(li.firstElementChild).opacity) }));
-    const aristas = [...f.querySelectorAll("line")].map((l) => {
-      const m = getComputedStyle(l).transform; const n = m === "none" ? [1] : m.match(/-?[\d.e+-]+/g).map(Number);
-      return { paso: parseFloat(l.style.getPropertyValue("--motion-step")), escala: n[0] };
-    });
-    return { nodos, aristas };
-  });
-  const n0 = r.nodos.find((n) => n.paso === 0), n3 = r.nodos.find((n) => n.paso === 3);
-  const pasosAristas = r.aristas.map((a) => a.paso);
-  const primera = r.aristas.filter((a) => a.paso === Math.min(...pasosAristas));
-  const ultima = r.aristas.filter((a) => a.paso === Math.max(...pasosAristas));
-  check(n0 && n3 && n0.op > n3.op && n0.op > 0.3, `${id}: a mitad, el nodo 0 se ve antes que el 3 (${n0?.op.toFixed(2)} > ${n3?.op.toFixed(2)})`);
-  check(primera.every((a) => a.escala > 0) && (Math.max(...pasosAristas) === Math.min(...pasosAristas) || ultima.every((a) => a.escala === 0)),
-    `${id}: crece la arista del primer nodo y aún no la del último (${primera.map((a) => a.escala.toFixed(2))} / ${ultima.map((a) => a.escala.toFixed(2))})`);
 
-  // Al final del rango cada conector llega al centro de su nodo destino (±4 px).
+  // F-2 (revisión estética): cada conector va a la par con su nodo destino. Recorre el cruce y exige:
+  // ningún nodo se ve antes de que su conector lleve la mitad, y el conector no empieza antes que
+  // el paso de su nodo − 0,6. Los cortados y discontinuos entran los últimos, con un fundido.
+  const malos = new Set();
+  let visto = false;
+  const estructura = await estadoEsquema(fig);
+  const fila = estructura.fila;
+  const pasoNodo = (s, idDestino) => s.nodos.find((n) => n.paso === idDestino);
+  for (let p = 0.1; p <= 0.6; p += 0.01) {
+    await colocarCover(page, fig, p);
+    const s = await estadoEsquema(fig);
+    if (fila) {
+      for (const n of s.nodos.slice(1)) {
+        if (n.op > 0.05 && n.conector < 0.5) malos.add(`nodo ${n.id} visible (${n.op.toFixed(2)}) con su conector a ${n.conector.toFixed(2)}`);
+        if (n.conector > 0) visto = true;
+      }
+    } else {
+      // El destino de cada cable: el nodo cuyo paso es el del cable + 0,6.
+      for (const l of s.lineas.filter((x) => x.tipo === "wire")) {
+        const destino = s.nodos.find((n) => Math.abs(n.paso - (l.paso + 0.6)) < 0.01);
+        if (!destino) { malos.add(`cable con paso ${l.paso} sin nodo destino en paso ${l.paso + 0.6}`); continue; }
+        if (destino.op > 0.05 && l.escala < 0.5) malos.add(`nodo ${destino.paso} visible (${destino.op.toFixed(2)}) con su cable a ${l.escala.toFixed(2)}`);
+        if (l.escala > 0) visto = true;
+      }
+    }
+  }
+  check(visto && malos.size === 0, `${id}: cada conector «lleva» a su nodo (paso del conector = paso del nodo − 0,6; el nodo no se ve antes que su línea)`,
+    [...malos].slice(0, 4).join("; "));
+  if (!fila) {
+    const cables = estructura.lineas.filter((l) => l.tipo === "wire");
+    const otros = estructura.lineas.filter((l) => l.tipo !== "wire");
+    check(otros.every((o) => cables.every((c) => o.paso > c.paso) && o.animacion === "motion-fade"),
+      `${id}: las conexiones cortadas entran las últimas y con fundido (no escalan)`, JSON.stringify(otros));
+  }
+
+  // Orden del recorrido: a mitad, el nodo 0 se ve antes que el 3.
+  await colocarCover(page, fig, 0.3);
+  const r = await estadoEsquema(fig);
+  const n0 = r.nodos.find((n) => n.paso === 0), n3 = r.nodos.find((n) => n.paso === 3);
+  check(n0 && n3 && n0.op > n3.op && n0.op > 0.3, `${id}: a mitad, el nodo 0 se ve antes que el 3 (${n0?.op.toFixed(2)} > ${n3?.op.toFixed(2)})`);
+
+  // Al final, cada conector llega al centro del icono de su nodo (±4 px).
   await colocarCover(page, fig, 0.7);
   const fin = await fig.evaluate((f) => {
-    const centros = [...f.querySelectorAll(".motion-diagram-icon")].map((ic) => {
-      const b = ic.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 };
-    });
+    const centro = (e) => { const b = e.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; };
+    if (f.dataset.layout === "row") {
+      const lis = [...f.querySelectorAll(".motion-diagram-row > li")];
+      return lis.slice(1).map((li, k) => {
+        // El ::before no tiene getBoundingClientRect: se calcula con su caja computada.
+        const cs = getComputedStyle(li, "::before");
+        const b = li.getBoundingClientRect();
+        const horizontal = parseFloat(cs.height) <= 1.5;
+        const fin = horizontal
+          ? { x: b.left + parseFloat(cs.left) + parseFloat(cs.width), y: b.top + parseFloat(cs.top) }
+          : { x: b.left + parseFloat(cs.left), y: b.top + parseFloat(cs.top) + parseFloat(cs.height) };
+        const ini = horizontal ? { x: b.left + parseFloat(cs.left), y: fin.y } : { x: fin.x, y: b.top + parseFloat(cs.top) };
+        const c1 = centro(lis[k].querySelector(".motion-diagram-icon")), c2 = centro(li.querySelector(".motion-diagram-icon"));
+        // Horizontal: del centro del icono anterior al de este. Vertical: del borde inferior del anterior al superior de este.
+        if (horizontal) return Math.max(Math.hypot(ini.x - c1.x, ini.y - c1.y), Math.hypot(fin.x - c2.x, fin.y - c2.y));
+        const i1 = lis[k].querySelector(".motion-diagram-icon").getBoundingClientRect(), i2 = li.querySelector(".motion-diagram-icon").getBoundingClientRect();
+        return Math.max(Math.abs(ini.y - i1.bottom), Math.abs(fin.y - i2.top), Math.abs(fin.x - c2.x));
+      });
+    }
+    const centros = [...f.querySelectorAll(".motion-diagram-icon")].map(centro);
     const stage = f.querySelector(".motion-diagram-stage").getBoundingClientRect();
     return [...f.querySelectorAll("line")].map((l) => {
       const b = l.getBoundingClientRect();
@@ -583,19 +644,27 @@ async function contratoEsquema(browser, id) {
   check(fin.length > 0 && fin.every((d) => d <= 4), `${id}: al final cada conector llega a su nodo (desvío máx. ${Math.max(...fin).toFixed(1)} px)`);
   await ctx.close();
 
-  // A 1280 y 375 px, ninguna etiqueta se pisa con otra (estado final).
-  for (const ancho of [1280, 375]) {
-    const c = await browser.newContext({ viewport: { width: ancho, height: 800 }, reducedMotion: "reduce" });
+  // A 1280 y 390 px, ninguna etiqueta se pisa con otra y todo cabe; en fila, sin escenario vacío.
+  for (const ancho of [1280, 390]) {
+    const c = await browser.newContext({ viewport: { width: ancho, height: 844 }, reducedMotion: "reduce" });
     const p = await c.newPage();
     await p.goto(URL, { waitUntil: "networkidle" });
-    const rects = await p.locator(`${sel(id)} .motion-diagram-node`).evaluateAll((els) => els.map((e) => {
-      const b = e.getBoundingClientRect(); return { n: e.textContent.trim(), l: b.left, r: b.right, t: b.top, b: b.bottom };
+    const rects = await p.locator(`${sel(id)} .motion-diagram-node, ${sel(id)} .motion-diagram-cut, ${sel(id)} .motion-diagram-perimeter-label`).evaluateAll((els) => els.map((e) => {
+      const b = e.getBoundingClientRect(); return { n: e.textContent.trim() || e.className, l: b.left, r: b.right, t: b.top, b: b.bottom };
     }));
     const s = solapes(rects);
     check(s.length === 0, `${id}: a ${ancho} px ninguna etiqueta se pisa con otra`, s.join("; "));
-    if (ancho === 375) {
-      const fuera = rects.filter((q) => q.l < 0 || q.r > ancho);
-      check(fuera.length === 0, `${id}: a 375 px todos los nodos caben en la pantalla`, fuera.map((q) => q.n).join(", "));
+    const fuera = rects.filter((q) => q.l < 0 || q.r > ancho);
+    check(fuera.length === 0, `${id}: a ${ancho} px todos los nodos caben en la pantalla`, fuera.map((q) => q.n).join(", "));
+    if (fila) {
+      const g = await p.locator(`${sel(id)} .motion-diagram-row`).evaluate((ol) => {
+        const caja = ol.getBoundingClientRect();
+        const nodos = [...ol.querySelectorAll(".motion-diagram-node")].map((n) => n.getBoundingClientRect());
+        const ocupado = Math.max(...nodos.map((n) => n.bottom)) - Math.min(...nodos.map((n) => n.top));
+        return { alto: caja.height, ocupado, columna: getComputedStyle(ol).flexDirection };
+      });
+      check(g.alto <= g.ocupado + 2 && g.columna === (ancho < 768 ? "column" : "row"),
+        `${id}: a ${ancho} px la fila no deja escenario vacío (${g.alto.toFixed(0)} px de alto para ${g.ocupado.toFixed(0)} px de nodos; ${g.columna})`);
     }
     await c.close();
   }
@@ -603,28 +672,27 @@ async function contratoEsquema(browser, id) {
   const red = await browser.newContext({ viewport: VIEW, reducedMotion: "reduce" });
   const pr = await red.newPage();
   await pr.goto(URL, { waitUntil: "networkidle" });
-  const tr = await pr.locator(`${sel(id)} line, ${sel(id)} .motion-diagram-node`).evaluateAll((els) => els.map((e) => getComputedStyle(e).transform));
-  check(tr.every((t) => t === "none"), `${id}: con reduce, nodos y conectores dibujados sin transformar`);
+  const tr = await pr.locator(`${sel(id)} line, ${sel(id)} .motion-diagram-node, ${sel(id)} .motion-diagram-cut, ${sel(id)} .motion-diagram-perimeter`)
+    .evaluateAll((els) => els.map((e) => getComputedStyle(e).transform));
+  const trFila = await pr.locator(`${sel(id)} .motion-diagram-row > li`).evaluateAll((els) => els.map((e) => getComputedStyle(e, "::before").transform));
+  check([...tr, ...trFila].every((t) => t === "none"), `${id}: con reduce, nodos y conectores dibujados sin transformar`);
   await red.close();
-  await capturasAncho(browser, id, 375);
 }
 
 contratos.push(["esquema-radial", async (browser) => {
   await contratoEsquema(browser, "esquema-radial");
-  // Duda de diseño: guiones del conector discontinuo mientras crece (non-scaling-stroke + scale).
+  // Detalle para revisar a ojo (densidad 2×): conexión cortada con su marca y el núcleo.
   if (process.env.BANCO_CAPTURAS !== "0") {
     const ctx = await browser.newContext({ viewport: VIEW, reducedMotion: "no-preference", deviceScaleFactor: 2 });
     const page = await ctx.newPage();
     await page.goto(URL, { waitUntil: "networkidle" });
     const fig = await page.locator(`${sel("esquema-radial")} .motion-diagram`).elementHandle();
-    const linea = page.locator(`${sel("esquema-radial")} line[data-dashed]`);
-    for (const [nombre, p] of [["guiones-mitad", 0.235], ["guiones-final", 0.6]]) {
+    for (const [nombre, p] of [["detalle-mitad", 0.3], ["detalle-final", 0.6]]) {
       await colocarCover(page, fig, p);
       const b = await page.locator(`${sel("esquema-radial")} .motion-diagram-stage`).boundingBox();
+      const y = Math.max(0, b.y);
       await page.screenshot({ path: join(capturasDir, `esquema-radial-${nombre}.png`),
-        clip: { x: b.x + b.width * 0.35, y: Math.max(0, b.y + b.height * 0.45), width: b.width * 0.3, height: Math.min(b.height * 0.55, VIEW.height - Math.max(0, b.y + b.height * 0.45)) } });
-      const esc = await linea.evaluate((l) => getComputedStyle(l).transform);
-      console.log(`  info esquema-radial: conector discontinuo en ${nombre}: transform ${esc}`);
+        clip: { x: b.x + b.width * 0.3, y, width: b.width * 0.7, height: Math.min(b.height * 0.6, VIEW.height - y) } });
     }
     await ctx.close();
   }

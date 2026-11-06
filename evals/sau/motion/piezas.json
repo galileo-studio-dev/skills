@@ -179,7 +179,8 @@
         "Sistemas",
         "Accesos",
         "Auditoría",
-        "API pública"
+        "API pública",
+        "Tu red"
       ],
       "animados": [
         ".motion-diagram-node"
@@ -192,8 +193,10 @@
       "textos": [
         "Cuatro capas, todas dentro de tu infraestructura",
         "Interfaz",
-        "Orquestación",
-        "Inferencia",
+        "Open WebUI",
+        "Orquestación y RAG",
+        "Motor de inferencia",
+        "vLLM · Ollama",
         "Tus datos"
       ],
       "animados": [

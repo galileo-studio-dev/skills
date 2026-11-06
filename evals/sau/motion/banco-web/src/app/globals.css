@@ -14,6 +14,8 @@
   --muted: #0a161f;
   --muted-foreground: #9cb5c4;
   --border: #15414b;
+  /* Lo que Galileo pondría en su globals.css: el rosa del «cortado» de /ia-onpremise (rose-300). */
+  --motion-cut: #fda4af;
 }
 
 @theme inline {

@@ -175,42 +175,41 @@ export default function Muestrario() {
       </section>
       <Espacio />
 
+      {/* Mismo lenguaje que el diagrama de perímetro de /ia-onpremise: perímetro, tiles, cable que se
+          apaga y conexión cortada con su marca. */}
       <section data-pieza="esquema-radial">
         <Diagram
           caption="Tu servidor es el centro: documentos, sistemas, accesos y auditoría se quedan dentro de tu red, y la conexión a una API pública está cortada."
+          perimeter={{ label: "Tu red", box: { left: 3, top: 12, right: 18, bottom: 3 } }}
           nodes={[
-            { id: "srv", label: "Tu servidor", sublabel: "On-premise", x: 50, y: 50, emphasis: true, icon: <Icono d="M4 5h16v6H4zM4 13h16v6H4zM8 8h.01M8 16h.01" /> },
-            { id: "doc", label: "Documentos", x: 18, y: 18, icon: <Icono d="M7 3h7l5 5v13H7zM14 3v5h5" /> },
-            { id: "sis", label: "Sistemas", x: 82, y: 18, icon: <Icono d="M4 6h16M4 12h16M4 18h16" /> },
-            { id: "acc", label: "Accesos", x: 18, y: 78, icon: <Icono d="M8 11V7a4 4 0 118 0v4M6 11h12v10H6z" /> },
-            { id: "aud", label: "Auditoría", x: 82, y: 78, icon: <Icono d="M9 4h6M7 4h10v17H7zM10 10h4M10 14h4" /> },
-            { id: "api", label: "API pública", x: 50, y: 90, icon: <Icono d="M5 5l14 14M7 12a5 5 0 015-5M12 17a5 5 0 005-5" /> },
+            { id: "srv", label: "Tu servidor", sublabel: "On-premise", x: 42, y: 50, emphasis: true, icon: <Icono d="M4 5h16v6H4zM4 13h16v6H4zM8 8h.01M8 16h.01" /> },
+            { id: "doc", label: "Documentos", x: 15, y: 32, icon: <Icono d="M7 3h7l5 5v13H7zM14 3v5h5" /> },
+            { id: "sis", label: "Sistemas", x: 15, y: 78, icon: <Icono d="M5 6c0-1.5 3-3 7-3s7 1.5 7 3-3 3-7 3-7-1.5-7-3zM5 6v12c0 1.5 3 3 7 3s7-1.5 7-3V6" /> },
+            { id: "acc", label: "Accesos", x: 69, y: 78, icon: <Icono d="M9 11a3 3 0 100-6 3 3 0 000 6zM3 20c0-3 3-5 6-5s6 2 6 5M16 5a3 3 0 010 6M18 15c2 .5 3 2.5 3 5" /> },
+            { id: "aud", label: "Auditoría", x: 69, y: 32, icon: <Icono d="M9 4h6M7 4h10v17H7zM10 10h4M10 14h4" /> },
+            { id: "api", label: "API pública", x: 90, y: 5, outside: true, icon: <Icono d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18M4 8h16M4 16h16" /> },
           ]}
           edges={[
             { from: "srv", to: "doc" },
+            { from: "srv", to: "aud" },
             { from: "srv", to: "sis" },
             { from: "srv", to: "acc" },
-            { from: "srv", to: "aud" },
-            { from: "srv", to: "api", dashed: true },
+            { from: "srv", to: "api", cut: true, cutAt: 0.7 },
           ]}
         />
       </section>
       <Espacio />
 
+      {/* Variante en fila: las cuatro capas de la arquitectura on-premise (iaOnpremise.architecture). */}
       <section data-pieza="esquema-capas">
         <Diagram
-          aspect="16/9"
+          layout="row"
           caption="Cuatro capas, todas dentro de tu infraestructura: interfaz, orquestación, inferencia y tus datos."
           nodes={[
-            { id: "ui", label: "Interfaz", sublabel: "Open WebUI", x: 12, y: 50, icon: <Icono d="M4 5h16v11H4zM9 20h6" /> },
-            { id: "orq", label: "Orquestación", sublabel: "RAG", x: 37, y: 50, icon: <Icono d="M6 6h4v4H6zM14 14h4v4h-4zM10 8h4v8" /> },
-            { id: "inf", label: "Inferencia", sublabel: "vLLM", x: 63, y: 50, icon: <Icono d="M8 8h8v8H8zM10 3v5M14 3v5M10 16v5M14 16v5" /> },
-            { id: "dat", label: "Tus datos", sublabel: "CRM · ERP", x: 88, y: 50, icon: <Icono d="M5 6c0-1.5 3-3 7-3s7 1.5 7 3-3 3-7 3-7-1.5-7-3zM5 6v12c0 1.5 3 3 7 3s7-1.5 7-3V6" /> },
-          ]}
-          edges={[
-            { from: "ui", to: "orq" },
-            { from: "orq", to: "inf" },
-            { from: "inf", to: "dat" },
+            { id: "ui", label: "Interfaz", sublabel: "Open WebUI", icon: <Icono d="M4 5h16v11H4zM9 20h6" /> },
+            { id: "orq", label: "Orquestación y RAG", sublabel: "LangChain · n8n", icon: <Icono d="M6 6h4v4H6zM14 14h4v4h-4zM10 8h4v8" /> },
+            { id: "inf", label: "Motor de inferencia", sublabel: "vLLM · Ollama", emphasis: true, icon: <Icono d="M8 8h8v8H8zM10 3v5M14 3v5M10 16v5M14 16v5M3 10h5M3 14h5M16 10h5M16 14h5" /> },
+            { id: "dat", label: "Tus datos", sublabel: "CRM · ERP", icon: <Icono d="M5 6c0-1.5 3-3 7-3s7 1.5 7 3-3 3-7 3-7-1.5-7-3zM5 6v12c0 1.5 3 3 7 3s7-1.5 7-3V6" /> },
           ]}
         />
       </section>

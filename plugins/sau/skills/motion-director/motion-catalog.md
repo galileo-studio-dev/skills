@@ -173,11 +173,12 @@ Piezas de la tabla «En prueba». No se asignan hasta el OK de Pelayo.
 
 ## `esquema` (en prueba; destacada)
 
-- **Qué hace:** un esquema de 3–7 nodos unidos por conectores. Los nodos aparecen escalonados y cada conector crece desde su nodo de origen hacia el de destino, siguiendo el orden del recorrido.
+- **Qué hace:** un esquema de 3–7 nodos unidos por conectores, en el lenguaje del perímetro de `/ia-onpremise` (tiles, cable que se apaga). Cada conector crece desde su nodo de origen y el nodo destino aparece cuando la línea lleva unos dos tercios: la línea «lleva» al nodo. Las conexiones cortadas (`cut`) llevan marca de corte y entran las últimas, con un fundido.
+- **Dos disposiciones:** `layout="stage"` (por defecto), nodos en (x, y) sobre un escenario, con `perimeter` opcional (rectángulo discontinuo con etiqueta) y nodos `outside`; `layout="row"`, capas o pasos en fila unidos en orden, con el alto del contenido (en móvil, en columna).
 - **Contenido válido:** de 3 a 7 nodos con etiquetas de hasta 3 palabras, y un `caption` obligatorio que dice en una frase lo mismo que el dibujo. Como máximo **dos por página**.
 - **No usar si:** es una secuencia de pasos con texto largo (`pasos`), hay más de 7 nodos o los nodos necesitan más de 3 palabras.
 - **Markdown:** no tiene. Solo TSX: necesita coordenadas y conectores.
-- **TSX:** `<Diagram caption="…" nodes={[{ id: "doc", label: "Tu documento", x: 15, y: 50 }, …]} edges={[{ from: "doc", to: "srv" }]} />`
+- **TSX:** `<Diagram caption="…" perimeter={{ label: "Tu red" }} nodes={[{ id: "srv", label: "Tu servidor", x: 42, y: 50, emphasis: true }, { id: "api", label: "API pública", x: 90, y: 5, outside: true }, …]} edges={[{ from: "srv", to: "doc" }, { from: "srv", to: "api", cut: true }]} />` · en fila: `<Diagram layout="row" caption="…" nodes={[{ id: "ui", label: "Interfaz", sublabel: "Open WebUI" }, …]} />`
 - **No usar en:** el hero ni la primera pantalla.
 
 ## `orbita` (en prueba; destacada)

@@ -546,6 +546,13 @@ def comprobar_contratos(director: Path) -> None:
         fallo_si(not re.search(r"nodes\.length\s*<\s*3\s*\|\|\s*nodes\.length\s*>\s*7", src) or "throw new Error" not in src,
                  "contrato esquema: el componente rechaza menos de 3 o más de 7 nodos")
         fallo_si("<figcaption" not in src, "contrato esquema: lleva figcaption")
+        # Revisión estética F-2: el conector va a la par con su nodo destino (paso del destino − 0,6),
+        # y los cortados o discontinuos entran con fundido (nunca escalan: el patrón de guiones se deformaría).
+        fallo_si(not re.search(r"step\.get\(e\.to\)!?\s*-\s*0\.6", src),
+                 "contrato esquema: el paso de cada conector es el de su nodo destino − 0,6")
+        fallo_si(not any('data-kind="wire"' in b.preludio and "motion-grow" in _animaciones(b) for b in reglas)
+                 or any("line" in b.preludio and 'data-kind="wire"' not in b.preludio and "motion-grow" in _animaciones(b) for b in reglas),
+                 "contrato esquema: solo los cables normales crecen; cortados y discontinuos entran con fundido")
 
     # órbita
     f = comp / "orbit.tsx"
