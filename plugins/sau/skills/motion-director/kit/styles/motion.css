@@ -361,6 +361,7 @@
 
   .motion-bento li p {
     margin: 0;
+    text-wrap: pretty;
   }
 
   @media (min-width: 40rem) {
@@ -423,14 +424,27 @@
 
   .motion-figures > dl > div {
     --motion-col: 0;
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
     padding-top: 1.5rem;
-    border-top: 1px solid var(--motion-hairline);
+  }
+
+  /* Filete superior: el mismo lenguaje que el separador de filas (frente menta que se apaga). */
+  .motion-figures > dl > div::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, var(--motion-line), var(--motion-hairline) 40%, var(--motion-hairline));
+    transform-origin: left;
   }
 
   .motion-figures dt {
+    text-wrap: pretty;
     color: var(--motion-muted);
     line-height: 1.6;
   }
@@ -606,6 +620,7 @@
   /* Margen amplio: las etiquetas de los nodos de abajo sobresalen del escenario. */
   .motion-diagram-caption {
     margin-top: 3rem;
+    text-wrap: pretty;
     font-size: 0.875rem;
     line-height: 1.6;
     text-align: center;
@@ -864,6 +879,7 @@
 
   .motion-orbit-caption {
     margin-top: 1.5rem;
+    text-wrap: pretty;
     font-size: 0.875rem;
     line-height: 1.6;
     text-align: center;
@@ -921,7 +937,7 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: var(--motion-hairline);
+    background: linear-gradient(to right, var(--motion-line), var(--motion-hairline) 40%, var(--motion-hairline));
     transform-origin: left;
   }
 
@@ -935,6 +951,7 @@
 
   .motion-rows dd {
     margin: 0;
+    text-wrap: pretty;
     line-height: 1.65;
     color: var(--motion-muted);
   }
@@ -1021,18 +1038,21 @@
       animation-range: entry 0% entry 45%;
     }
 
+    /* Las líneas que se dibujan con el scroll van con curva lineal (acompañan al dedo); la curva
+       de marca es para textos y bloques. Con expo.out, un trazo de 32 px se lee como un parpadeo. */
     .motion-heading .motion-kicker-line {
       animation: motion-draw-x linear both;
-      animation-timing-function: var(--motion-ease-brand);
+      animation-timing-function: linear;
       animation-timeline: --motion-heading;
-      animation-range: entry 5% entry 55%;
+      animation-range: entry 0% entry 70%;
     }
 
+    /* La etiqueta aparece cuando la línea va por la mitad: la línea «escribe» hacia ella. */
     .motion-heading .motion-kicker-label {
       animation: motion-fade linear both;
       animation-timing-function: var(--motion-ease-brand);
       animation-timeline: --motion-heading;
-      animation-range: entry 10% entry 55%;
+      animation-range: entry 35% entry 75%;
     }
 
     .motion-heading > .motion-mask > .motion-mask-inner {
@@ -1070,6 +1090,14 @@
         entry calc(70% + var(--motion-col) * var(--motion-stagger-step));
     }
 
+    .motion-figures > dl > div::before {
+      animation: motion-draw-x linear both;
+      animation-timing-function: linear;
+      animation-timeline: --motion-figure;
+      animation-range: entry calc(0% + var(--motion-col) * var(--motion-stagger-step))
+        entry calc(60% + var(--motion-col) * var(--motion-stagger-step));
+    }
+
     .motion-figures dt,
     .motion-figure-note {
       --motion-rise: 12px;
@@ -1095,7 +1123,7 @@
 
     .motion-diagram-edges line {
       animation: motion-grow linear both;
-      animation-timing-function: var(--motion-ease-brand);
+      animation-timing-function: linear;
       animation-timeline: --motion-diagram;
       animation-range: cover calc(20% + var(--motion-step) * 3.5%) cover calc(30% + var(--motion-step) * 3.5%);
     }
@@ -1161,9 +1189,9 @@
 
     .motion-rows > dl > div + div::before {
       animation: motion-draw-x linear both;
-      animation-timing-function: var(--motion-ease-brand);
+      animation-timing-function: linear;
       animation-timeline: --motion-row;
-      animation-range: entry 0% entry 45%;
+      animation-range: entry 0% entry 60%;
     }
 
     .motion-heading > .motion-heading-desc {

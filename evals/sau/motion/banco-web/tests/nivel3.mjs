@@ -357,13 +357,17 @@ contratos.push(["encabezado-seccion", async (browser) => {
   const cab = page.locator(`${sel("encabezado-seccion")} .motion-heading`);
   const alto = await cab.evaluate((e) => e.getBoundingClientRect().height);
   const base = await posicionBase(page, await cab.elementHandle());
-  // La línea va de entry 5 % a entry 55 % del encabezado (curva de marca): al 7 % de su entrada empieza.
-  await colocarBase(page, base, VIEW.height - alto * 0.07);
-  const s1 = esc(await linea.evaluate((e) => getComputedStyle(e).transform)).x;
-  await colocarBase(page, base, VIEW.height - alto * 0.07 - 40);
-  const s2 = esc(await linea.evaluate((e) => getComputedStyle(e).transform)).x;
-  check(s1 > 0 && s1 < 1 && s2 > 0 && s2 < 1 && Math.abs(s2 - s1) > 0.02,
-    `encabezado-seccion: la línea se dibuja con el scroll, no salta (scaleX ${s1.toFixed(2)} → ${s2.toFixed(2)} en 40 px)`);
+  // La línea va de entry 0 % a entry 70 % del encabezado, con curva lineal (revisión estética F-4).
+  const curva = await linea.evaluate((e) => getComputedStyle(e).animationTimingFunction);
+  check(curva === "linear", `encabezado-seccion: la línea usa curva lineal (${curva})`);
+  const medidas = [];
+  for (const p of [0.15, 0.3, 0.45, 0.6]) {
+    await colocarBase(page, base, VIEW.height - alto * p);
+    medidas.push(esc(await linea.evaluate((e) => getComputedStyle(e).transform)).x);
+  }
+  const recorrido = alto * 0.7;
+  check(medidas.every((s, i) => s > 0 && s < 1 && (i === 0 || s > medidas[i - 1] + 0.1)) && recorrido >= 100,
+    `encabezado-seccion: la línea se dibuja a lo largo de ${recorrido.toFixed(0)} px de scroll, sin saltos (scaleX ${medidas.map((s) => s.toFixed(2)).join(" → ")})`);
   await ctx.close();
   const red = await browser.newContext({ viewport: VIEW, reducedMotion: "reduce" });
   const pr = await red.newPage();
@@ -382,17 +386,19 @@ contratos.push(["filas", async (browser) => {
   const fila = (await page.locator(`${sel("filas")} .motion-rows > dl > div`).elementHandles())[1];
   const alto = await fila.evaluate((e) => e.getBoundingClientRect().height);
   const base = await posicionBase(page, fila);
-  let ok3 = true, det = "";
-  for (const p of [0.1, 0.2, 0.3]) {
+  // El separador (lineal, entry 0–60 %) empieza antes que el texto (entry 5 %) y se dibuja a lo largo
+  // del recorrido: a entry 3 % ya crece y el texto sigue oculto; luego crece de forma continua.
+  const medir = async (p) => {
     await colocarBase(page, base, VIEW.height - alto * p);
-    const r = await fila.evaluate((e) => ({
-      sep: getComputedStyle(e, "::before").transform, op: parseFloat(getComputedStyle(e).opacity),
-    }));
-    const sx = esc(r.sep).x;
-    det += ` [${p}] separador ${sx.toFixed(2)} / texto ${r.op.toFixed(2)}`;
-    if (!(sx > r.op && sx < 1.0001)) ok3 = false;
-  }
-  check(ok3, "filas: el separador va por delante del texto (scaleX > opacidad en posiciones intermedias)", det);
+    return fila.evaluate((e) => ({ sep: getComputedStyle(e, "::before").transform, op: parseFloat(getComputedStyle(e).opacity),
+      curva: getComputedStyle(e, "::before").animationTimingFunction }));
+  };
+  const r0 = await medir(0.03);
+  const seps = [];
+  for (const p of [0.15, 0.3, 0.45]) seps.push(esc((await medir(p)).sep).x);
+  check(esc(r0.sep).x > 0 && r0.op === 0, `filas: el separador empieza antes que el texto (separador ${esc(r0.sep).x.toFixed(2)} / texto ${r0.op})`);
+  check(r0.curva === "linear" && seps.every((s, i) => s < 1 && (i === 0 || s > seps[i - 1] + 0.1)),
+    `filas: el separador se dibuja lineal con el scroll (${seps.map((s) => s.toFixed(2)).join(" → ")})`);
   await ctx.close();
   const red = await browser.newContext({ viewport: VIEW, reducedMotion: "reduce" });
   const pr = await red.newPage();

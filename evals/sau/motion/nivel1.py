@@ -471,6 +471,17 @@ def comprobar_contratos(director: Path) -> None:
                         malos.append(f"{b.preludio}: {n} anima {', '.join(sorted(extra))}")
         return malos
 
+    # Líneas y trazos que se dibujan con el scroll (draw-x, draw-y, grow): curva lineal, no la de marca
+    # (revisión estética v1, F-4: con expo.out un trazo corto se lee como un salto).
+    no_lineal = []
+    for b in reglas:
+        nombres = set(_animaciones(b)) & {"motion-draw-x", "motion-draw-y", "motion-grow"}
+        if nombres:
+            tf = _decl(b, "animation-timing-function")
+            if tf is not None and tf != "linear":
+                no_lineal.append(f"{b.preludio}: {tf}")
+    fallo_si(bool(no_lineal), "contrato: las líneas que se dibujan con el scroll van con curva lineal", "; ".join(no_lineal))
+
     # encabezado-seccion
     f = comp / "section-heading.tsx"
     if f.exists():
