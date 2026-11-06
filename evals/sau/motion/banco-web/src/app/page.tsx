@@ -225,7 +225,7 @@ export default function Muestrario() {
             { label: "Equipo", icon: <Icono d="M9 11a3 3 0 100-6 3 3 0 000 6zM3 20c0-3 3-5 6-5s6 2 6 5M16 5a3 3 0 010 6M18 15c2 .5 3 2.5 3 5" /> },
           ]}
           middle={[
-            { label: "Accesos", icon: <Icono d="M14 10a4 4 0 10-4 4l-6 6M7 17l2 2" /> },
+            { label: "Accesos", icon: <Icono d="M2.6 17.4A2 2 0 002 18.8V21a1 1 0 001 1h3a1 1 0 001-1v-1a1 1 0 011-1h1a1 1 0 001-1v-1a1 1 0 011-1h.2a2 2 0 001.4-.6l.8-.8a6.5 6.5 0 10-4-4zM16.5 7.5h.01" /> },
             { label: "Auditoría", icon: <Icono d="M9 4h6M7 4h10v17H7zM10 10h4M10 14h4" /> },
           ]}
           inner={2}

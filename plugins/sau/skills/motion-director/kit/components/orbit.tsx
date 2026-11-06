@@ -153,10 +153,16 @@ export function Orbit({
           </div>
         </div>
       </div>
-      {/* Móvil: las etiquetas de los nodos exteriores, en estático, bajo la figura. */}
+      {/* Móvil: las etiquetas de los nodos (exteriores y, en estilo secundario, medios), en estático. */}
       <ul className="motion-orbit-legend" aria-hidden="true">
         {outer.map((n) => (
-          <li key={n.label}>
+          <li key={`o-${n.label}`} data-ring="outer">
+            <span className="motion-orbit-chip-icon">{n.icon}</span>
+            {n.label}
+          </li>
+        ))}
+        {middle.map((n) => (
+          <li key={`m-${n.label}`} data-ring="middle">
             <span className="motion-orbit-chip-icon">{n.icon}</span>
             {n.label}
           </li>

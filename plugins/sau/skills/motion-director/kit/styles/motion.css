@@ -28,7 +28,7 @@
   --motion-cut: var(--motion-muted);
   --motion-muted: var(--muted-foreground, color-mix(in srgb, var(--foreground) 65%, transparent));
   --motion-orbit-stroke: var(--primary);
-  --motion-orbit-glow: color-mix(in srgb, var(--primary) 22%, transparent);
+  --motion-orbit-glow: color-mix(in srgb, var(--primary) 35%, transparent);
   --motion-orbit-squash: 0.85; /* móvil: casi círculos */
   --motion-orbit-sweep-outer: 24deg;
   --motion-orbit-sweep-middle: 36deg;
@@ -896,17 +896,17 @@
 
   .motion-orbit-halo {
     position: absolute;
-    left: 27%;
+    left: 20%;
     top: 50%;
-    width: 46%;
+    width: 60%;
     aspect-ratio: 1 / 1;
-    margin-top: -23%;
+    margin-top: -30%;
     border-radius: 9999px;
     background: radial-gradient(closest-side, var(--motion-orbit-glow), transparent);
   }
 
   .motion-orbit-core-pos {
-    --motion-orbit-core-icon: 4.5rem;
+    --motion-orbit-core-icon: 4.75rem;
     position: absolute;
     left: 50%;
     top: 50%;
@@ -922,28 +922,53 @@
     white-space: nowrap;
   }
 
+  /* Núcleo: el «sol» (tile con degradado, brillo interior y punto menta, como el perímetro de la casa). */
   .motion-orbit-core-icon {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     width: var(--motion-orbit-core-icon);
     height: var(--motion-orbit-core-icon);
-    border: 1px solid color-mix(in srgb, var(--motion-accent) 55%, transparent);
-    border-radius: 9999px;
-    background: color-mix(in srgb, var(--motion-accent) 10%, var(--motion-surface));
+    border: 1px solid color-mix(in srgb, var(--motion-accent) 50%, transparent);
+    border-radius: 1.25rem;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--motion-accent) 16%, var(--motion-surface)),
+      color-mix(in srgb, var(--motion-accent) 5%, var(--motion-surface))
+    );
     color: var(--motion-accent);
-    box-shadow: 0 0 0 8px color-mix(in srgb, var(--motion-accent) 6%, transparent);
+    box-shadow: 0 0 48px color-mix(in srgb, var(--motion-accent) 28%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--foreground) 12%, transparent);
+  }
+
+  .motion-orbit-core-icon::after {
+    content: "";
+    position: absolute;
+    top: 0.625rem;
+    right: 0.625rem;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 9999px;
+    background: var(--motion-accent);
+    box-shadow: 0 0 8px var(--motion-accent);
   }
 
   .motion-orbit-core-icon > svg {
-    width: 1.75rem;
-    height: 1.75rem;
+    width: 40%;
+    height: 40%;
+  }
+
+  /* Etiquetas del núcleo con fondo opaco: el anillo interior y su punto pasan por detrás, no por encima. */
+  .motion-orbit-core-label,
+  .motion-orbit-core-sublabel {
+    position: relative;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.375rem;
+    background: var(--motion-surface);
   }
 
   .motion-orbit-core-label {
-    padding: 0.125rem 0.5rem;
-    border-radius: 0.375rem;
-    background: color-mix(in srgb, var(--motion-surface) 80%, transparent);
     font-size: 0.9375rem;
     font-weight: 600;
     color: var(--foreground);
@@ -1069,6 +1094,21 @@
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--foreground);
+  }
+
+  /* Nodos del anillo medio (solo icono en la figura): en la leyenda, en estilo secundario. */
+  .motion-orbit-legend > li[data-ring="middle"] {
+    border-style: dashed;
+    font-weight: 400;
+    color: var(--motion-muted);
+  }
+
+  /* Escenario ancho (unos 860 px): núcleo grande, el «sol» del sistema. Por debajo de 50rem de escenario,
+     el núcleo de 6rem chocaría con el anillo medio al cruzar por abajo. */
+  @container (min-width: 50rem) {
+    .motion-orbit-core-pos {
+      --motion-orbit-core-icon: 6rem;
+    }
   }
 
   /* Móvil: núcleo más pequeño y nodos de 32 px sin borde, para que el cruce de anillos no se pise. */
@@ -1414,7 +1454,7 @@
       animation: motion-fade linear both;
       animation-timing-function: var(--motion-ease-brand);
       animation-timeline: --motion-orbit;
-      animation-range: entry 50% cover 50%;
+      animation-range: entry 30% entry 90%;
     }
 
     /* ---- filas: cada fila sube con su propia view() (mide más de 40 px); el separador

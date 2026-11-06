@@ -793,6 +793,45 @@ contratos.push(["orbita", async (browser) => {
     await capturasAncho(browser, "orbita", ancho);
   }
 
+  // Revisión estética v1 (F-9, MJ-1, MJ-3, F-12).
+  {
+    const c = await browser.newContext({ viewport: VIEW, reducedMotion: "no-preference" });
+    const p = await c.newPage();
+    await p.goto(URL, { waitUntil: "networkidle" });
+    const st = await p.locator(`${sel("orbita")} .motion-orbit-stage`).elementHandle();
+    const nucleo = await st.evaluate((s) => {
+      const icono = { width: s.querySelector(".motion-orbit-core-icon").offsetWidth }; // sin la escala de su entrada
+      const plano = s.querySelector(".motion-orbit-plane");
+      const pos = s.querySelector(".motion-orbit-core-pos");
+      const opaco = [".motion-orbit-core-label", ".motion-orbit-core-sublabel"].map((q) => {
+        const bg = getComputedStyle(s.querySelector(q)).backgroundColor;
+        const m = bg.match(/rgba?\(([^)]*)\)/); const v = m ? m[1].split(",").map(Number) : [0, 0, 0, 0];
+        return v.length === 3 || v[3] === 1;
+      });
+      return { ancho: icono.width, ancho_escenario: s.getBoundingClientRect().width,
+        encima: !!(plano.compareDocumentPosition(pos) & Node.DOCUMENT_POSITION_FOLLOWING), opaco };
+    });
+    check(nucleo.ancho >= 90, `orbita: núcleo grande (${nucleo.ancho.toFixed(0)} px de ${nucleo.ancho_escenario.toFixed(0)}; antes 72)`);
+    check(nucleo.encima && nucleo.opaco.every(Boolean),
+      "orbita: las etiquetas del núcleo van encima de los anillos y con fondo opaco (el anillo interior pasa por detrás)", JSON.stringify(nucleo));
+    // Los chips se leen enteros cuando el escenario acaba de entrar (antes, solo con la figura centrada).
+    const h = await st.evaluate((e) => e.getBoundingClientRect().height);
+    await colocarBase(p, await posicionBase(p, st), VIEW.height - h * 0.92);
+    const ops = await p.locator(`${sel("orbita")} .motion-orbit-chip[data-kind="chip"]`).evaluateAll((els) => els.map((e) => parseFloat(getComputedStyle(e).opacity)));
+    check(ops.every((o) => o === 1), `orbita: los chips están enteros al terminar de entrar el escenario (${ops.map((o) => o.toFixed(2)).join(", ")})`);
+    await c.close();
+
+    const m = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const pm = await m.newPage();
+    await pm.goto(URL, { waitUntil: "networkidle" });
+    const ley = await pm.locator(`${sel("orbita")} .motion-orbit-legend > li`).evaluateAll((els) =>
+      els.map((e) => ({ t: e.textContent.trim(), anillo: e.dataset.ring, borde: getComputedStyle(e).borderTopStyle, visible: e.getBoundingClientRect().width > 0 })));
+    const esperados = ["Documentos", "Datos", "Equipo", "Accesos", "Auditoría"];
+    check(esperados.every((x) => ley.some((l) => l.t === x && l.visible)) && ley.filter((l) => l.anillo === "middle").every((l) => l.borde === "dashed"),
+      "orbita: a 390 px la leyenda nombra también los iconos del anillo medio (en estilo secundario)", JSON.stringify(ley));
+    await m.close();
+  }
+
   // Movimiento reducido: nada se mueve y cada nodo está en su ángulo de partida.
   const red = await browser.newContext({ viewport: VIEW, reducedMotion: "reduce" });
   const pr = await red.newPage();
