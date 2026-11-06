@@ -95,7 +95,9 @@ export default function Muestrario() {
       </section>
       <Espacio />
 
-      <section data-pieza="bento-rejilla">
+      {/* Sección ancha (hasta 76rem), como las de /ia-onpremise: el bento de 4 columnas solo se abre
+          en contenedores de 60rem o más (consulta de contenedor). */}
+      <section data-pieza="bento-rejilla" className="banco-ancho">
         <Bento columns={4} variant="grid" numbered>
           <ul>
             <BentoItem title="Protección de datos de negocio" icon={<Icono d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z" />}>
@@ -115,6 +117,7 @@ export default function Muestrario() {
       </section>
       <Espacio />
 
+      {/* Contenedor estrecho (el de la página, unos 53rem): el mismo bento de 4 columnas va en 2 × 2. */}
       <section data-pieza="bento-tarjetas">
         <Bento columns={4}>
           <ul>
@@ -140,9 +143,9 @@ export default function Muestrario() {
       <section data-pieza="bento-blog">
         <Bento columns={3} numbered>
           <ul>
-            <li><strong>Datos en casa.</strong> Nada sale de tu red.</li>
-            <li><strong>Cumplimiento.</strong> RGPD y AI Act desde el diseño.</li>
-            <li><strong>Coste previsible.</strong> Sin pago por uso.</li>
+            <li><strong>Datos en casa</strong> Nada sale de tu red.</li>
+            <li><strong>Cumplimiento</strong> RGPD y AI Act desde el diseño.</li>
+            <li><strong>Coste previsible</strong> Sin pago por uso.</li>
           </ul>
         </Bento>
       </section>

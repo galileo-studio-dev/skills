@@ -430,6 +430,10 @@ contratos.push(["bento-rejilla", async (browser) => {
   }));
   check(ini.every((c) => c.op === 1 && c.alfa === 1 && c.anim === "none") && ini.some((c) => c.cuerpo < 1),
     "bento grid: al empezar, la celda es opaca y no se anima (solo el cuerpo)", JSON.stringify(ini));
+  // Columnas por consulta de contenedor: 4 en la sección ancha (> 60rem), 2 × 2 en la estrecha (unos 53rem).
+  const columnas = async (id) => page.locator(`${sel(id)} .motion-bento > ul`).evaluate((u) => getComputedStyle(u).gridTemplateColumns.split(" ").length);
+  const cAncha = await columnas("bento-rejilla"), cEstrecha = await columnas("bento-tarjetas");
+  check(cAncha === 4 && cEstrecha === 2, `bento: columnas según el contenedor (sección ancha ${cAncha}, estrecha ${cEstrecha}; ambas piden 4)`);
   // A 1280 px con 4 columnas: misma posición de scroll, opacidad decreciente de la 1 a la 4.
   await colocarBase(page, base, VIEW.height - alto * 0.3);
   const ops = await cuerpos.evaluateAll((els) => els.map((e) => parseFloat(getComputedStyle(e).opacity)));

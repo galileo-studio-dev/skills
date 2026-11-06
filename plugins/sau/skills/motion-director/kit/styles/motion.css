@@ -235,6 +235,10 @@
   }
 
   /* bento */
+  .motion-bento {
+    container: motion-bento / inline-size;
+  }
+
   .motion-bento > ul {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -364,7 +368,10 @@
     text-wrap: pretty;
   }
 
-  @media (min-width: 40rem) {
+  /* Columnas según el ancho real del bento (consulta de contenedor), no el de la ventana: el mismo
+     bento puede ir en el blog (unos 48rem) o en una sección ancha (72rem). 4 columnas solo desde
+     60rem de contenedor; por debajo, 2 × 2. */
+  @container motion-bento (min-width: 30rem) {
     .motion-bento > ul {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -374,16 +381,12 @@
     }
   }
 
-  @media (min-width: 64rem) {
-    .motion-bento:not([data-columns="2"]) > ul {
+  /* 3 columnas (por defecto) desde 48rem de contenedor: 0, 1, 2 */
+  @container motion-bento (min-width: 48rem) {
+    .motion-bento:not([data-columns="2"]):not([data-columns="4"]) > ul {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .motion-bento[data-columns="4"] > ul {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    /* 3 columnas (por defecto): 0, 1, 2 */
     .motion-bento:not([data-columns="2"]):not([data-columns="4"]) > ul > li:nth-child(3n + 1) {
       --motion-col: 0;
     }
@@ -395,8 +398,14 @@
     .motion-bento:not([data-columns="2"]):not([data-columns="4"]) > ul > li:nth-child(3n) {
       --motion-col: 2;
     }
+  }
 
-    /* 4 columnas: 0, 1, 2, 3 */
+  /* 4 columnas desde 60rem de contenedor: 0, 1, 2, 3 */
+  @container motion-bento (min-width: 60rem) {
+    .motion-bento[data-columns="4"] > ul {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
     .motion-bento[data-columns="4"] > ul > li:nth-child(4n + 1) {
       --motion-col: 0;
     }

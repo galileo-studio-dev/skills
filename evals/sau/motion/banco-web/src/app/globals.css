@@ -46,3 +46,9 @@ body {
 .banco-espacio {
   height: 110vh;
 }
+
+/* Solo del banco: sección más ancha que la raíz (hasta 76rem), centrada en la ventana. */
+.banco-ancho {
+  width: min(calc(100vw - 3rem), 76rem);
+  margin-left: calc((100% - min(calc(100vw - 3rem), 76rem)) / 2);
+}

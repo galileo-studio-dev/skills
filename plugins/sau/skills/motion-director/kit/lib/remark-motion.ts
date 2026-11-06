@@ -79,6 +79,17 @@ function transformContainer(node: ContainerDirective) {
   const list = node.children.find((c): c is List => c.type === "list");
   if (list && node.name === "filas") listToRows(list);
   if (list && node.name === "cifras") listToFigures(list);
+  if (list && node.name === "bento") bentoTitles(list);
+}
+
+/** `bento`: la primera negrita de cada tarjeta es su título; sin punto final («**Datos en casa.**» → «Datos en casa»). */
+function bentoTitles(list: List) {
+  for (const item of list.children) {
+    const first = item.children[0];
+    if (first?.type !== "paragraph") continue;
+    const head = first.children[0];
+    if (head?.type === "strong") head.children = withoutFinalDot(head.children);
+  }
 }
 
 /** Separa el primer `**negrita**` de un elemento de lista: devuelve la negrita y el resto. */
