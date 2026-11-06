@@ -722,6 +722,35 @@ async function contratoEsquema(browser, id) {
       }
       return { min, peor };
     });
+    const marco = await p.locator(`${sel(id)} .motion-diagram`).evaluate((f) => {
+      const per = f.querySelector(".motion-diagram-perimeter");
+      if (!per) return null;
+      const P = per.getBoundingClientRect();
+      // Distancia de cada nodo (icono + etiqueta) a la línea del perímetro, por dentro o por fuera.
+      const nodos = [...f.querySelectorAll(".motion-diagram-nodes > li")].map((li) => {
+        const r = li.querySelector(".motion-diagram-node").getBoundingClientRect();
+        const lab = li.querySelector(".motion-diagram-label").getBoundingClientRect();
+        const R = { left: Math.min(r.left, lab.left), right: Math.max(r.right, lab.right), top: Math.min(r.top, lab.top), bottom: Math.max(r.bottom, lab.bottom) };
+        const dentro = R.left >= P.left && R.right <= P.right && R.top >= P.top && R.bottom <= P.bottom;
+        const d = dentro
+          ? Math.min(R.left - P.left, P.right - R.right, R.top - P.top, P.bottom - R.bottom)
+          : (R.right < P.left || R.left > P.right || R.bottom < P.top || R.top > P.bottom)
+            ? Math.hypot(Math.max(P.left - R.right, 0, R.left - P.right), Math.max(P.top - R.bottom, 0, R.top - P.bottom))
+            : 0;
+        return { n: li.textContent.trim(), d };
+      });
+      const peor = nodos.reduce((m, x) => (x.d < m.d ? x : m));
+      // La marca de corte, sobre el borde (±3 px de alguno de los cuatro lados).
+      const cortes = [...f.querySelectorAll(".motion-diagram-cut")].map((c) => {
+        const r = c.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        return Math.min(Math.abs(cx - P.left), Math.abs(cx - P.right), Math.abs(cy - P.top), Math.abs(cy - P.bottom));
+      });
+      return { peor, cortes };
+    });
+    if (marco) {
+      check(marco.peor.d >= 12, `${id}: a ${ancho} px ningún nodo roza el perímetro (mín. ${marco.peor.d.toFixed(0)} px, ${marco.peor.n})`);
+      check(marco.cortes.length > 0 && marco.cortes.every((d) => d <= 3), `${id}: a ${ancho} px la marca de corte cae en el borde del perímetro (${marco.cortes.map((d) => d.toFixed(1)).join(", ")} px)`);
+    }
     if (holgura !== null) check(holgura.min >= 12, `${id}: a ${ancho} px ningún cable pasa pegado a un nodo que no es suyo (mín. ${holgura.min === Infinity ? "—" : holgura.min.toFixed(0)} px)`, holgura.peor);
     const fuera = rects.filter((q) => q.l < 0 || q.r > ancho);
     check(fuera.length === 0, `${id}: a ${ancho} px todos los nodos caben en la pantalla`, fuera.map((q) => q.n).join(", "));

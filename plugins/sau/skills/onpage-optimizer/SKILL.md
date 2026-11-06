@@ -96,7 +96,8 @@ Then run **only** the matching branch.
 9. **Motion.** Check against `${CLAUDE_PLUGIN_ROOT}/skills/motion-director/motion-rules.md`: the H1, the
    hero and the LCP element are not animated; every piece is in
    `${CLAUDE_PLUGIN_ROOT}/skills/motion-director/motion-catalog.md`; no piece wraps an answer capsule; the dose matches the
-   brief's "Movimiento" intensity. Read the `motion:` frontmatter and any `:::`
+   brief's "Movimiento" intensity and the block-piece cap (`bento`, `cifras`, `filas`: at most one per H2 section and
+   six per page, at any intensity). Read the `motion:` frontmatter and any `:::`
    blocks. Use `n/a` if `motion-director` has not run yet, and say so.
 10. **Technical hygiene.** Read the raw server HTML (fetch the URL; for a draft,
    check what applies). Each item is a `fail` when found:
@@ -148,7 +149,8 @@ Then run **only** the matching branch.
 9. **Motion.** Check against `${CLAUDE_PLUGIN_ROOT}/skills/motion-director/motion-rules.md`: the H1, the
    hero and the LCP element are not animated; every piece is in
    `${CLAUDE_PLUGIN_ROOT}/skills/motion-director/motion-catalog.md`; no piece wraps an answer capsule; the dose matches the
-   brief's "Movimiento" intensity. Read the `motion:` frontmatter and any `:::`
+   brief's "Movimiento" intensity and the block-piece cap (`bento`, `cifras`, `filas`: at most one per H2 section and
+   six per page, at any intensity). Read the `motion:` frontmatter and any `:::`
    blocks. Use `n/a` if `motion-director` has not run yet, and say so.
 10. **Technical hygiene.** Read the raw server HTML (fetch the URL; for a draft,
    check what applies). Each item is a `fail` when found:

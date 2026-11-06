@@ -30,7 +30,7 @@ Principio: **entrar con intención, sostener, salir limpio.**
 ## 3. Reglas de dosis
 
 1. **Por defecto:** todos los H2 entran por máscara y los H3 y las citas suben (`reveal`). En páginas de servicio, cada sección numerada abre con `encabezado-seccion`. Lo aplica el kit; la skill no lo decide.
-2. **Piezas de bloque** (`bento`, `cifras`, `filas`): como máximo **una por sección H2**. No cuentan como destacadas. `cifras`, como máximo **una por página**.
+2. **Piezas de bloque** (`bento`, `cifras`, `filas`): como máximo **una por sección H2** y **seis por página**, en todas las intensidades. No cuentan como destacadas. `cifras`, como máximo **una por página**.
 3. **Piezas destacadas** (`pasos`, `comparativa`, `cita-destacada`, `esquema`, `orbita`): como máximo **una cada 2–3 secciones H2**.
 4. **Límites por página:** `cita-destacada` y `orbita`, una; `esquema`, dos.
 5. **Nunca en la primera pantalla:** `esquema` y `orbita` no van en el hero ni en la primera sección visible al cargar.

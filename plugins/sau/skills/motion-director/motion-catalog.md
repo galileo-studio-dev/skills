@@ -19,7 +19,7 @@ Reglas de uso: `motion-rules.md`.
 
 Están en el kit y pasan el banco de pruebas (`evals/sau/motion/`), pero Pelayo aún no ha dado el OK a sus capturas.
 `motion-director` **no las asigna** ni las propone en el plan. Pasar una pieza de aquí a «Resumen» es un cambio aparte, con ese OK.
-Sus fichas están al final de este catálogo («Fichas en prueba»). Tipo «de bloque» y dosis: `motion-rules.md`, sección 3.
+Sus fichas están al final de este catálogo («Fichas en prueba»). Tipo «de bloque» y dosis: `motion-rules.md`, sección 3. Piezas de bloque (`bento`, `cifras`, `filas`): una por sección H2 y **seis por página como máximo**, en cualquier intensidad.
 
 | Pieza | Tipo | Cuándo usarla | Componente | Sintaxis en Markdown |
 |---|---|---|---|---|
@@ -123,7 +123,7 @@ Piezas de la tabla «En prueba». No se asignan hasta el OK de Pelayo.
 ## `filas` (en prueba; de bloque)
 
 - **Qué hace:** una lista de 2–6 pares etiqueta + texto (como la normativa de `/ia-onpremise`: RGPD, AI Act, España). Cada fila sube y el separador que tiene encima crece de izquierda a derecha.
-- **Contenido válido:** de 2 a 6 filas. Etiqueta de hasta 3 palabras; texto de 1 a 3 frases. Como máximo una por sección H2.
+- **Contenido válido:** de 2 a 6 filas. Etiqueta de hasta 3 palabras; texto de 1 a 3 frases. Como máximo una por sección H2 (y cuenta para el tope de seis piezas de bloque por página).
 - **No usar si:** hay orden temporal (`pasos`), las etiquetas son largas o cada fila necesita título y párrafos (`bento`), o son FAQ largas.
 - **Markdown** (la primera negrita es la etiqueta, sin el punto final; el resto, el texto):
 
@@ -140,7 +140,7 @@ Piezas de la tabla «En prueba». No se asignan hasta el OK de Pelayo.
 ## `bento` (en prueba; de bloque)
 
 - **Qué hace:** una rejilla de 2–8 tarjetas que suben escalonadas por columna, sin poner `index` a mano. Variante `grid` (solo TSX): tarjetas pegadas con separadores de 1 px, como las cuatro razones numeradas de `/ia-onpremise`.
-- **Contenido válido:** de 2 a 8 elementos paralelos, cada uno con un título corto y una o dos frases. Como máximo una por sección H2.
+- **Contenido válido:** de 2 a 8 elementos paralelos, cada uno con un título corto y una o dos frases. Como máximo una por sección H2 (y cuenta para el tope de seis piezas de bloque por página).
 - **No usar si:** hay orden (`pasos`), son dos opciones enfrentadas (`comparativa`), cada elemento es solo etiqueta y texto (`filas`) o lo principal es un número (`cifras`).
 - **Columnas según el contenedor:** 4 columnas solo si el bento mide 60rem o más (si no, 2 × 2); 3 desde 48rem. En Markdown, el título de cada tarjeta (la primera negrita) pierde el punto final.
 - **Markdown** (`columnas` = 2, 3 o 4 y `numerada` son los únicos atributos; en Markdown siempre son tarjetas):
@@ -158,7 +158,7 @@ Piezas de la tabla «En prueba». No se asignan hasta el OK de Pelayo.
 ## `cifras` (en prueba; de bloque)
 
 - **Qué hace:** de 2 a 4 cifras clave en fila. El número sube por máscara (como un H2) y su explicación sube detrás. Sin contador: el número final está siempre en el HTML.
-- **Contenido válido:** de 2 a 4 cifras que **ya están en el borrador con su fuente** (nunca se inventa una cifra; si es un claim, pasa por revisión legal). Valor corto (hasta 8 caracteres) y explicación de una frase. Como máximo **una por página**.
+- **Contenido válido:** de 2 a 4 cifras que **ya están en el borrador con su fuente** (nunca se inventa una cifra; si es un claim, pasa por revisión legal). Valor corto (hasta 8 caracteres) y explicación de una frase. Como máximo **una por página** (y cuenta para el tope de seis piezas de bloque por página).
 - **No usar si:** las cifras no tienen fuente, hay más de 4 (usar `filas` o una tabla) o el número no es lo importante (`bento`).
 - **Unidad:** lo que va tras el último espacio de la cifra («GB», «%») sale más pequeño y en color de acento, con espacio fino sin salto. La cifra va en la fuente del texto (no en mono).
 - **Markdown** (la primera negrita de cada elemento es la cifra; el resto, la explicación). Ejemplo con cifras publicadas en `/ia-onpremise` de Galileo:
@@ -175,7 +175,7 @@ Piezas de la tabla «En prueba». No se asignan hasta el OK de Pelayo.
 
 ## `esquema` (en prueba; destacada)
 
-- **Qué hace:** un esquema de 3–7 nodos unidos por conectores, en el lenguaje del perímetro de `/ia-onpremise` (tiles, cable que se apaga). Cada conector crece desde su nodo de origen y el nodo destino aparece cuando la línea lleva unos dos tercios: la línea «lleva» al nodo. Las conexiones cortadas (`cut`) llevan marca de corte y entran las últimas, con un fundido.
+- **Qué hace:** un esquema de 3–7 nodos unidos por conectores, en el lenguaje del perímetro de `/ia-onpremise` (tiles, cable que se apaga). Cada conector crece desde su nodo de origen y el nodo destino aparece cuando la línea lleva unos dos tercios: la línea «lleva» al nodo. Las conexiones cortadas (`cut`) llevan marca de corte (con perímetro, por defecto en el punto donde cruzan su borde: la frontera corta la conexión) y entran las últimas, con un fundido.
 - **Dos disposiciones:** `layout="stage"` (por defecto), nodos en (x, y) sobre un escenario, con `perimeter` opcional (rectángulo discontinuo con etiqueta) y nodos `outside`; `layout="row"`, capas o pasos en fila unidos en orden, con el alto del contenido (en móvil, en columna).
 - **Contenido válido:** de 3 a 7 nodos con etiquetas de hasta 3 palabras, y un `caption` obligatorio que dice en una frase lo mismo que el dibujo. Como máximo **dos por página**.
 - **No usar si:** es una secuencia de pasos con texto largo (`pasos`), hay más de 7 nodos o los nodos necesitan más de 3 palabras.

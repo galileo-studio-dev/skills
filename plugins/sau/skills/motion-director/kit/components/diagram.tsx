@@ -31,7 +31,10 @@ export type DiagramEdge = {
   to: string;
   dashed?: boolean;
   cut?: boolean;
-  /** Dónde va la marca de corte, en fracción del conector (0 = origen, 1 = destino). Por defecto 0,5. */
+  /**
+   * Dónde va la marca de corte, en fracción del conector (0 = origen, 1 = destino). Por defecto, si hay
+   * perímetro, donde el conector cruza su borde (la frontera corta la conexión); si no, en la mitad.
+   */
   cutAt?: number;
 };
 
@@ -54,6 +57,28 @@ type DiagramProps = {
   showCaption?: boolean;
   className?: string;
 };
+
+type Box = { left: number; top: number; right: number; bottom: number };
+
+/**
+ * Fracción del conector a → b en la que cruza el borde del perímetro (de dentro afuera o de fuera adentro).
+ * Si no lo cruza, la mitad.
+ */
+function borderCut(a: DiagramNode, b: DiagramNode, box: Box): number {
+  const x0 = box.left, x1 = 100 - box.right, y0 = box.top, y1 = 100 - box.bottom;
+  const dentro = (x: number, y: number) => x >= x0 && x <= x1 && y >= y0 && y <= y1;
+  const ax = a.x!, ay = a.y!, dx = b.x! - ax, dy = b.y! - ay;
+  const cortes: number[] = [];
+  for (const [lim, d, o] of [[x0, dx, ax], [x1, dx, ax], [y0, dy, ay], [y1, dy, ay]] as const) {
+    if (d === 0) continue;
+    const s = (lim - o) / d;
+    if (s <= 0 || s >= 1) continue;
+    const px = ax + dx * s, py = ay + dy * s;
+    if (px >= x0 - 1e-6 && px <= x1 + 1e-6 && py >= y0 - 1e-6 && py <= y1 + 1e-6) cortes.push(s);
+  }
+  if (dentro(ax, ay) === dentro(b.x!, b.y!) || !cortes.length) return 0.5;
+  return Math.min(...cortes);
+}
 
 /** Identificador estable para los degradados de los conectores (sin estado ni hooks). */
 function slug(text: string) {
@@ -155,7 +180,7 @@ export function Diagram({
   }
 
   // Por defecto, simétrico: deja una columna a cada lado para nodos externos y queda centrado con el pie.
-  const box = perimeter?.box ?? { left: 10, top: 12, right: 10, bottom: 3 };
+  const box: Box = perimeter?.box ?? { left: 10, top: 12, right: 10, bottom: 3 };
   return (
     <figure
       className={cn("motion-diagram", className)}
@@ -213,7 +238,7 @@ export function Diagram({
           .map((e, i) => {
             const a = byId.get(e.from)!;
             const b = byId.get(e.to)!;
-            const f = e.cutAt ?? 0.5;
+            const f = e.cutAt ?? (perimeter ? borderCut(a, b, box) : 0.5);
             return (
               <span
                 key={i}

@@ -278,7 +278,9 @@ def comprobar_coherencia(director: Path, archivos_comp: list[Path]) -> None:
     if en_prueba:
         anotar("ok", f"coherencia: {len(nombres_p)} piezas en prueba, separadas de las {len(nombres_a)} asignables")
         skill = director / "SKILL.md"
-        if not (skill.exists() and "En prueba" in skill.read_text(encoding="utf-8")):
+        # La línea que lo prohíbe: menciona «En prueba» y dice que no se asignan.
+        if not (skill.exists() and any("En prueba" in l and "no se asignan" in l
+                                       for l in skill.read_text(encoding="utf-8").splitlines())):
             anotar("FAIL", "coherencia: SKILL.md de motion-director dice que no asigna las piezas «En prueba»", "falta la mención en SKILL.md")
     filas = asignables + en_prueba
     exportados = nombres_exportados(index_ts)

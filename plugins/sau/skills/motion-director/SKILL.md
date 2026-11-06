@@ -57,6 +57,7 @@ Lista cada H2 con su contenido. Para cada uno, anota si contiene:
 Aplica las reglas de dosis de `motion-rules.md`:
 
 - Máximo una pieza destacada cada 2–3 secciones H2.
+- Piezas de bloque (`bento`, `cifras`, `filas`): máximo una por sección H2 y seis por página, en cualquier intensidad (solo cuando salgan de «En prueba»).
 - Máximo una `cita-destacada` por página.
 - Respeta el rango de piezas de la intensidad del brief.
 - Si dos secciones compiten, elige la que más ayuda a entender el contenido.
