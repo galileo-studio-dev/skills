@@ -605,6 +605,124 @@ contratos.push(["esquema-radial", async (browser) => {
 }]);
 contratos.push(["esquema-capas", (browser) => contratoEsquema(browser, "esquema-capas")]);
 
+/** Geometría de la órbita: centro, radios y ángulo «desaplastado» de cada nodo. */
+async function geometriaOrbita(page) {
+  return page.locator(`${sel("orbita")} .motion-orbit-stage`).evaluate((st) => {
+    const R = { outer: 46, middle: 32, inner: 19 };
+    const s = st.getBoundingClientRect();
+    const squash = parseFloat(getComputedStyle(st).getPropertyValue("--motion-orbit-squash"));
+    const cx = s.left + s.width / 2, cy = s.top + s.height / 2;
+    const nc = st.querySelector(".motion-orbit-core").getBoundingClientRect();
+    return {
+      squash, alto: s.height, top: s.top,
+      nucleo: { id: "núcleo", l: nc.left, r: nc.right, t: nc.top, b: nc.bottom },
+      nodos: [...st.querySelectorAll(".motion-orbit-spin")].flatMap((spin) => [...spin.querySelectorAll(".motion-orbit-chip")].map((ch, i) => {
+        const b = ch.getBoundingClientRect();
+        const dx = b.left + b.width / 2 - cx, dy = b.top + b.height / 2 - cy;
+        const rx = (R[spin.dataset.ring] / 100) * s.width, ry = rx * squash;
+        return {
+          id: `${spin.dataset.ring}${i}`, anillo: spin.dataset.ring, tipo: ch.dataset.kind,
+          inicio: parseFloat(ch.closest(".motion-orbit-arm").dataset.angle),
+          ang: (Math.atan2(dy / squash, dx) * 180) / Math.PI, elipse: (dx / rx) ** 2 + (dy / ry) ** 2,
+          w: b.width, h: b.height, l: b.left, r: b.right, t: b.top, b: b.bottom,
+        };
+      })),
+    };
+  });
+}
+const difAng = (a, b) => ((((b - a) % 360) + 540) % 360) - 180;
+
+contratos.push(["orbita", async (browser) => {
+  // No está en la primera pantalla (1280×800 y 375×800).
+  for (const vp of [VIEW, { width: 375, height: 800 }]) {
+    const c = await browser.newContext({ viewport: vp });
+    const p = await c.newPage();
+    await p.goto(URL, { waitUntil: "networkidle" });
+    const top = await p.locator(`${sel("orbita")} .motion-orbit`).evaluate((e) => e.getBoundingClientRect().top);
+    check(top >= vp.height, `orbita: fuera de la primera pantalla a ${vp.width}×${vp.height} (empieza en ${Math.round(top)} px)`);
+    await c.close();
+  }
+
+  const ctx = await browser.newContext({ viewport: VIEW, reducedMotion: "no-preference" });
+  const page = await ctx.newPage();
+  await page.goto(URL, { waitUntil: "networkidle" });
+  const stage = await page.locator(`${sel("orbita")} .motion-orbit-stage`).elementHandle();
+  await colocarCover(page, stage, 0.5);
+  const tl = await stage.evaluate((st) => st.closest(".motion-orbit").getAnimations({ subtree: true }).map((a) => a.timeline?.constructor?.name));
+  check(tl.length > 0 && tl.every((n) => n === "ViewTimeline"), `orbita: sus ${tl.length} animaciones van con ViewTimeline (ninguna con reloj)`, tl.join(","));
+
+  // Si el scroll para, la órbita para: dos capturas separadas 1 s, idénticas.
+  const caja = await stage.boundingBox();
+  const clip = { x: caja.x, y: Math.max(0, caja.y), width: caja.width, height: Math.min(caja.height, VIEW.height - Math.max(0, caja.y)) };
+  const a = await page.screenshot({ clip });
+  await page.waitForTimeout(1000);
+  const b = await page.screenshot({ clip });
+  check(Buffer.compare(a, b) === 0, "orbita: sin scroll no se mueve (dos capturas a 1 s, iguales píxel a píxel)");
+
+  // Avanza con el scroll: exterior ≈ +24° y medio ≈ −36° a lo largo del cruce; etiquetas rectas y sobre la elipse.
+  const pos = [0.02, 0.5, 0.98];
+  const g = [];
+  for (const p of pos) { await colocarCover(page, stage, p); g.push(await geometriaOrbita(page)); }
+  const tramo = (id) => difAng(g[0].nodos.find((n) => n.id === id).ang, g[2].nodos.find((n) => n.id === id).ang);
+  const k = pos[2] - pos[0];
+  const ext = tramo("outer0"), med = tramo("middle0"), int = tramo("inner0");
+  check(Math.abs(ext - 24 * k) <= 3, `orbita: el nodo exterior avanza ${ext.toFixed(1)}° (esperado ${(24 * k).toFixed(1)}° ±3)`);
+  check(Math.abs(med + 36 * k) <= 3, `orbita: el nodo medio avanza ${med.toFixed(1)}° en sentido contrario (esperado ${(-36 * k).toFixed(1)}° ±3)`);
+  check(Math.abs(int - 52 * k) <= 3, `orbita: el punto interior avanza ${int.toFixed(1)}° (esperado ${(52 * k).toFixed(1)}° ±3)`);
+  const chips = g.map((x) => x.nodos.filter((n) => n.tipo === "chip"));
+  const rectos = chips[0].every((c0, i) => chips.every((cs) => Math.abs(cs[i].w - c0.w) <= 1 && Math.abs(cs[i].h - c0.h) <= 1));
+  check(rectos, "orbita: los chips no giran ni se deforman (mismo ancho y alto ±1 px al inicio, a mitad y al final)",
+    chips.map((cs) => cs.map((c) => `${c.w.toFixed(1)}×${c.h.toFixed(1)}`).join(" ")).join(" | "));
+  const fueraElipse = g.flatMap((x) => x.nodos.filter((n) => Math.abs(n.elipse - 1) > 0.05).map((n) => `${n.id}=${n.elipse.toFixed(3)}`));
+  check(fueraElipse.length === 0, "orbita: cada nodo está sobre su elipse ((dx/rx)²+(dy/ry)² = 1 ±0,05)", fueraElipse.join(" "));
+  await ctx.close();
+
+  // Ningún chip se pisa con otro nodo, a 1280, 768 y 375 px, al inicio, a mitad y al final.
+  for (const ancho of [1280, 768, 375]) {
+    const c = await browser.newContext({ viewport: { width: ancho, height: 800 }, reducedMotion: "no-preference" });
+    const p = await c.newPage();
+    await p.goto(URL, { waitUntil: "networkidle" });
+    const st = await p.locator(`${sel("orbita")} .motion-orbit-stage`).elementHandle();
+    const malos = [];
+    for (const q of [0.02, 0.14, 0.26, 0.38, 0.5, 0.62, 0.74, 0.86, 0.98]) {
+      await colocarCover(p, st, q, 800);
+      const gg = await geometriaOrbita(p);
+      for (const ch of gg.nodos.filter((n) => n.tipo !== "dot")) {
+        for (const o of [...gg.nodos, gg.nucleo]) {
+          if (o === ch) continue;
+          if (ch.l < o.r && o.l < ch.r && ch.t < o.b && o.t < ch.b) malos.push(`${q}: ${ch.id}/${o.id}`);
+        }
+      }
+    }
+    check(malos.length === 0, `orbita: a ${ancho} px ningún chip se pisa con otro nodo ni con el núcleo (9 posiciones del cruce)`, [...new Set(malos)].join("; "));
+    await c.close();
+    await capturasAncho(browser, "orbita", ancho);
+  }
+
+  // Movimiento reducido: nada se mueve y cada nodo está en su ángulo de partida.
+  const red = await browser.newContext({ viewport: VIEW, reducedMotion: "reduce" });
+  const pr = await red.newPage();
+  await pr.goto(URL, { waitUntil: "networkidle" });
+  await colocarCover(pr, await pr.locator(`${sel("orbita")} .motion-orbit-stage`).elementHandle(), 0.5);
+  const gr = await geometriaOrbita(pr);
+  const n = await pr.locator(`${sel("orbita")}`).evaluate((s) => s.getAnimations({ subtree: true }).length);
+  const desv = gr.nodos.map((x) => Math.abs(difAng(x.inicio, x.ang)));
+  check(n === 0 && Math.max(...desv) <= 1, `orbita: con reduce, sin animaciones y nodos en su ángulo de partida (desvío máx. ${Math.max(...desv).toFixed(2)}°)`);
+  await red.close();
+
+  // Nitidez de las etiquetas a mitad de giro (para revisar a ojo; densidad 2×).
+  if (process.env.BANCO_CAPTURAS !== "0") {
+    const c = await browser.newContext({ viewport: VIEW, reducedMotion: "no-preference", deviceScaleFactor: 2 });
+    const p = await c.newPage();
+    await p.goto(URL, { waitUntil: "networkidle" });
+    await colocarCover(p, await p.locator(`${sel("orbita")} .motion-orbit-stage`).elementHandle(), 0.5);
+    const chip = p.locator(`${sel("orbita")} .motion-orbit-chip[data-kind="chip"]`).first();
+    const bb = await chip.boundingBox();
+    await p.screenshot({ path: join(capturasDir, "orbita-nitidez-chip.png"), clip: { x: bb.x - 12, y: bb.y - 12, width: bb.width + 24, height: bb.height + 24 } });
+    await c.close();
+  }
+}]);
+
 async function ejecutarContratos(browser) {
   console.log("\n[contratos] comprobaciones propias de cada pieza en prueba");
   const ids = new Set(registro.map((e) => e.id));

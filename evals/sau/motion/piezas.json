@@ -200,6 +200,23 @@
         ".motion-diagram-node"
       ],
       "markdown": null
+    },
+    {
+      "id": "orbita",
+      "pieza": "orbita",
+      "textos": [
+        "Tu modelo funciona en tu servidor; tus documentos, tus datos y tu equipo giran a su alrededor sin salir de tu red.",
+        "Tu servidor",
+        "Modelo propio",
+        "Documentos",
+        "Datos",
+        "Equipo"
+      ],
+      "animados": [
+        ".motion-orbit-core",
+        ".motion-orbit-halo"
+      ],
+      "markdown": null
     }
   ]
 }

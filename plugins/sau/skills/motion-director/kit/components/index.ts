@@ -10,3 +10,4 @@ export { Bento, BentoItem } from "./bento";
 export { Figures, Figure } from "./figures";
 export { Diagram } from "./diagram";
 export type { DiagramNode, DiagramEdge } from "./diagram";
+export { Orbit } from "./orbit";

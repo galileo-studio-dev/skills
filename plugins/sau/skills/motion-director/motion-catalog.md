@@ -28,6 +28,7 @@ Sus fichas están al final de este catálogo («Fichas en prueba»). Tipo «de b
 | `cifras` | De bloque | 2–4 datos clave con fuente. Máximo una. | `Figures` + `Figure` | `:::cifras` + lista |
 | `filas` | De bloque | 2–6 pares etiqueta + texto corto. | `Rows` + `Row` | `:::filas` + lista |
 | `esquema` | Destacada | Arquitectura o flujo de 3–7 nodos. Máximo dos. | `Diagram` | Solo TSX |
+| `orbita` | Destacada | Una idea «todo gira alrededor de X». Máximo una; no en `sobria`. | `Orbit` | Solo TSX |
 
 ## `reveal` (automática)
 
@@ -178,3 +179,12 @@ Piezas de la tabla «En prueba». No se asignan hasta el OK de Pelayo.
 - **Markdown:** no tiene. Solo TSX: necesita coordenadas y conectores.
 - **TSX:** `<Diagram caption="…" nodes={[{ id: "doc", label: "Tu documento", x: 15, y: 50 }, …]} edges={[{ from: "doc", to: "srv" }]} />`
 - **No usar en:** el hero ni la primera pantalla.
+
+## `orbita` (en prueba; destacada)
+
+- **Qué hace:** el lenguaje de órbitas de Galileo como sistema solar: un núcleo con halo, 2–3 elipses finas (algunas discontinuas) y nodos sobre ellas. Al llegar a la sección los anillos aparecen y crecen un poco; mientras la sección cruza la pantalla, los nodos avanzan un tramo de su órbita, cada anillo en sentido contrario al anterior. Va pegado al scroll: si el scroll para, la órbita para. No hay bucle.
+- **Contenido válido:** un núcleo con etiqueta; de 1 a 4 nodos exteriores con etiqueta de hasta 2 palabras; hasta 3 nodos medios (solo icono) y 2 puntos interiores; un `caption` obligatorio con la idea en una frase. Como máximo **una por página**, solo con intensidad `media` o `expresiva`.
+- **No usar si:** es un adorno sin idea detrás, hay más de 4 nodos con etiqueta o la web no es Galileo (salvo que su brief lo pida).
+- **Markdown:** no tiene. Solo TSX.
+- **TSX:** `<Orbit caption="…" core={{ label: "Tu servidor", sublabel: "Modelo propio", icon: <Cpu /> }} outer={[{ label: "Documentos", icon: <FileText /> }, …]} middle={[{ label: "Accesos", icon: <KeyRound /> }]} inner={2} />`
+- **No usar en:** el H1, el hero ni la primera pantalla.

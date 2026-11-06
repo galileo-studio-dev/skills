@@ -90,6 +90,36 @@
   }
 }
 
+@keyframes motion-ring-in {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* orbita: el giro del anillo y la contrarrotación del nodo (que además deshace el aplastado). */
+@keyframes motion-orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(calc(var(--motion-dir) * var(--motion-sweep)));
+  }
+}
+
+@keyframes motion-orbit-counter {
+  from {
+    transform: rotate(0deg) scaleY(var(--motion-unsquash));
+  }
+  to {
+    transform: rotate(calc(-1 * var(--motion-dir) * var(--motion-sweep))) scaleY(var(--motion-unsquash));
+  }
+}
+
 @keyframes motion-pop {
   from {
     opacity: 0;
@@ -595,6 +625,261 @@
     }
   }
 
+  /* orbita: todos los colores salen de variables (--motion-orbit-*, --motion-accent…) */
+  .motion-orbit {
+    margin: 0;
+    padding-block: 1.5rem;
+  }
+
+  .motion-orbit-stage {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    container-type: inline-size;
+    color: var(--motion-orbit-stroke);
+  }
+
+  .motion-orbit-rings {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .motion-orbit-rings ellipse {
+    transform-box: view-box;
+    transform-origin: 50% 50%;
+  }
+
+  .motion-orbit-rings-wide {
+    display: none;
+  }
+
+  .motion-orbit-halo {
+    position: absolute;
+    left: 27%;
+    top: 50%;
+    width: 46%;
+    aspect-ratio: 1 / 1;
+    margin-top: -23%;
+    border-radius: 9999px;
+    background: radial-gradient(closest-side, var(--motion-orbit-glow), transparent);
+  }
+
+  .motion-orbit-core-pos {
+    --motion-orbit-core-icon: 4.5rem;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, calc(var(--motion-orbit-core-icon) / -2));
+  }
+
+  .motion-orbit-core {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .motion-orbit-core-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--motion-orbit-core-icon);
+    height: var(--motion-orbit-core-icon);
+    border: 1px solid color-mix(in srgb, var(--motion-accent) 55%, transparent);
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--motion-accent) 10%, var(--motion-surface));
+    color: var(--motion-accent);
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--motion-accent) 6%, transparent);
+  }
+
+  .motion-orbit-core-icon > svg {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .motion-orbit-core-label {
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.375rem;
+    background: color-mix(in srgb, var(--motion-surface) 80%, transparent);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--foreground);
+  }
+
+  .motion-orbit-core-sublabel {
+    margin-top: -0.375rem;
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--motion-accent);
+  }
+
+  /* Plano aplastado: un giro en él es un recorrido por la elipse. */
+  .motion-orbit-plane {
+    position: absolute;
+    inset: 0;
+    transform: scaleY(var(--motion-orbit-squash));
+  }
+
+  .motion-orbit-spin,
+  .motion-orbit-arm,
+  .motion-orbit-node {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+
+  .motion-orbit-spin {
+    left: 50%;
+    top: 50%;
+  }
+
+  .motion-orbit-arm,
+  .motion-orbit-node {
+    left: 0;
+    top: 0;
+  }
+
+  /* El nodo deshace el aplastado (y, con movimiento, el giro): su contenido queda recto. */
+  .motion-orbit-node {
+    --motion-unsquash: calc(1 / var(--motion-orbit-squash));
+    transform: scaleY(var(--motion-unsquash));
+  }
+
+  .motion-orbit-chip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+  }
+
+  .motion-orbit-chip-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--motion-accent) 15%, var(--motion-surface));
+    color: var(--motion-accent);
+  }
+
+  .motion-orbit-chip-icon > svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .motion-orbit-chip[data-kind="chip"],
+  .motion-orbit-chip[data-kind="icon"] {
+    border: 1px solid var(--motion-hairline);
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--motion-surface) 88%, transparent);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--motion-surface) 60%, transparent);
+  }
+
+  .motion-orbit-chip[data-kind="chip"] {
+    padding: 0.375rem 0.375rem;
+  }
+
+  .motion-orbit-chip[data-kind="icon"] {
+    padding: 0.125rem;
+  }
+
+  .motion-orbit-chip-label {
+    display: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+  }
+
+  .motion-orbit-chip[data-kind="dot"] {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: var(--motion-orbit-stroke);
+    box-shadow: 0 0 12px var(--motion-orbit-glow);
+  }
+
+  .motion-orbit-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.625rem;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .motion-orbit-legend > li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 1rem 0.375rem 0.375rem;
+    border: 1px solid var(--motion-hairline);
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+  }
+
+  /* Móvil: núcleo más pequeño y nodos de 32 px sin borde, para que el cruce de anillos no se pise. */
+  @media (max-width: 47.99rem) {
+    .motion-orbit-core-pos {
+      --motion-orbit-core-icon: 3.5rem;
+    }
+
+    .motion-orbit-core-sublabel {
+      display: none;
+    }
+
+    .motion-orbit-chip[data-kind="chip"],
+    .motion-orbit-chip[data-kind="icon"] {
+      padding: 0;
+      border: 0;
+    }
+  }
+
+  .motion-orbit-caption {
+    margin-top: 1.5rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    text-align: center;
+    color: var(--motion-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .motion-orbit-stage {
+      aspect-ratio: 860 / 460;
+    }
+
+    .motion-orbit-rings-wide {
+      display: block;
+    }
+
+    .motion-orbit-rings-compact,
+    .motion-orbit-legend {
+      display: none;
+    }
+
+    .motion-orbit-chip[data-kind="chip"] {
+      padding: 0.375rem 1rem 0.375rem 0.375rem;
+    }
+
+    .motion-orbit-chip-label {
+      display: inline;
+    }
+  }
+
   /* filas */
   .motion-rows > dl {
     margin: 0;
@@ -800,6 +1085,55 @@
       animation-timing-function: var(--motion-ease-brand);
       animation-timeline: --motion-diagram;
       animation-range: cover calc(20% + var(--motion-step) * 3.5%) cover calc(30% + var(--motion-step) * 3.5%);
+    }
+
+    /* ---- orbita: todo sobre la línea de tiempo del escenario. Los anillos y el núcleo entran
+       una vez; los nodos avanzan su tramo mientras la sección cruza la pantalla (cover 0–100 %),
+       ligados al scroll y sin bucle (regla 1.4). spin y counter: misma línea, rango y curva ---- */
+    .motion-orbit-stage {
+      view-timeline: --motion-orbit block;
+    }
+
+    .motion-orbit-rings ellipse {
+      animation: motion-ring-in linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: --motion-orbit;
+      animation-range: entry calc(var(--motion-ring) * 7%) entry calc(70% + var(--motion-ring) * 7%);
+    }
+
+    .motion-orbit-halo {
+      animation: motion-fade linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: --motion-orbit;
+      animation-range: entry 20% entry 100%;
+    }
+
+    .motion-orbit-core {
+      animation: motion-pop linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: --motion-orbit;
+      animation-range: entry 40% entry 100%;
+    }
+
+    .motion-orbit-spin {
+      animation: motion-orbit-spin linear both;
+      animation-timing-function: linear;
+      animation-timeline: --motion-orbit;
+      animation-range: cover 0% cover 100%;
+    }
+
+    .motion-orbit-node {
+      animation: motion-orbit-counter linear both;
+      animation-timing-function: linear;
+      animation-timeline: --motion-orbit;
+      animation-range: cover 0% cover 100%;
+    }
+
+    .motion-orbit-chip {
+      animation: motion-fade linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: --motion-orbit;
+      animation-range: entry 50% cover 50%;
     }
 
     /* ---- filas: cada fila sube con su propia view() (mide más de 40 px); el separador

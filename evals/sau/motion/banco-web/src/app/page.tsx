@@ -1,7 +1,7 @@
 // Muestrario del banco de motion. Cada pieza del catálogo aparece aquí en una
 // <section data-pieza="<id>"> con el mismo id que su entrada en ../../../piezas.json.
 // Ver LEEME.md: «Registrar una pieza nueva».
-import { Reveal, Steps, Comparison, ComparisonColumn, PullQuote, SectionHeading, Rows, Row, Bento, BentoItem, Figures, Figure, Diagram } from "@/components/motion";
+import { Reveal, Steps, Comparison, ComparisonColumn, PullQuote, SectionHeading, Rows, Row, Bento, BentoItem, Figures, Figure, Diagram, Orbit } from "@/components/motion";
 
 // Piezas en prueba (2026-11): textos tomados de /ia-onpremise de galileo-studio-web
 // (messages/es.json, clave iaOnpremise.*), para ver las piezas con contenido real de Galileo.
@@ -209,6 +209,24 @@ export default function Muestrario() {
             { from: "orq", to: "inf" },
             { from: "inf", to: "dat" },
           ]}
+        />
+      </section>
+      <Espacio />
+
+      <section data-pieza="orbita">
+        <Orbit
+          caption="Tu modelo funciona en tu servidor; tus documentos, tus datos y tu equipo giran a su alrededor sin salir de tu red."
+          core={{ label: "Tu servidor", sublabel: "Modelo propio", icon: <Icono d="M8 8h8v8H8zM10 3v5M14 3v5M10 16v5M14 16v5M3 10h5M3 14h5M16 10h5M16 14h5" /> }}
+          outer={[
+            { label: "Documentos", icon: <Icono d="M7 3h7l5 5v13H7zM14 3v5h5" /> },
+            { label: "Datos", icon: <Icono d="M5 6c0-1.5 3-3 7-3s7 1.5 7 3-3 3-7 3-7-1.5-7-3zM5 6v12c0 1.5 3 3 7 3s7-1.5 7-3V6" /> },
+            { label: "Equipo", icon: <Icono d="M9 11a3 3 0 100-6 3 3 0 000 6zM3 20c0-3 3-5 6-5s6 2 6 5M16 5a3 3 0 010 6M18 15c2 .5 3 2.5 3 5" /> },
+          ]}
+          middle={[
+            { label: "Accesos", icon: <Icono d="M14 10a4 4 0 10-4 4l-6 6M7 17l2 2" /> },
+            { label: "Auditoría", icon: <Icono d="M9 4h6M7 4h10v17H7zM10 10h4M10 14h4" /> },
+          ]}
+          inner={2}
         />
       </section>
       <Espacio />
