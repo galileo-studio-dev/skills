@@ -26,10 +26,28 @@ export const STAGGER = {
   loose: 0.12,
 } as const;
 
-/** Desplazamiento vertical de entrada, en píxeles. */
-export const RISE_DISTANCE = 24;
+/** Desplazamiento vertical de entrada, en píxeles (bloques y títulos; los detalles pequeños, 16). */
+export const RISE_DISTANCE = 40;
 
-/** Paso del escalonado en animaciones de scroll, en fracción del rango (7 %). Equivale a STAGGER.base. */
+/** Escala de entrada de las piezas de bloque (tarjetas, columnas, cita). */
+export const SCALE_BLOCK = 0.96;
+
+/**
+ * Rangos de las entradas con el scroll (`animation-range: cover <inicio> cover <fin>`). Espejo de las
+ * variables `--motion-range-*` y `--motion-stagger-*` de motion.css: empiezan cuando la pieza asoma por
+ * abajo y terminan con su borde superior a media pantalla. El escalonado retrasa más el inicio que el final.
+ */
+export const SCROLL_RANGE = {
+  start: "8svh",
+  end: "50svh",
+  staggerStart: "6svh",
+  staggerEnd: "3svh",
+} as const;
+
+/** Curva de las entradas ligadas al scroll (ease-out cuadrática). EASE_BRAND queda para entradas por tiempo. */
+export const EASE_SCROLL = [0.5, 1, 0.89, 1] as const;
+
+/** @deprecated Los rangos ya no son porcentajes: usa SCROLL_RANGE. Se mantiene para no romper importaciones. */
 export const SCROLL_STAGGER_STEP = 0.07;
 
 /**

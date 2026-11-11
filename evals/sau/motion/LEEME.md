@@ -29,7 +29,7 @@ si faltan. Si no hay red, esos niveles salen como «NO EJECUTADO».
 `banco-web/` es una web Next.js mínima (Tailwind 4) que monta un muestrario con las piezas. El kit del plugin se
 copia ahí con `install_kit.py` (`scripts/preparar.mjs`); esas copias están en `.gitignore`. `npm run test:motion`
 (en `banco-web/`) hace: instalar kit, `next build`, `next start` y las pruebas de Playwright. Variables:
-`BANCO_PUERTO` (3917), `BANCO_SIN_FIREFOX=1`, `BANCO_CAPTURAS=0`.
+`BANCO_PUERTO` (3917), `BANCO_SIN_FIREFOX=1`, `BANCO_CAPTURAS=0`, `BANCO_CHROMIUM_CANAL=chrome` (usa el Chrome instalado si el Chromium de Playwright no arranca, p. ej. `spawn UNKNOWN` en Windows).
 
 Las capturas son para que Pelayo dé el OK visual a una pieza nueva, con la tipografía real de Galileo
 (el banco carga Geist y Geist Mono con el paquete `geist`; el nivel 3 comprueba que están cargadas y en uso):

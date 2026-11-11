@@ -200,7 +200,8 @@ async function movimientoReducido(browser) {
     await desplazarA(page, y);
     const r = await page.evaluate(() => ({
       n: document.getAnimations().length,
-      op: Math.min(...[...document.querySelectorAll("section[data-pieza] *")].map((e) => parseFloat(getComputedStyle(e).opacity))),
+      // Solo lo que se pinta: el flujo del esquema (display: none sin movimiento) no cuenta.
+      op: Math.min(...[...document.querySelectorAll("section[data-pieza] *")].filter((e) => e.checkVisibility()).map((e) => parseFloat(getComputedStyle(e).opacity))),
     }));
     maxAnim = Math.max(maxAnim, r.n);
     opacidadMin = Math.min(opacidadMin, r.op);
@@ -239,7 +240,8 @@ async function verificarEstatico(page, etiqueta) {
     await desplazarA(page, y);
     const r = await page.evaluate(() => ({
       n: document.getAnimations().length,
-      op: Math.min(...[...document.querySelectorAll("section[data-pieza] *")].map((e) => parseFloat(getComputedStyle(e).opacity))),
+      // Solo lo que se pinta: el flujo del esquema (display: none sin movimiento) no cuenta.
+      op: Math.min(...[...document.querySelectorAll("section[data-pieza] *")].filter((e) => e.checkVisibility()).map((e) => parseFloat(getComputedStyle(e).opacity))),
     }));
     maxAnim = Math.max(maxAnim, r.n);
     peor = Math.min(peor, r.op);
@@ -358,15 +360,16 @@ contratos.push(["encabezado-seccion", async (browser) => {
   const cab = page.locator(`${sel("encabezado-seccion")} .motion-heading`);
   const alto = await cab.evaluate((e) => e.getBoundingClientRect().height);
   const base = await posicionBase(page, await cab.elementHandle());
-  // La línea va de entry 0 % a entry 70 % del encabezado, con curva lineal (revisión estética F-4).
+  // La línea va de cover 0 a cover 36svh del encabezado (unos 290 px de scroll a 800 px de alto), con curva
+  // lineal (revisión estética F-4).
   const curva = await linea.evaluate((e) => getComputedStyle(e).animationTimingFunction);
   check(curva === "linear", `encabezado-seccion: la línea usa curva lineal (${curva})`);
   const medidas = [];
-  for (const p of [0.15, 0.3, 0.45, 0.6]) {
-    await colocarBase(page, base, VIEW.height - alto * p);
+  for (const d of [40, 110, 180, 250]) {
+    await colocarBase(page, base, VIEW.height - d);
     medidas.push(esc(await linea.evaluate((e) => getComputedStyle(e).transform)).x);
   }
-  const recorrido = alto * 0.7;
+  const recorrido = VIEW.height * 0.36;
   check(medidas.every((s, i) => s > 0 && s < 1 && (i === 0 || s > medidas[i - 1] + 0.1)) && recorrido >= 100,
     `encabezado-seccion: la línea se dibuja a lo largo de ${recorrido.toFixed(0)} px de scroll, sin saltos (scaleX ${medidas.map((s) => s.toFixed(2)).join(" → ")})`);
   await ctx.close();
@@ -387,16 +390,16 @@ contratos.push(["filas", async (browser) => {
   const fila = (await page.locator(`${sel("filas")} .motion-rows > dl > div`).elementHandles())[1];
   const alto = await fila.evaluate((e) => e.getBoundingClientRect().height);
   const base = await posicionBase(page, fila);
-  // El separador (lineal, entry 0–60 %) empieza antes que el texto (entry 5 %) y se dibuja a lo largo
-  // del recorrido: a entry 3 % ya crece y el texto sigue oculto; luego crece de forma continua.
-  const medir = async (p) => {
-    await colocarBase(page, base, VIEW.height - alto * p);
+  // El separador (lineal, cover 0 → 36svh) empieza antes que el texto (cover 8svh) y se dibuja a lo largo
+  // del recorrido: a 3 px ya crece y el texto sigue oculto; luego crece de forma continua (60, 140, 220 px).
+  const medir = async (d) => {
+    await colocarBase(page, base, VIEW.height - d);
     return fila.evaluate((e) => ({ sep: getComputedStyle(e, "::before").transform, op: parseFloat(getComputedStyle(e).opacity),
       curva: getComputedStyle(e, "::before").animationTimingFunction }));
   };
-  const r0 = await medir(0.03);
+  const r0 = await medir(3);
   const seps = [];
-  for (const p of [0.15, 0.3, 0.45]) seps.push(esc((await medir(p)).sep).x);
+  for (const d of [60, 140, 220]) seps.push(esc((await medir(d)).sep).x);
   check(esc(r0.sep).x > 0 && r0.op === 0, `filas: el separador empieza antes que el texto (separador ${esc(r0.sep).x.toFixed(2)} / texto ${r0.op})`);
   check(r0.curva === "linear" && seps.every((s, i) => s < 1 && (i === 0 || s > seps[i - 1] + 0.1)),
     `filas: el separador se dibuja lineal con el scroll (${seps.map((s) => s.toFixed(2)).join(" → ")})`);
@@ -435,8 +438,9 @@ contratos.push(["bento-rejilla", async (browser) => {
   const columnas = async (id) => page.locator(`${sel(id)} .motion-bento > ul`).evaluate((u) => getComputedStyle(u).gridTemplateColumns.split(" ").length);
   const cAncha = await columnas("bento-rejilla"), cEstrecha = await columnas("bento-tarjetas");
   check(cAncha === 4 && cEstrecha === 2, `bento: columnas según el contenedor (sección ancha ${cAncha}, estrecha ${cEstrecha}; ambas piden 4)`);
-  // A 1280 px con 4 columnas: misma posición de scroll, opacidad decreciente de la 1 a la 4.
-  await colocarBase(page, base, VIEW.height - alto * 0.3);
+  // A 1280 px con 4 columnas: misma posición de scroll (borde superior a 1/4 de pantalla desde abajo),
+  // opacidad decreciente de la 1 a la 4 (cada columna empieza 6svh después).
+  await colocarBase(page, base, VIEW.height * 0.75);
   const ops = await cuerpos.evaluateAll((els) => els.map((e) => parseFloat(getComputedStyle(e).opacity)));
   check(ops.length === 4 && ops[0] > ops[1] && ops[1] > ops[2] && ops[2] > ops[3],
     `bento: a 1280 px, escalonado por columna (opacidades ${ops.map((o) => o.toFixed(2)).join(" > ")})`);
@@ -449,8 +453,7 @@ contratos.push(["bento-rejilla", async (browser) => {
   const cel2 = await p2.locator(`${sel("bento-rejilla")} .motion-bento > ul > li`).elementHandles();
   const cols = await Promise.all(cel2.map((e) => e.evaluate((x) => getComputedStyle(x).getPropertyValue("--motion-col").trim())));
   const medir = async (h) => {
-    const a = await h.evaluate((e) => e.getBoundingClientRect().height);
-    await colocarBase(p2, await posicionBase(p2, h), 800 - a * 0.3);
+    await colocarBase(p2, await posicionBase(p2, h), 800 * 0.75);
     return h.evaluate((e) => parseFloat(getComputedStyle(e.firstElementChild).opacity));
   };
   const o1 = await medir(cel2[0]); const o3 = await medir(cel2[2]);
@@ -1056,7 +1059,7 @@ const servidor = await arrancarServidor();
 let navegador = null;
 try {
   try {
-    navegador = await chromium.launch();
+    navegador = await chromium.launch(process.env.BANCO_CHROMIUM_CANAL ? { channel: process.env.BANCO_CHROMIUM_CANAL } : {});
   } catch (err) {
     console.log(`  NO EJECUTADO: no se pudo lanzar Chromium (¿falta \`npx playwright install chromium\`?)\n${err.message.split("\n")[0]}`);
     process.exitCode = 2;
