@@ -135,9 +135,12 @@ def comprobar_css(css_path: Path) -> None:
     for a in avisos:
         anotar("aviso", "css: @keyframes usa propiedad de trayectoria (decidir en el diseño)", a)
 
-    # 2. sin bucles ni iteration-count > 1
+    # 2. sin bucles ni iteration-count > 1. Excepción acotada (regla 1.4): el flujo del esquema
+    #    (.motion-diagram-flow-track), que además debe ir dentro de @supports y reduced-motion (punto 3).
     bucles = []
     for b in bloques:
+        if b.preludio.strip().startswith(".motion-diagram-flow-track"):
+            continue
         for prop, valor in b.decls:
             if prop == "animation-iteration-count" or prop == "animation":
                 v = re.sub(r"(var|calc)\([^)]*\)", " ", valor.lower())

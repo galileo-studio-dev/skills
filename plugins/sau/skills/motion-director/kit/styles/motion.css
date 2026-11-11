@@ -3,7 +3,8 @@
    ARCHIVO GENERADO por install_kit.py del kit de motion-director (plugin sau).
    No lo edites en src/app: edita kit/styles/motion.css del plugin y vuelve a instalar.
    Reglas: motion-rules.md de la skill motion-director
-   - Solo transform y opacity. Cada elemento entra una vez. Sin bucles.
+   - Solo transform y opacity. Cada elemento entra una vez. Sin bucles
+     (excepción: el flujo del esquema, sutil, solo con movimiento permitido).
    - CSS de scroll (animation-timeline: view()): sin JavaScript.
    - Sin soporte o con prefers-reduced-motion: el contenido se ve estático.
    - Lo que ya está en pantalla al cargar se ve completo (no retrasa el LCP).
@@ -15,6 +16,8 @@
   /* Piezas de 2026-11 (encabezado, bento, cifras, filas, esquema, órbita).
      Colores derivados de los tokens de shadcn de la web; cada web puede sobrescribirlos. */
   --motion-stagger-step: 7%;
+  /* Escalonado de las piezas de 2026-11 sobre rangos `cover` (que miden pantalla + elemento). */
+  --motion-stagger-cover: 3%;
   /* Tipografías: las de next/font (Geist en Galileo) si existen. `--font-mono` de Tailwind 4 con
      `@theme inline` no llega a :root, por eso se mira primero la variable de next/font. */
   --motion-font-sans: var(--font-geist-sans, var(--font-sans, ui-sans-serif, system-ui, sans-serif));
@@ -85,6 +88,44 @@
   }
   to {
     transform: scale(1);
+  }
+}
+
+/* Flujo del esquema: el recorrido es un vector en % del escenario (la pista mide lo mismo que él). */
+@keyframes motion-flow-wire {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  15% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  85%,
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--motion-flow-dx) * 1%), calc(var(--motion-flow-dy) * 1%));
+  }
+}
+
+@keyframes motion-flow-request {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  12% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 1;
+    transform: translate(calc(var(--motion-flow-dx) * 1%), calc(var(--motion-flow-dy) * 1%));
+  }
+  72%,
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--motion-flow-bx) * 1%), calc(var(--motion-flow-by) * 1%));
   }
 }
 
@@ -537,6 +578,50 @@
   .motion-diagram-stage {
     position: relative;
     aspect-ratio: var(--motion-diagram-aspect, 4 / 3);
+  }
+
+  /* El nodo de arriba (y ≈ 0) sobresale medio icono: hueco arriba. Y el escenario nunca es más alto
+     que la pantalla menos la cabecera fija: así se ve entero, nodo de arriba incluido. */
+  .motion-diagram[data-layout="stage"] {
+    padding-top: 1.5rem;
+    scroll-margin-top: 6rem;
+  }
+
+  @media (min-width: 48rem) {
+    .motion-diagram[data-layout="stage"] .motion-diagram-stage {
+      width: min(100%, calc((100svh - 10rem) * var(--motion-diagram-ratio, 1.3333)));
+      margin-inline: auto;
+    }
+  }
+
+  /* Flujo del esquema: oculto salvo con soporte de scroll y movimiento permitido (ver abajo). */
+  .motion-diagram-flow {
+    display: none;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .motion-diagram-flow-track {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+  }
+
+  .motion-diagram-flow-dot {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    margin: -3px 0 0 -3px;
+    border-radius: 9999px;
+    background: var(--motion-accent);
+    box-shadow: 0 0 8px 1px color-mix(in srgb, var(--motion-accent) 60%, transparent);
+  }
+
+  .motion-diagram-flow-track[data-kind="request"] .motion-diagram-flow-dot {
+    width: 5px;
+    height: 5px;
+    margin: -2.5px 0 0 -2.5px;
   }
 
   .motion-diagram-perimeter {
@@ -1287,6 +1372,11 @@
       animation-range: entry 20% cover 60%;
     }
 
+    /* Piezas de 2026-11 (encabezado, bento, cifras, filas): rangos `cover`, no `entry`.
+       Con `entry`, la animación dura lo que mide el elemento (50–120 px de scroll): con la rueda
+       del ratón (unos 100 px por golpe) entra de un salto en el borde inferior y no se ve moverse.
+       `cover` mide pantalla + elemento: cover 25 % ≈ un cuarto de pantalla de recorrido. */
+
     /* ---- encabezado-seccion: todo sobre la línea de tiempo del encabezado (regla 2.9) ---- */
     .motion-heading {
       view-timeline: --motion-heading block;
@@ -1297,7 +1387,7 @@
       animation: motion-rise linear both;
       animation-timing-function: var(--motion-ease-brand);
       animation-timeline: --motion-heading;
-      animation-range: entry 0% entry 45%;
+      animation-range: cover 0% cover 16%;
     }
 
     /* Las líneas que se dibujan con el scroll van con curva lineal (acompañan al dedo); la curva
@@ -1306,7 +1396,7 @@
       animation: motion-draw-x linear both;
       animation-timing-function: linear;
       animation-timeline: --motion-heading;
-      animation-range: entry 0% entry 70%;
+      animation-range: cover 0% cover 22%;
     }
 
     /* La etiqueta aparece cuando la línea va por la mitad: la línea «escribe» hacia ella. */
@@ -1314,12 +1404,12 @@
       animation: motion-fade linear both;
       animation-timing-function: var(--motion-ease-brand);
       animation-timeline: --motion-heading;
-      animation-range: entry 35% entry 75%;
+      animation-range: cover 10% cover 26%;
     }
 
     .motion-heading > .motion-mask > .motion-mask-inner {
       animation-timeline: --motion-heading;
-      animation-range: entry 15% entry 75%;
+      animation-range: cover 4% cover 26%;
     }
 
     /* ---- bento: escalonado por columna (--motion-col). La variante grid no anima la celda,
@@ -1329,8 +1419,8 @@
       animation: motion-rise linear both;
       animation-timing-function: var(--motion-ease-brand);
       animation-timeline: view();
-      animation-range: entry calc(5% + var(--motion-col) * var(--motion-stagger-step))
-        entry calc(60% + var(--motion-col) * var(--motion-stagger-step));
+      animation-range: cover calc(2% + var(--motion-col) * var(--motion-stagger-cover))
+        cover calc(24% + var(--motion-col) * var(--motion-stagger-cover));
     }
 
     /* ---- cifras: cada cifra tiene su línea de tiempo (el valor solo mide ~60 px, regla 2.9);
@@ -1348,16 +1438,16 @@
       animation: motion-mask-up linear both;
       animation-timing-function: var(--motion-ease-brand);
       animation-timeline: --motion-figure;
-      animation-range: entry calc(10% + var(--motion-col) * var(--motion-stagger-step))
-        entry calc(70% + var(--motion-col) * var(--motion-stagger-step));
+      animation-range: cover calc(4% + var(--motion-col) * var(--motion-stagger-cover))
+        cover calc(26% + var(--motion-col) * var(--motion-stagger-cover));
     }
 
     .motion-figures > dl > div::before {
       animation: motion-draw-x linear both;
       animation-timing-function: linear;
       animation-timeline: --motion-figure;
-      animation-range: entry calc(0% + var(--motion-col) * var(--motion-stagger-step))
-        entry calc(60% + var(--motion-col) * var(--motion-stagger-step));
+      animation-range: cover calc(0% + var(--motion-col) * var(--motion-stagger-cover))
+        cover calc(22% + var(--motion-col) * var(--motion-stagger-cover));
     }
 
     .motion-figures dt,
@@ -1366,8 +1456,8 @@
       animation: motion-rise linear both;
       animation-timing-function: var(--motion-ease-brand);
       animation-timeline: --motion-figure;
-      animation-range: entry calc(20% + var(--motion-col) * var(--motion-stagger-step))
-        entry calc(80% + var(--motion-col) * var(--motion-stagger-step));
+      animation-range: cover calc(8% + var(--motion-col) * var(--motion-stagger-cover))
+        cover calc(30% + var(--motion-col) * var(--motion-stagger-cover));
     }
 
     /* ---- esquema: todo sobre la línea de tiempo de la figura. El conector de cada nodo empieza
@@ -1417,6 +1507,28 @@
       .motion-diagram-row > li + li::before {
         animation-name: motion-draw-y;
       }
+    }
+
+    /* Flujo del esquema (excepción acotada de la regla 1.4): aparece con el scroll cuando el esquema
+       ya está dibujado y, desde ahí, puntos por cada cable hacia el nodo principal, escalonados, y una
+       petición que sale por la conexión cortada y se apaga en la marca de corte. Sutil y barato:
+       solo transform y opacity. Con movimiento reducido o sin soporte, no existe (display: none). */
+    .motion-diagram-flow {
+      display: block;
+      animation: motion-fade linear both;
+      animation-timeline: --motion-diagram;
+      animation-range: cover calc(28% + var(--motion-step) * 3.25%) cover calc(34% + var(--motion-step) * 3.25%);
+    }
+
+    .motion-diagram-flow-track {
+      animation: motion-flow-wire 3.2s cubic-bezier(0.45, 0, 0.55, 1) infinite both;
+      animation-delay: calc(var(--motion-flow-i) * 0.8s);
+    }
+
+    .motion-diagram-flow-track[data-kind="request"] {
+      animation-name: motion-flow-request;
+      animation-duration: 4s;
+      animation-delay: 1.2s;
     }
 
     /* ---- orbita: todo sobre la línea de tiempo del escenario. Los anillos y el núcleo entran
@@ -1475,21 +1587,21 @@
       animation: motion-rise linear both;
       animation-timing-function: var(--motion-ease-brand);
       animation-timeline: view();
-      animation-range: entry 5% entry 60%;
+      animation-range: cover 2% cover 24%;
     }
 
     .motion-rows > dl > div + div::before {
       animation: motion-draw-x linear both;
       animation-timing-function: linear;
       animation-timeline: --motion-row;
-      animation-range: entry 0% entry 60%;
+      animation-range: cover 0% cover 20%;
     }
 
     .motion-heading > .motion-heading-desc {
       animation: motion-rise linear both;
       animation-timing-function: var(--motion-ease-brand);
       animation-timeline: --motion-heading;
-      animation-range: entry 25% entry 85%;
+      animation-range: cover 8% cover 30%;
     }
   }
 }

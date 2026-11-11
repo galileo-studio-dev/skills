@@ -106,6 +106,9 @@ function NodeBody({ n }: { n: DiagramNode }) {
  * 3–7 nodos unidos por conectores. Cada conector crece desde su nodo de origen y su nodo destino
  * aparece cuando la línea lleva unos dos tercios: la línea «lleva» al nodo. Las conexiones cortadas
  * entran al final, con un fundido. Solo `transform` y `opacity`, sobre la línea de tiempo de la figura.
+ * En `stage`, cuando ya está dibujado, un flujo sutil y continuo (excepción de la regla 1.4): puntos que
+ * viajan por cada cable hacia el nodo principal, escalonados, y una petición que sale por la conexión
+ * cortada y se apaga en la marca de corte. Solo `transform` y `opacity`; nada con movimiento reducido.
  */
 export function Diagram({
   caption,
@@ -181,12 +184,32 @@ export function Diagram({
 
   // Por defecto, simétrico: deja una columna a cada lado para nodos externos y queda centrado con el pie.
   const box: Box = perimeter?.box ?? { left: 10, top: 12, right: 10, bottom: 3 };
+  const [aw, ah] = aspect.split("/").map(Number);
+  // Flujo: cada cable lleva un punto hacia el nodo principal (si lo toca); las conexiones cortadas,
+  // una petición desde el nodo principal (o el origen) que se apaga en la marca de corte.
+  const cutAt = (e: DiagramEdge) => e.cutAt ?? (perimeter ? borderCut(byId.get(e.from)!, byId.get(e.to)!, box) : 0.5);
+  const flows = edges
+    .filter((e) => !e.dashed || e.cut)
+    .map((e) => {
+      const a = byId.get(e.from)!;
+      const b = byId.get(e.to)!;
+      if (e.cut) {
+        const [o, d] = b.emphasis && !a.emphasis ? [b, a] : [a, b];
+        const f = cutAt(e);
+        const t = b.emphasis && !a.emphasis ? 1 - f : f;
+        const stop = Math.max(0, t - 0.03);
+        const back = Math.max(0, t - 0.1);
+        return { kind: "request", x: o.x!, y: o.y!, dx: r2((d.x! - o.x!) * stop), dy: r2((d.y! - o.y!) * stop), bx: r2((d.x! - o.x!) * back), by: r2((d.y! - o.y!) * back) };
+      }
+      const [o, d] = a.emphasis && !b.emphasis ? [b, a] : [a, b];
+      return { kind: "wire", x: o.x!, y: o.y!, dx: r2(d.x! - o.x!), dy: r2(d.y! - o.y!), bx: 0, by: 0 };
+    });
   return (
     <figure
       className={cn("motion-diagram", className)}
       data-motion="esquema"
       data-layout="stage"
-      style={{ "--motion-diagram-aspect": aspect.replace("/", " / ") } as CSSProperties}
+      style={{ "--motion-diagram-aspect": aspect.replace("/", " / "), "--motion-diagram-ratio": r2(aw / ah) } as CSSProperties}
     >
       <div className="motion-diagram-stage">
         {perimeter ? (
@@ -233,12 +256,26 @@ export function Diagram({
             );
           })}
         </svg>
+        {flows.length ? (
+          <div aria-hidden="true" className="motion-diagram-flow" style={{ "--motion-step": r2(last + 0.4) } as CSSProperties}>
+            {flows.map((f, i) => (
+              <span
+                key={i}
+                className="motion-diagram-flow-track"
+                data-kind={f.kind}
+                style={{ "--motion-flow-dx": f.dx, "--motion-flow-dy": f.dy, "--motion-flow-bx": f.bx, "--motion-flow-by": f.by, "--motion-flow-i": i } as CSSProperties}
+              >
+                <span className="motion-diagram-flow-dot" style={{ left: `${f.x}%`, top: `${f.y}%` }} />
+              </span>
+            ))}
+          </div>
+        ) : null}
         {edges
           .filter((e) => e.cut)
           .map((e, i) => {
             const a = byId.get(e.from)!;
             const b = byId.get(e.to)!;
-            const f = e.cutAt ?? (perimeter ? borderCut(a, b, box) : 0.5);
+            const f = cutAt(e);
             return (
               <span
                 key={i}
