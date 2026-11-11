@@ -102,7 +102,7 @@ function NodeBody({ n }: { n: DiagramNode }) {
 }
 
 /**
- * Pieza `esquema` del catálogo SAU (en prueba; destacada, máx. 2 por página, nunca en el hero):
+ * Pieza `esquema` del catálogo SAU (destacada, máx. 2 por página, nunca en el hero):
  * 3–7 nodos unidos por conectores. Cada conector crece desde su nodo de origen y su nodo destino
  * aparece cuando la línea lleva unos dos tercios: la línea «lleva» al nodo. Las conexiones cortadas
  * entran al final, con un fundido. Solo `transform` y `opacity`, sobre la línea de tiempo de la figura.

@@ -16,7 +16,7 @@ type BentoProps = {
 };
 
 /**
- * Pieza `bento` del catálogo SAU (en prueba; de bloque): rejilla de 2–8 tarjetas que suben
+ * Pieza `bento` del catálogo SAU (de bloque): rejilla de 2–8 tarjetas que suben
  * escalonadas por columna. El escalonado sale de la posición en la rejilla (CSS), sin `index`.
  */
 export function Bento({ columns = 3, variant = "cards", numbered = false, className, children }: BentoProps) {

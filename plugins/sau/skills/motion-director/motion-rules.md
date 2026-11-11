@@ -54,4 +54,4 @@ Principio: **entrar con intención, sostener, salir limpio.**
 1. Solo se usan piezas de `motion-catalog.md`. Nunca se inventa una pieza.
 2. Una pieza nueva entra **primero** en el kit (`kit/`) y **después** en el catálogo.
 3. El código de la web (`src/`) es una copia del kit. Se instala con `kit/install_kit.py`. No se edita en `src/`.
-4. Las piezas de la tabla «En prueba» del catálogo están en el kit pero no se usan: esperan el OK de Pelayo a sus capturas. Las reglas de este archivo que las nombran se aplican cuando pasen a «Resumen».
+4. Todas las piezas de la tabla «Resumen» del catálogo se pueden asignar. Una pieza nueva entra en «Resumen» solo con el OK de Pelayo a sus capturas.

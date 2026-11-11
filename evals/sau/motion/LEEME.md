@@ -19,7 +19,7 @@ navegador). Un `2` no cuenta como pasado: la pieza no entra en el catálogo.
 | 2a | Cada `fixtures/markdown/*.md` pasa por `remark-motion.ts` y da el HTML de su `.expected.html`; bloque desconocido sin movimiento; `Nota:importante` se conserva; contratos N2 de `bento`, `cifras` y `filas` (atributos de la lista blanca, `dl`/`dt`/`dd`, negrita idéntica, enlaces dentro de `dd`) | `banco-web/tests/nivel2-remark.mjs` | Node ≥ 22.6, `banco-web/node_modules` |
 | 2b | `install_kit.py` sobre `fixtures/web-minima/`: `--check` rojo → instalar → `--check` verde → segunda instalación sin cambios; detecta archivos alterados; informa FALTA si falta un componente; `FILES` lista todos los componentes; `--blog-file` | `nivel2_instalador.py` | Python 3 |
 | 3 | Con JS desactivado todo el texto está en el HTML; el H1 sin animación y CLS = 0 al hacer scroll; con `reducedMotion: reduce` ninguna animación; sin `animation-timeline` (emulado en Chromium y Firefox real) todo visible a opacidad 1; cada elemento animado empieza oculto/desplazado y termina a opacidad 1; **contratos N3** de cada pieza en prueba (función `contratos.push([...])` de `nivel3.mjs`); capturas | `banco-web/tests/nivel3.mjs` | Node, `npm ci`, navegadores de Playwright (red la primera vez) |
-| autoprueba | Aplica 26 defectos (`fixtures/rotos/` y cambios de texto con `reemplazar`, al menos uno por pieza en prueba) a una copia del kit y exige que el nivel 1 falle; y que el nivel 2a falle sin `pasos` en `MOTION_CONTAINERS` | `autoprueba.py` | Python 3 (+ Node para el caso remark) |
+| autoprueba | Aplica 26 defectos (`fixtures/rotos/` y cambios de texto con `reemplazar`, al menos uno por pieza añadida en 2026-11) a una copia del kit y exige que el nivel 1 falle; y que el nivel 2a falle sin `pasos` en `MOTION_CONTAINERS` | `autoprueba.py` | Python 3 (+ Node para el caso remark) |
 
 `run.sh` instala `banco-web/node_modules` (`npm ci`) y los navegadores (`npx playwright install chromium firefox`)
 si faltan. Si no hay red, esos niveles salen como «NO EJECUTADO».
@@ -54,7 +54,7 @@ Cuatro cosas, en este orden. El nivel 1 falla si falta alguna.
    }
    ```
 
-   - `pieza`: el nombre exacto de la primera columna de la tabla «Resumen» o «En prueba» de `motion-catalog.md`.
+   - `pieza`: el nombre exacto de la primera columna de la tabla «Resumen» de `motion-catalog.md`.
    - `id`: identificador del caso, único; es el `data-pieza` de su sección en el muestrario.
    - `textos`: frases que deben estar en el HTML sin JavaScript (todo el texto visible de la pieza).
    - `animados`: selectores CSS, relativos a la sección, de los elementos que se animan. El nivel 3 comprueba
@@ -73,13 +73,13 @@ Cuatro cosas, en este orden. El nivel 1 falla si falta alguna.
 
 4. **Catálogo y kit**: el componente en `kit/components/`, exportado en `index.ts` y en `FILES` de
    `install_kit.py`; su clase raíz en `.overflow-x-hidden:has(…)` (y en `CLASE_RAIZ` de `nivel1.py`); el
-   contenedor en `MOTION_CONTAINERS` si lo tiene; la fila en la tabla **«En prueba»** y la sección
+   contenedor en `MOTION_CONTAINERS` si lo tiene; la fila en la tabla **«Resumen»** (solo con el OK de Pelayo a las capturas) y la sección
    `## \`pieza\`` en `motion-catalog.md`.
 5. **Contratos**: sus comprobaciones N1 (`comprobar_contratos` de `nivel1.py`), N2 (`nivel2-remark.mjs`) y N3
    (`contratos.push` en `nivel3.mjs`), y al menos un defecto en `autoprueba.py`.
 
 Después: `evals/sau/motion/run.sh --nivel todo`, mirar las capturas nuevas y pedir el OK de Pelayo. Con su OK,
-la fila pasa de «En prueba» a «Resumen» (cambio aparte).
+la fila entra en «Resumen».
 
 ## Autoprueba: añadir un defecto roto
 

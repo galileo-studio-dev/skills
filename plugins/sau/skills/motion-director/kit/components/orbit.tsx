@@ -74,7 +74,7 @@ function Rings({ wide, dashed }: { wide: boolean; dashed: RingName[] }) {
 }
 
 /**
- * Pieza `orbita` del catálogo SAU (en prueba; destacada, máx. 1 por página, nunca en el hero ni
+ * Pieza `orbita` del catálogo SAU (destacada, máx. 1 por página, nunca en el hero ni
  * con intensidad `sobria`). Un núcleo con halo, 2–3 elipses y nodos que avanzan un tramo de su
  * órbita mientras la sección cruza la pantalla, cada anillo en sentido contrario al anterior.
  * Ligado al scroll (si el scroll para, la órbita para). Sin bucles ni JavaScript.

@@ -10,7 +10,7 @@ type RowsProps = {
 };
 
 /**
- * Pieza `filas` del catálogo SAU (en prueba; de bloque): 2–6 pares etiqueta + texto.
+ * Pieza `filas` del catálogo SAU (de bloque): 2–6 pares etiqueta + texto.
  * Cada fila sube y el separador que tiene encima se dibuja de izquierda a derecha. Solo CSS.
  */
 export function Rows({ children, className }: RowsProps) {

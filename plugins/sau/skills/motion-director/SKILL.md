@@ -23,7 +23,7 @@ De esta skill (`${CLAUDE_PLUGIN_ROOT}/skills/motion-director/`):
 
 1. `motion-rules.md` — reglas de marca, de SEO y de dosis. Son obligatorias.
 2. `motion-catalog.md` — las únicas piezas que puedes usar.
-   - Solo las de la tabla «Resumen». Las de «En prueba» (pendientes del OK de Pelayo) no se asignan ni se proponen, aunque `motion-rules.md` ya las nombre.
+   - Solo las de la tabla «Resumen». Una pieza que no esté en esa tabla no se asigna ni se propone.
 
 Del sitio (según el perfil):
 
@@ -57,7 +57,7 @@ Lista cada H2 con su contenido. Para cada uno, anota si contiene:
 Aplica las reglas de dosis de `motion-rules.md`:
 
 - Máximo una pieza destacada cada 2–3 secciones H2.
-- Piezas de bloque (`bento`, `cifras`, `filas`): máximo una por sección H2 y seis por página, en cualquier intensidad (solo cuando salgan de «En prueba»).
+- Piezas de bloque (`bento`, `cifras`, `filas`): máximo una por sección H2 y seis por página, en cualquier intensidad.
 - Máximo una `cita-destacada` por página.
 - Respeta el rango de piezas de la intensidad del brief.
 - Si dos secciones compiten, elige la que más ayuda a entender el contenido.

@@ -271,21 +271,15 @@ def comprobar_coherencia(director: Path, archivos_comp: list[Path]) -> None:
     if not asignables:
         anotar("FAIL", "coherencia: tabla «Resumen» del catálogo legible", "no se encontró")
         return
-    # «En prueba»: piezas en el kit que motion-director aún no asigna (falta el OK de Pelayo).
-    # Cuentan para la coherencia kit <-> catálogo <-> banco igual que las de «Resumen».
-    en_prueba = filas_resumen(catalogo, "En prueba")
-    nombres_a = {re.sub(r"`", "", f[0]).strip() for f in asignables if f and f[0].strip()}
-    nombres_p = {re.sub(r"`", "", f[0]).strip() for f in en_prueba if f and f[0].strip()}
-    if nombres_a & nombres_p:
-        anotar("FAIL", "coherencia: ninguna pieza está a la vez en «Resumen» y en «En prueba»", ", ".join(sorted(nombres_a & nombres_p)))
-    if en_prueba:
-        anotar("ok", f"coherencia: {len(nombres_p)} piezas en prueba, separadas de las {len(nombres_a)} asignables")
-        skill = director / "SKILL.md"
-        # La línea que lo prohíbe: menciona «En prueba» y dice que no se asignan.
-        if not (skill.exists() and any("En prueba" in l and "no se asignan" in l
-                                       for l in skill.read_text(encoding="utf-8").splitlines())):
-            anotar("FAIL", "coherencia: SKILL.md de motion-director dice que no asigna las piezas «En prueba»", "falta la mención en SKILL.md")
-    filas = asignables + en_prueba
+    # Todas las piezas del catálogo están en «Resumen» (ya no hay tabla «En prueba»).
+    if re.search(r"^## En prueba", catalogo, flags=re.M):
+        anotar("FAIL", "coherencia: el catálogo no tiene tabla «En prueba»", "sobra la sección")
+    skill = director / "SKILL.md"
+    # La línea que lo limita: motion-director solo asigna las piezas de «Resumen».
+    if not (skill.exists() and any("«Resumen»" in l and "no se asigna" in l
+                                   for l in skill.read_text(encoding="utf-8").splitlines())):
+        anotar("FAIL", "coherencia: SKILL.md de motion-director solo asigna piezas de «Resumen»", "falta la mención en SKILL.md")
+    filas = asignables
     exportados = nombres_exportados(index_ts)
     definidos = nombres_definidos(archivos_comp)
 

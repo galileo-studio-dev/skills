@@ -10,7 +10,7 @@ type FiguresProps = {
 };
 
 /**
- * Pieza `cifras` del catálogo SAU (en prueba; de bloque, una por página): de 2 a 4 cifras
+ * Pieza `cifras` del catálogo SAU (de bloque, una por página): de 2 a 4 cifras
  * clave. El número sube por máscara y su explicación detrás. Sin contador: el número final
  * está siempre en el HTML. Nunca una cifra sin fuente.
  */

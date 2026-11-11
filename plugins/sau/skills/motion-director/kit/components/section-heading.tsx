@@ -55,7 +55,7 @@ type SectionHeadingProps = {
 };
 
 /**
- * Pieza `encabezado-seccion` del catálogo SAU (en prueba). Abre una sección numerada de una
+ * Pieza `encabezado-seccion` del catálogo SAU. Abre una sección numerada de una
  * página de servicio: número, línea que se dibuja, etiqueta, H2 por máscara y descripción.
  * Solo CSS: todo usa la línea de tiempo del encabezado (`--motion-heading`). Nunca en el hero.
  */

@@ -98,16 +98,16 @@ CASOS = [
     ("pieza en catálogo sin componente", fila_sin_componente, "Holograma"),
     ("contenedor en remark-motion sin catálogo", contenedor_fantasma, "solo en remark-motion.ts: ['fantasma']"),
     ("componente sin exportar en index.ts", sin_export, "PullQuote"),
-    # Piezas en prueba (2026-11): un defecto propio de cada contrato.
+    # Piezas añadidas en 2026-11: un defecto propio de cada contrato.
     ("encabezado: línea sin aria-hidden",
      reemplazar("kit/components/section-heading.tsx", '<span aria-hidden="true" className="motion-kicker-line" />', '<span className="motion-kicker-line" />'),
      "«motion-kicker-line» lleva aria-hidden"),
     ("componente sin instalar en FILES",
      reemplazar("kit/install_kit.py", '    KIT / "components" / "section-heading.tsx": "src/components/motion/section-heading.tsx",\n', ""),
      "section-heading.tsx"),
-    ("pieza en la tabla «En prueba» y en «Resumen» a la vez",
-     reemplazar("motion-catalog.md", "| `cita-destacada` | Destacada |", "| `encabezado-seccion` | Automática | x | `SectionHeading` | Solo TSX |\n| `cita-destacada` | Destacada |"),
-     "a la vez en «Resumen» y en «En prueba»"),
+    ("catálogo con una tabla «En prueba» de vuelta",
+     reemplazar("motion-catalog.md", "## `reveal` (automática)", "## En prueba\n\n## `reveal` (automática)"),
+     "el catálogo no tiene tabla «En prueba»"),
     ("filas fuera del contenedor de página :has()",
      reemplazar("kit/styles/motion.css", "    .motion-rows,\n", ""),
      "motion-rows"),
@@ -152,9 +152,9 @@ CASOS = [
     ("esquema: el conector sale con su nodo de origen (crece hacia el vacío)",
      reemplazar("kit/components/diagram.tsx", "Math.max(nodeStep.get(e.from)! + 1, nodeStep.get(e.to)! - 0.6)", "nodeStep.get(e.from)! + 0.5"),
      "el paso de cada conector es max(origen + 1, destino − 0,6)"),
-    ("SKILL.md sin la regla de «En prueba»",
-     reemplazar("SKILL.md", "Las de «En prueba»", "Las de la otra tabla"),
-     "SKILL.md de motion-director dice que no asigna"),
+    ("SKILL.md sin la limitación a la tabla «Resumen»",
+     reemplazar("SKILL.md", "no se asigna ni se propone", "se puede asignar"),
+     "SKILL.md de motion-director solo asigna piezas de «Resumen»"),
 ]
 
 
