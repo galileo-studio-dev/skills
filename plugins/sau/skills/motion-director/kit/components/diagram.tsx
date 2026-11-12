@@ -2,6 +2,7 @@
 // No lo edites en src/: edita el kit del plugin y vuelve a instalar.
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { DiagramFlow } from "./diagram-flow";
 
 export type DiagramNode = {
   id: string;
@@ -109,6 +110,7 @@ function NodeBody({ n }: { n: DiagramNode }) {
  * En `stage`, cuando ya está dibujado, un flujo sutil y continuo (excepción de la regla 1.4): puntos que
  * viajan por cada cable hacia el nodo principal, escalonados, y una petición que sale por la conexión
  * cortada y se apaga en la marca de corte. Solo `transform` y `opacity`; nada con movimiento reducido.
+ * El bucle se pausa durante el scroll y fuera de pantalla (`DiagramFlow`).
  */
 export function Diagram({
   caption,
@@ -257,7 +259,7 @@ export function Diagram({
           })}
         </svg>
         {flows.length ? (
-          <div aria-hidden="true" className="motion-diagram-flow" style={{ "--motion-step": r2(last + 0.4) } as CSSProperties}>
+          <DiagramFlow aria-hidden="true" className="motion-diagram-flow" style={{ "--motion-step": r2(last + 0.4) } as CSSProperties}>
             {flows.map((f, i) => (
               <span
                 key={i}
@@ -268,7 +270,7 @@ export function Diagram({
                 <span className="motion-diagram-flow-dot" style={{ left: `${f.x}%`, top: `${f.y}%` }} />
               </span>
             ))}
-          </div>
+          </DiagramFlow>
         ) : null}
         {edges
           .filter((e) => e.cut)
