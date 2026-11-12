@@ -14,7 +14,14 @@ for f in skills/*/*/SKILL.md plugins/*/skills/*/SKILL.md; do
   [ "$(grep -c '^## Credits' "$f")" -eq 1 ] || bad "$f: expected exactly one '## Credits' section"
   grep -q '@skills/' "$f" && bad "$f: force-loading @skills/ link"
 done
+moji=$(LC_ALL=C grep -rlP '\xC3\x83\xC2|\xC3\xA2\xE2\x82\xAC' plugins/ docs/ 2>/dev/null)
+[ -z "$moji" ] || { bad "double-encoded UTF-8 (mojibake) in:"; echo "$moji" | sed 's/^/       /'; }
 ok "$(ls skills/*/*/SKILL.md plugins/*/skills/*/SKILL.md | wc -l | tr -d ' ') skills: frontmatter, name, description, credits"
+PY=""; for c in python3 py; do command -v "$c" >/dev/null 2>&1 && "$c" -c 'import sys; sys.exit(sys.version_info[0] != 3)' >/dev/null 2>&1 && { PY=$c; break; }; done
+if [ -z "$PY" ]; then bad "frontmatter: no Python 3 (python3 or py) to parse it"
+elif fm=$("$PY" scripts/frontmatter.py plugins/*/skills/*/SKILL.md plugins/*/agents/*.md plugins/*/commands/*.md 2>&1); then
+  ok "plugin skills, agents and commands: frontmatter parses as YAML"
+else bad "frontmatter does not parse as YAML:"; echo "$fm" | sed 's/^/       /'; fi
 
 echo "== README"
 dirs=$({ ls -d skills/*/*/; ls -d plugins/*/skills/*/; } | xargs -n1 basename | sort)
@@ -121,5 +128,11 @@ cp -R "$tmp/red" "$tmp/memo-red"; memo=$(mk SubagentStop delivery:worker '' '' "
 [ "$(run_memo)" = "2" ] && [ "$(run_memo)" = "2" ] && [ "$(hits)" = "1" ] && ok "failures are never cached" || bad "memo: a red tree must re-run and stay red"
 memo=$(mk SubagentStop delivery:worker '' '' "$tmp/memo")
 [ "$(DELIVERY_VERIFY_TTL=0 run_memo)" = "0" ] && [ "$(hits)" = "1" ] && ok "DELIVERY_VERIFY_TTL=0 disables the cache" || bad "memo: TTL 0 should disable caching"
+
+echo "== sau hooks"
+evals/sau/hooks-test.sh > "$tmp/sau-hooks.out" 2>&1 && ok "sau hooks: $(grep -c '^  ok ' "$tmp/sau-hooks.out") synthetic cases pass" || { bad "sau hooks: evals/sau/hooks-test.sh failed"; grep '^  FAIL' "$tmp/sau-hooks.out" | sed 's/^/       /'; }
+
+echo "== sau state"
+evals/sau/state-test.sh > "$tmp/sau-state.out" 2>&1 && ok "sau state: $(grep -c '^  ok ' "$tmp/sau-state.out") cases pass" || { bad "sau state: evals/sau/state-test.sh failed"; grep '^  FAIL\|no Python' "$tmp/sau-state.out" | sed 's/^/       /'; }
 
 echo; [ $fail -eq 0 ] && echo "check: PASS" || { echo "check: FAIL"; exit 1; }

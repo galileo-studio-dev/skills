@@ -1,0 +1,56 @@
+@import "tailwindcss";
+@import "./motion.css";
+
+/* El kit se copia aquí con install_kit.py y está en .gitignore: Tailwind lo ignoraría. */
+@source "../components/motion";
+
+/* Tokens del tema oscuro de galileo-studio-web (src/app/globals.css), para que las capturas
+   se vean en el lenguaje de Galileo. El kit solo usa estas variables, nunca colores fijos. */
+:root {
+  --background: #030609;
+  --foreground: #f4f7fb;
+  --card: #07131b;
+  --primary: #8aceb3;
+  --muted: #0a161f;
+  --muted-foreground: #9cb5c4;
+  --border: #15414b;
+  /* Lo que Galileo pondría en su globals.css: el rosa del «cortado» de /ia-onpremise (rose-300). */
+  --motion-cut: #fda4af;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-primary: var(--primary);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+}
+
+/* Solo del banco: la raíz como en las webs reales (ver motion.css, regla de overflow-x). */
+.banco-raiz {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.banco-espacio {
+  height: 110vh;
+}
+
+/* Solo del banco: sección más ancha que la columna (hasta 76rem), centrada y fuera de la columna con overflow. */
+.banco-ancho {
+  width: min(calc(100vw - 3rem), 76rem);
+  margin-inline: auto;
+}

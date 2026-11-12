@@ -1,0 +1,1646 @@
+/* ============================================================
+   Motion — piezas de movimiento de marca (catálogo SAU)
+   ARCHIVO GENERADO por install_kit.py del kit de motion-director (plugin sau).
+   No lo edites en src/app: edita kit/styles/motion.css del plugin y vuelve a instalar.
+   Reglas: motion-rules.md de la skill motion-director
+   - Solo transform y opacity. Cada elemento entra una vez. Sin bucles
+     (excepción: el flujo del esquema, sutil, solo con movimiento permitido).
+   - CSS de scroll (animation-timeline: view()): sin JavaScript.
+   - Sin soporte o con prefers-reduced-motion: el contenido se ve estático.
+   - Lo que ya está en pantalla al cargar se ve completo (no retrasa el LCP).
+   ============================================================ */
+:root {
+  --motion-ease-brand: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-exit: cubic-bezier(0.32, 0, 0.67, 0);
+  /* ---- Entradas con el scroll: TODO se ajusta aquí (GAL-1904, 2026-11-11) ----
+     Rangos en longitudes de pantalla (svh) sobre `cover`, no en % del elemento: la entrada dura lo
+     mismo mida lo que mida la pieza (con `entry X%` una línea de 40 px entraba en 25 px de scroll).
+     `cover 0` = el borde superior de la pieza asoma por abajo; `cover 50svh` = ese borde llega a
+     media pantalla. Así la entrada se ve en la zona central, no en el cuarto inferior. */
+  --motion-range-start: 8svh; /* empieza cuando la pieza ya asoma (unos 60 px) */
+  --motion-range-end: 50svh; /* termina con su borde superior a media pantalla */
+  /* Escalonado (índice de un grupo o columna de una rejilla): el inicio se retrasa más que el final,
+     así los últimos alcanzan a los primeros y el grupo termina casi a la vez. */
+  --motion-stagger-start: 6svh;
+  --motion-stagger-end: 3svh;
+  /* Distancias: bloques y títulos suben 40 px; detalles pequeños (número, explicación) 16 px. */
+  --motion-rise: 40px;
+  --motion-rise-small: 16px;
+  /* Escala de entrada de las piezas de bloque (tarjetas, columnas, cita). El texto corrido no escala. */
+  --motion-scale-block: 0.96;
+  /* Curva de las entradas ligadas al scroll: ease-out cuadrática. expo.out (la de marca, para entradas
+     por tiempo) hace el 85 % del cambio en el primer 30 % del recorrido: con scroll, eso es junto al
+     borde inferior. La cuadrática sigue frenando al final (entra con intención) pero reparte el cambio:
+     medido a 1280 × 800, mitad del cambio con la pieza al 80 % de la pantalla, aún se mueve al 65 %,
+     termina al 50 %. Las líneas que se dibujan van lineales. */
+  --motion-ease-scroll: cubic-bezier(0.5, 1, 0.89, 1);
+  /* Piezas de 2026-11 (encabezado, bento, cifras, filas, esquema, órbita).
+     Colores derivados de los tokens de shadcn de la web; cada web puede sobrescribirlos. */
+  /* Tipografías: las de next/font (Geist en Galileo) si existen. `--font-mono` de Tailwind 4 con
+     `@theme inline` no llega a :root, por eso se mira primero la variable de next/font. */
+  --motion-font-sans: var(--font-geist-sans, var(--font-sans, ui-sans-serif, system-ui, sans-serif));
+  --motion-font-mono: var(--font-geist-mono, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace));
+  --motion-line: color-mix(in srgb, var(--primary) 70%, transparent);
+  --motion-hairline: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --motion-surface: var(--background);
+  --motion-accent: var(--primary);
+  --motion-card: var(--card, var(--background));
+  /* Conexiones cortadas (esquema): gris apagado por defecto; Galileo puede usar su rosa. */
+  --motion-cut: var(--motion-muted);
+  --motion-muted: var(--muted-foreground, color-mix(in srgb, var(--foreground) 65%, transparent));
+  --motion-orbit-stroke: var(--primary);
+  --motion-orbit-glow: color-mix(in srgb, var(--primary) 35%, transparent);
+  --motion-orbit-squash: 0.85; /* móvil: casi círculos */
+  --motion-orbit-sweep-outer: 24deg;
+  --motion-orbit-sweep-middle: 36deg;
+  --motion-orbit-sweep-inner: 52deg;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --motion-orbit-squash: 0.55;
+  }
+}
+
+@keyframes motion-rise {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-rise)) scale(var(--motion-scale-from, 1));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes motion-mask-up {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes motion-draw-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes motion-draw-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes motion-grow {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* Flujo del esquema: el recorrido es un vector en % del escenario (la pista mide lo mismo que él). */
+@keyframes motion-flow-wire {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  15% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  85%,
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--motion-flow-dx) * 1%), calc(var(--motion-flow-dy) * 1%));
+  }
+}
+
+@keyframes motion-flow-request {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  12% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 1;
+    transform: translate(calc(var(--motion-flow-dx) * 1%), calc(var(--motion-flow-dy) * 1%));
+  }
+  72%,
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--motion-flow-bx) * 1%), calc(var(--motion-flow-by) * 1%));
+  }
+}
+
+@keyframes motion-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes motion-ring-in {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* orbita: el giro del anillo y la contrarrotación del nodo (que además deshace el aplastado). */
+@keyframes motion-orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(calc(var(--motion-dir) * var(--motion-sweep)));
+  }
+}
+
+@keyframes motion-orbit-counter {
+  from {
+    transform: rotate(0deg) scaleY(var(--motion-unsquash));
+  }
+  to {
+    transform: rotate(calc(-1 * var(--motion-dir) * var(--motion-sweep))) scaleY(var(--motion-unsquash));
+  }
+}
+
+@keyframes motion-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Contenedor de página: las páginas usan `overflow-x-hidden` en la raíz.
+   `overflow-x: hidden` convierte la raíz en contenedor de scroll, y entonces
+   `view()` mide contra ella (que no se desplaza) y la animación nunca corre.
+   `clip` recorta igual sin crear contenedor de scroll. Solo afecta a páginas con piezas. */
+.overflow-x-hidden:has(
+    .motion-reveal,
+    .motion-mask,
+    .motion-steps,
+    .motion-compare,
+    .motion-pull-quote,
+    .motion-heading,
+    .motion-bento,
+    .motion-figures,
+    .motion-rows,
+    .motion-diagram,
+    .motion-orbit
+  ) {
+  overflow-x: clip;
+}
+
+/* Estructura estática (siempre activa) */
+.motion-mask > .motion-mask-inner {
+  display: inline-block;
+}
+
+.motion-steps {
+  position: relative;
+}
+
+.motion-steps > ol {
+  position: relative;
+  list-style: none;
+  counter-reset: motion-step;
+  padding-left: 3.5rem;
+}
+
+.motion-steps > ol > li {
+  position: relative;
+  counter-increment: motion-step;
+}
+
+.motion-steps > ol > li::before {
+  content: counter(motion-step);
+  position: absolute;
+  left: -3.5rem;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--primary) 60%, transparent);
+  background: color-mix(in srgb, var(--primary) 12%, var(--background));
+  color: var(--primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.motion-steps > .motion-steps-line {
+  position: absolute;
+  left: 1.125rem;
+  top: 1.25rem;
+  bottom: 1.25rem;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--primary) 70%, transparent),
+    color-mix(in srgb, var(--primary) 10%, transparent)
+  );
+  transform-origin: top;
+}
+
+/* `pasos` sin lista numerada: sin línea (el contenido se ve normal). */
+.motion-steps:not(:has(> ol)) > .motion-steps-line {
+  display: none;
+}
+
+/* Estructura estática de las piezas de 2026-11. En la capa `components`: las clases de
+   utilidad de la web (Tailwind) pueden sobrescribirla. Las animaciones quedan fuera de capas. */
+@layer components {
+  /* encabezado-seccion */
+  .motion-kicker-index {
+    display: inline-block;
+  }
+
+  .motion-kicker-line {
+    display: block;
+    flex: none;
+    width: 2rem;
+    height: 1px;
+    background: linear-gradient(to right, var(--motion-line), transparent);
+    transform-origin: left;
+  }
+
+  .motion-kicker[data-align="center"] .motion-kicker-line {
+    transform-origin: center;
+  }
+
+  /* bento */
+  .motion-bento {
+    container: motion-bento / inline-size;
+  }
+
+  .motion-bento > ul {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: motion-bento;
+  }
+
+  .motion-bento > ul > li {
+    --motion-col: 0;
+    position: relative;
+    counter-increment: motion-bento;
+    margin: 0;
+    padding: 1.75rem;
+    border: 1px solid var(--motion-hairline);
+    border-radius: 1.5rem;
+    background: color-mix(in srgb, var(--foreground) 2.5%, transparent);
+    color: var(--motion-muted);
+    font-size: 0.875rem;
+    line-height: 1.65;
+  }
+
+  .motion-bento > ul > li[data-muted] {
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--foreground) 15%, transparent);
+    background: transparent;
+  }
+
+  /* Variante rejilla: celdas pegadas; el fondo del ul hace de separador de 1 px.
+     La celda es opaca y no se anima: solo se anima su cuerpo (ver la animación). */
+  .motion-bento[data-variant="grid"] > ul {
+    gap: 1px;
+    /* clip, no hidden: `hidden` haría del ul un contenedor de scroll y view() no correría (regla 2.8). */
+    overflow: clip;
+    border: 1px solid var(--motion-hairline);
+    border-radius: 1.5rem;
+    background: var(--motion-hairline);
+  }
+
+  .motion-bento[data-variant="grid"] > ul > li {
+    border: 0;
+    border-radius: 0;
+    background: var(--motion-surface);
+    padding: 1.75rem 2rem 2rem;
+  }
+
+  .motion-bento-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    align-content: start;
+    height: 100%;
+  }
+
+  .motion-bento-body > :not(.motion-bento-icon) {
+    grid-column: 1 / -1;
+  }
+
+  .motion-bento-icon {
+    grid-row: 1;
+    grid-column: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid color-mix(in srgb, var(--motion-accent) 25%, transparent);
+    border-radius: 0.5rem;
+    background: color-mix(in srgb, var(--motion-accent) 6%, transparent);
+    color: var(--motion-accent);
+  }
+
+  .motion-bento-icon > svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .motion-bento:not([data-numbered]) .motion-bento-icon {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  /* Número "01", "02"… con contador CSS. `/ ""` = sin texto accesible (el número es decorativo). */
+  .motion-bento[data-numbered] .motion-bento-body::before,
+  .motion-bento[data-numbered] > ul > li:not(:has(> .motion-bento-body))::before {
+    content: counter(motion-bento, decimal-leading-zero);
+    content: counter(motion-bento, decimal-leading-zero) / "";
+    grid-row: 1;
+    grid-column: 1;
+    display: block;
+    font-family: var(--motion-font-mono);
+    font-size: 0.75rem;
+    line-height: 2.25rem;
+    color: color-mix(in srgb, var(--motion-muted) 70%, transparent);
+  }
+
+  .motion-bento[data-numbered] > ul > li:not(:has(> .motion-bento-body))::before {
+    line-height: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .motion-bento-title,
+  .motion-bento > ul > li > strong:first-child,
+  .motion-bento > ul > li > p:first-child > strong:first-child {
+    display: block;
+    margin: 2rem 0 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    color: var(--foreground);
+  }
+
+  .motion-bento > ul > li > strong:first-child,
+  .motion-bento > ul > li > p:first-child > strong:first-child {
+    margin: 0 0 0.5rem;
+  }
+
+  .motion-bento-text {
+    margin-top: 0.75rem;
+  }
+
+  .motion-bento li p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  /* Columnas según el ancho real del bento (consulta de contenedor), no el de la ventana: el mismo
+     bento puede ir en el blog (unos 48rem) o en una sección ancha (72rem). 4 columnas solo desde
+     60rem de contenedor; por debajo, 2 × 2. */
+  @container motion-bento (min-width: 30rem) {
+    .motion-bento > ul {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .motion-bento > ul > li:nth-child(2n) {
+      --motion-col: 1;
+    }
+  }
+
+  /* 3 columnas (por defecto) desde 48rem de contenedor: 0, 1, 2 */
+  @container motion-bento (min-width: 48rem) {
+    .motion-bento:not([data-columns="2"]):not([data-columns="4"]) > ul {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .motion-bento:not([data-columns="2"]):not([data-columns="4"]) > ul > li:nth-child(3n + 1) {
+      --motion-col: 0;
+    }
+
+    .motion-bento:not([data-columns="2"]):not([data-columns="4"]) > ul > li:nth-child(3n + 2) {
+      --motion-col: 1;
+    }
+
+    .motion-bento:not([data-columns="2"]):not([data-columns="4"]) > ul > li:nth-child(3n) {
+      --motion-col: 2;
+    }
+  }
+
+  /* 4 columnas desde 60rem de contenedor: 0, 1, 2, 3 */
+  @container motion-bento (min-width: 60rem) {
+    .motion-bento[data-columns="4"] > ul {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .motion-bento[data-columns="4"] > ul > li:nth-child(4n + 1) {
+      --motion-col: 0;
+    }
+
+    .motion-bento[data-columns="4"] > ul > li:nth-child(4n + 2) {
+      --motion-col: 1;
+    }
+
+    .motion-bento[data-columns="4"] > ul > li:nth-child(4n + 3) {
+      --motion-col: 2;
+    }
+
+    .motion-bento[data-columns="4"] > ul > li:nth-child(4n) {
+      --motion-col: 3;
+    }
+  }
+
+  /* cifras */
+  .motion-figures > dl {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem 2rem;
+    margin: 0;
+  }
+
+  .motion-figures > dl > div {
+    --motion-col: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 1.5rem;
+  }
+
+  /* Filete superior: el mismo lenguaje que el separador de filas (frente menta que se apaga). */
+  .motion-figures > dl > div::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, var(--motion-line), var(--motion-hairline) 40%, var(--motion-hairline));
+    transform-origin: left;
+  }
+
+  .motion-figures dt {
+    text-wrap: pretty;
+    color: var(--motion-muted);
+    line-height: 1.6;
+  }
+
+  .motion-figures dd {
+    margin: 0;
+  }
+
+  /* El número va arriba a la vista, pero después de su explicación en el DOM. */
+  /* En sans (como el H2), no en mono: en mono el espacio de «16–24 GB» abre un hueco de un carácter. */
+  .motion-figure-value {
+    order: -1;
+    font-family: var(--motion-font-sans);
+    font-size: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--foreground);
+  }
+
+  .motion-figure-value > .motion-mask-inner {
+    display: inline-block;
+  }
+
+  /* Un único hueco antes de la unidad (el mismo para «GB» y «%»): lo pone el margen, no el espacio. */
+  .motion-figure-unit {
+    margin-inline-start: 0.3em;
+    font-size: 0.5em;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--motion-accent);
+  }
+
+  .motion-figure-space {
+    font-size: 0;
+  }
+
+  .motion-figure-note {
+    text-wrap: balance;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: color-mix(in srgb, var(--motion-muted) 75%, transparent);
+  }
+
+  @media (min-width: 40rem) {
+    .motion-figures > dl {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .motion-figures > dl > div:nth-child(2n) {
+      --motion-col: 1;
+    }
+  }
+
+  /* Desde 64rem, tantas columnas como cifras (máximo 4). */
+  @media (min-width: 64rem) {
+    .motion-figures > dl {
+      grid-template-columns: none;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(0, 1fr);
+    }
+
+    .motion-figures > dl > div:nth-child(3) {
+      --motion-col: 2;
+    }
+
+    .motion-figures > dl > div:nth-child(4) {
+      --motion-col: 3;
+    }
+  }
+
+  /* esquema: el lenguaje del perímetro de /ia-onpremise (tiles, cable que se apaga, corte) */
+  .motion-diagram {
+    margin: 0;
+  }
+
+  .motion-diagram-stage {
+    position: relative;
+    aspect-ratio: var(--motion-diagram-aspect, 4 / 3);
+  }
+
+  /* El nodo de arriba (y ≈ 0) sobresale medio icono: hueco arriba. Y el escenario nunca es más alto
+     que la pantalla menos la cabecera fija: así se ve entero, nodo de arriba incluido. */
+  .motion-diagram[data-layout="stage"] {
+    padding-top: 1.5rem;
+    scroll-margin-top: 6rem;
+  }
+
+  @media (min-width: 48rem) {
+    .motion-diagram[data-layout="stage"] .motion-diagram-stage {
+      width: min(100%, calc((100svh - 10rem) * var(--motion-diagram-ratio, 1.3333)));
+      margin-inline: auto;
+    }
+  }
+
+  /* Flujo del esquema: oculto salvo con soporte de scroll y movimiento permitido (ver abajo). */
+  .motion-diagram-flow {
+    display: none;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .motion-diagram-flow-track {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+  }
+
+  .motion-diagram-flow-dot {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    margin: -3px 0 0 -3px;
+    border-radius: 9999px;
+    background: var(--motion-accent);
+    box-shadow: 0 0 8px 1px color-mix(in srgb, var(--motion-accent) 60%, transparent);
+  }
+
+  .motion-diagram-flow-track[data-kind="request"] .motion-diagram-flow-dot {
+    width: 5px;
+    height: 5px;
+    margin: -2.5px 0 0 -2.5px;
+  }
+
+  .motion-diagram-perimeter {
+    position: absolute;
+    border: 1px dashed color-mix(in srgb, var(--motion-accent) 40%, transparent);
+    border-radius: 2rem;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--motion-accent) 7%, transparent), transparent 55%),
+      radial-gradient(color-mix(in srgb, var(--motion-accent) 10%, transparent) 1px, transparent 1px) 0 0 / 18px 18px;
+  }
+
+  .motion-diagram-perimeter-label {
+    position: absolute;
+    top: -0.75rem;
+    left: 1.5rem;
+    padding: 0.125rem 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--motion-accent) 30%, transparent);
+    border-radius: 9999px;
+    background: var(--motion-surface);
+    font-family: var(--motion-font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--motion-accent);
+    white-space: nowrap;
+  }
+
+  .motion-diagram-edges {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .motion-diagram-edges line {
+    stroke-width: 1.25;
+    vector-effect: non-scaling-stroke;
+    transform-box: view-box;
+  }
+
+  /* Cable con degradado que se apaga hacia el destino (0,55 → 0,15). */
+  .motion-diagram-wire-from {
+    stop-color: var(--motion-accent);
+    stop-opacity: 0.55;
+  }
+
+  .motion-diagram-wire-to {
+    stop-color: var(--motion-accent);
+    stop-opacity: 0.15;
+  }
+
+  .motion-diagram-edges line[data-kind="cut"] {
+    stroke: color-mix(in srgb, var(--foreground) 28%, transparent);
+  }
+
+  /* Marca de corte en medio de una conexión cortada. */
+  .motion-diagram-cut {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: -0.625rem 0 0 -0.625rem;
+    border: 1px solid color-mix(in srgb, var(--motion-cut) 40%, transparent);
+    border-radius: 9999px;
+    background: var(--motion-surface);
+    color: var(--motion-cut);
+  }
+
+  .motion-diagram-cut > svg {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  .motion-diagram-nodes,
+  .motion-diagram-row {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* El punto (x, y) es el centro del icono: los conectores llegan al icono, no a la etiqueta. */
+  .motion-diagram-nodes > li {
+    --motion-diagram-icon: 2.75rem;
+    position: absolute;
+    transform: translate(-50%, calc(var(--motion-diagram-icon) / -2));
+  }
+
+  .motion-diagram-nodes > li[data-emphasis] {
+    --motion-diagram-icon: 5rem;
+  }
+
+  .motion-diagram-node {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 8rem;
+    text-align: center;
+  }
+
+  .motion-diagram-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+  }
+
+  /* Nodo: tile opaco (tapa los extremos de los cables). */
+  .motion-diagram-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: var(--motion-diagram-icon);
+    height: var(--motion-diagram-icon);
+    border: 1px solid var(--motion-hairline);
+    border-radius: 0.75rem;
+    background: var(--motion-card);
+    color: color-mix(in srgb, var(--foreground) 85%, transparent);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--motion-surface) 70%, transparent);
+  }
+
+  .motion-diagram-icon > svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .motion-diagram-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: var(--motion-accent);
+  }
+
+  /* Nodo principal: tile de acento con brillo interior, punto menta y halo (sin filter). */
+  .motion-diagram-nodes > li[data-emphasis] .motion-diagram-icon,
+  .motion-diagram-row > li[data-emphasis] .motion-diagram-icon {
+    border-color: color-mix(in srgb, var(--motion-accent) 50%, transparent);
+    border-radius: 1rem;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--motion-accent) 16%, var(--motion-surface)),
+      color-mix(in srgb, var(--motion-accent) 5%, var(--motion-surface))
+    );
+    color: var(--motion-accent);
+    box-shadow: 0 0 40px color-mix(in srgb, var(--motion-accent) 25%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--foreground) 12%, transparent);
+  }
+
+  .motion-diagram-nodes > li[data-emphasis] .motion-diagram-icon::after,
+  .motion-diagram-row > li[data-emphasis] .motion-diagram-icon::after {
+    content: "";
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 9999px;
+    background: var(--motion-accent);
+    box-shadow: 0 0 8px var(--motion-accent);
+  }
+
+  .motion-diagram-nodes > li[data-emphasis] .motion-diagram-node::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: calc(var(--motion-diagram-icon) / 2);
+    width: 10rem;
+    height: 10rem;
+    margin: -5rem 0 0 -5rem;
+    border-radius: 9999px;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--motion-accent) 20%, transparent), transparent);
+    pointer-events: none;
+  }
+
+  .motion-diagram-nodes > li[data-emphasis] .motion-diagram-icon > svg {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .motion-diagram-nodes > li[data-outside] .motion-diagram-icon {
+    border-style: dashed;
+    background: var(--motion-surface);
+    color: var(--motion-muted);
+    box-shadow: none;
+  }
+
+  .motion-diagram-nodes > li[data-outside] .motion-diagram-label {
+    white-space: nowrap;
+    color: var(--motion-muted);
+    text-decoration: line-through;
+    text-decoration-color: color-mix(in srgb, var(--motion-cut) 50%, transparent);
+  }
+
+  .motion-diagram-label {
+    position: relative;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.375rem;
+    background: var(--motion-surface);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--foreground);
+  }
+
+  /* Tal cual: los nombres de producto («vLLM», «Open WebUI») no se pasan a mayúsculas. */
+  .motion-diagram-sublabel {
+    position: relative;
+    font-family: var(--motion-font-mono);
+    font-size: 0.6875rem;
+    color: var(--motion-muted);
+  }
+
+  .motion-diagram-caption {
+    margin-top: 3rem;
+    text-wrap: pretty;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    text-align: center;
+    color: var(--motion-muted);
+  }
+
+  /* layout="row": capas o pasos en fila, unidos en orden; alto según el contenido. */
+  .motion-diagram[data-layout="row"] .motion-diagram-caption {
+    margin-top: 2rem;
+  }
+
+  .motion-diagram-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .motion-diagram-row > li {
+    --motion-diagram-icon: 2.75rem;
+    position: relative;
+  }
+
+  .motion-diagram-row .motion-diagram-node {
+    flex-direction: row;
+    max-width: none;
+    gap: 1rem;
+    text-align: left;
+  }
+
+  .motion-diagram-row .motion-diagram-text {
+    align-items: flex-start;
+  }
+
+  .motion-diagram-row .motion-diagram-label {
+    padding: 0;
+  }
+
+  /* Conector con el nodo anterior. Móvil: vertical, del icono de arriba al de abajo. */
+  .motion-diagram-row > li + li::before {
+    content: "";
+    position: absolute;
+    left: calc(var(--motion-diagram-icon) / 2);
+    top: -1.75rem;
+    width: 1px;
+    height: 1.75rem;
+    background: linear-gradient(to bottom, var(--motion-line), color-mix(in srgb, var(--motion-accent) 15%, transparent));
+    transform-origin: top;
+  }
+
+  @media (min-width: 48rem) {
+    .motion-diagram-row {
+      flex-direction: row;
+      gap: 0;
+    }
+
+    .motion-diagram-row > li {
+      flex: 1 1 0;
+    }
+
+    .motion-diagram-row .motion-diagram-node {
+      flex-direction: column;
+      gap: 0.75rem;
+      text-align: center;
+    }
+
+    .motion-diagram-row .motion-diagram-text {
+      align-items: center;
+    }
+
+    /* Escritorio: horizontal, del centro del icono anterior al de este (los tiles tapan los extremos). */
+    .motion-diagram-row > li + li::before {
+      left: -50%;
+      right: 50%;
+      top: calc(var(--motion-diagram-icon) / 2);
+      width: auto;
+      height: 1px;
+      background: linear-gradient(to right, var(--motion-line), color-mix(in srgb, var(--motion-accent) 15%, transparent));
+      transform-origin: left;
+    }
+
+    .motion-diagram-row .motion-diagram-node {
+      margin-inline: auto;
+      width: max-content;
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 47.99rem) {
+    .motion-diagram-stage {
+      aspect-ratio: 1 / 1;
+    }
+
+    .motion-diagram-label {
+      font-size: 11px;
+    }
+
+    .motion-diagram-nodes .motion-diagram-sublabel {
+      display: none;
+    }
+
+    .motion-diagram-nodes > li {
+      --motion-diagram-icon: 2.25rem;
+    }
+
+    .motion-diagram-nodes > li[data-emphasis] {
+      --motion-diagram-icon: 3.5rem;
+    }
+
+    .motion-diagram-nodes .motion-diagram-node {
+      max-width: 5.5rem;
+    }
+  }
+
+  /* orbita: todos los colores salen de variables (--motion-orbit-*, --motion-accent…) */
+  .motion-orbit {
+    margin: 0;
+    padding-block: 1.5rem;
+  }
+
+  .motion-orbit-stage {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    container-type: inline-size;
+    color: var(--motion-orbit-stroke);
+  }
+
+  .motion-orbit-rings {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .motion-orbit-rings ellipse {
+    transform-box: view-box;
+    transform-origin: 50% 50%;
+  }
+
+  .motion-orbit-rings-wide {
+    display: none;
+  }
+
+  .motion-orbit-halo {
+    position: absolute;
+    left: 20%;
+    top: 50%;
+    width: 60%;
+    aspect-ratio: 1 / 1;
+    margin-top: -30%;
+    border-radius: 9999px;
+    background: radial-gradient(closest-side, var(--motion-orbit-glow), transparent);
+  }
+
+  .motion-orbit-core-pos {
+    --motion-orbit-core-icon: 4.75rem;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, calc(var(--motion-orbit-core-icon) / -2));
+  }
+
+  .motion-orbit-core {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* Núcleo: el «sol» (tile con degradado, brillo interior y punto menta, como el perímetro de la casa). */
+  .motion-orbit-core-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--motion-orbit-core-icon);
+    height: var(--motion-orbit-core-icon);
+    border: 1px solid color-mix(in srgb, var(--motion-accent) 50%, transparent);
+    border-radius: 1.25rem;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--motion-accent) 16%, var(--motion-surface)),
+      color-mix(in srgb, var(--motion-accent) 5%, var(--motion-surface))
+    );
+    color: var(--motion-accent);
+    box-shadow: 0 0 48px color-mix(in srgb, var(--motion-accent) 28%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--foreground) 12%, transparent);
+  }
+
+  .motion-orbit-core-icon::after {
+    content: "";
+    position: absolute;
+    top: 0.625rem;
+    right: 0.625rem;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 9999px;
+    background: var(--motion-accent);
+    box-shadow: 0 0 8px var(--motion-accent);
+  }
+
+  .motion-orbit-core-icon > svg {
+    width: 40%;
+    height: 40%;
+  }
+
+  /* Etiqueta y sublabel del núcleo en una sola pastilla opaca: el anillo interior y su punto pasan por
+     detrás, sin asomar entre dos pastillas. */
+  .motion-orbit-core-text {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.625rem;
+    background: var(--motion-surface);
+  }
+
+  .motion-orbit-core-label {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--foreground);
+  }
+
+  .motion-orbit-core-sublabel {
+    font-family: var(--motion-font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--motion-accent);
+  }
+
+  /* Plano aplastado: un giro en él es un recorrido por la elipse. */
+  .motion-orbit-plane {
+    position: absolute;
+    inset: 0;
+    transform: scaleY(var(--motion-orbit-squash));
+  }
+
+  .motion-orbit-spin,
+  .motion-orbit-arm,
+  .motion-orbit-node {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+
+  .motion-orbit-spin {
+    left: 50%;
+    top: 50%;
+  }
+
+  .motion-orbit-arm,
+  .motion-orbit-node {
+    left: 0;
+    top: 0;
+  }
+
+  /* El nodo deshace el aplastado (y, con movimiento, el giro): su contenido queda recto. */
+  .motion-orbit-node {
+    --motion-unsquash: calc(1 / var(--motion-orbit-squash));
+    transform: scaleY(var(--motion-unsquash));
+  }
+
+  .motion-orbit-chip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+  }
+
+  .motion-orbit-chip-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--motion-accent) 15%, var(--motion-surface));
+    color: var(--motion-accent);
+  }
+
+  .motion-orbit-chip-icon > svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .motion-orbit-chip[data-kind="chip"],
+  .motion-orbit-chip[data-kind="icon"] {
+    border: 1px solid var(--motion-hairline);
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--motion-surface) 88%, transparent);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--motion-surface) 45%, transparent);
+  }
+
+  .motion-orbit-chip[data-kind="chip"] {
+    padding: 0.375rem 0.375rem;
+  }
+
+  .motion-orbit-chip[data-kind="icon"] {
+    padding: 0.125rem;
+  }
+
+  .motion-orbit-chip-label {
+    display: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+  }
+
+  .motion-orbit-chip[data-kind="dot"] {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: var(--motion-orbit-stroke);
+    box-shadow: 0 0 12px var(--motion-orbit-glow);
+  }
+
+  .motion-orbit-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.625rem;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .motion-orbit-legend > li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 1rem 0.375rem 0.375rem;
+    border: 1px solid var(--motion-hairline);
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+  }
+
+  /* Nodos del anillo medio (solo icono en la figura): en la leyenda, en estilo secundario. */
+  .motion-orbit-legend > li[data-ring="middle"] {
+    border-style: dashed;
+    font-weight: 400;
+    color: var(--motion-muted);
+  }
+
+  /* Escenario ancho (unos 860 px): núcleo grande, el «sol» del sistema. Por debajo de 50rem de escenario,
+     el núcleo de 6rem chocaría con el anillo medio al cruzar por abajo. */
+  @container (min-width: 50rem) {
+    .motion-orbit-core-pos {
+      --motion-orbit-core-icon: 6rem;
+    }
+  }
+
+  /* Móvil: núcleo más pequeño y nodos de 32 px sin borde, para que el cruce de anillos no se pise. */
+  @media (max-width: 47.99rem) {
+    .motion-orbit-core-pos {
+      --motion-orbit-core-icon: 3.5rem;
+    }
+
+    .motion-orbit-core-sublabel {
+      display: none;
+    }
+
+    .motion-orbit-chip[data-kind="chip"],
+    .motion-orbit-chip[data-kind="icon"] {
+      padding: 0;
+      border: 0;
+    }
+  }
+
+  /* Margen amplio: la sombra del chip que pasa por abajo no llega al pie. */
+  .motion-orbit-caption {
+    margin-top: 3rem;
+    text-wrap: pretty;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    text-align: center;
+    color: var(--motion-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .motion-orbit-stage {
+      aspect-ratio: 860 / 460;
+    }
+
+    .motion-orbit-rings-wide {
+      display: block;
+    }
+
+    .motion-orbit-rings-compact,
+    .motion-orbit-legend {
+      display: none;
+    }
+
+    .motion-orbit-chip[data-kind="chip"] {
+      padding: 0.375rem 1rem 0.375rem 0.375rem;
+    }
+
+    .motion-orbit-chip-label {
+      display: inline;
+    }
+  }
+
+  /* filas */
+  .motion-rows > dl {
+    margin: 0;
+  }
+
+  .motion-rows > dl > div {
+    position: relative;
+    display: grid;
+    gap: 0.5rem 2rem;
+    padding-block: 1.5rem;
+  }
+
+  .motion-rows > dl > div:first-child {
+    padding-top: 0;
+  }
+
+  .motion-rows > dl > div:last-child {
+    padding-bottom: 0;
+  }
+
+  /* Separador encima de cada fila salvo la primera: pseudo-elemento sin contenido (no se lee). */
+  .motion-rows > dl > div + div::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, var(--motion-line), var(--motion-hairline) 40%, var(--motion-hairline));
+    transform-origin: left;
+  }
+
+  .motion-rows dt {
+    font-family: var(--motion-font-mono);
+    font-size: 1.125rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--motion-accent);
+  }
+
+  .motion-rows dd {
+    margin: 0;
+    text-wrap: pretty;
+    line-height: 1.65;
+    color: var(--motion-muted);
+  }
+
+  .motion-rows dd > p {
+    margin: 0;
+  }
+
+  .motion-rows dd > p + p {
+    margin-top: 0.75rem;
+  }
+
+  @media (min-width: 40rem) {
+    .motion-rows > dl > div {
+      grid-template-columns: 8.5rem 1fr;
+    }
+
+    /* Fila sin etiqueta: el texto sigue en la segunda columna. */
+    .motion-rows > dl > div > dd:only-child {
+      grid-column: 2;
+    }
+  }
+}
+
+/* Animación (solo con soporte y sin preferencia de movimiento reducido) */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Todas las entradas usan las variables de :root (--motion-range-*, --motion-stagger-*,
+       --motion-rise*, --motion-scale-block, --motion-ease-scroll). Rangos `cover <longitud>`: empiezan
+       cuando la pieza asoma por abajo y terminan con su borde superior a media pantalla. */
+
+    /* ---- reveal, pasos, comparativa, cita-destacada (piezas aprobadas) ---- */
+    .motion-reveal,
+    .motion-steps > ol > li,
+    .motion-compare > *,
+    .motion-pull-quote {
+      animation: motion-rise linear both;
+      animation-timing-function: var(--motion-ease-scroll);
+      animation-timeline: view();
+      animation-range: cover var(--motion-range-start) cover var(--motion-range-end);
+    }
+
+    /* Piezas de bloque: además de subir, crecen un poco (0,96 → 1). */
+    .motion-reveal[style*="--motion-index"],
+    .motion-compare > *,
+    .motion-pull-quote {
+      --motion-scale-from: var(--motion-scale-block);
+    }
+
+    /* Grupo escalonado (Reveal con `index`): cada elemento empieza un poco después.
+       Equivale a la cadencia de marca (0,02–0,12 s) en una animación de scroll. */
+    .motion-reveal[style*="--motion-index"] {
+      animation-range: cover calc(var(--motion-range-start) + var(--motion-index) * var(--motion-stagger-start))
+        cover calc(var(--motion-range-end) + var(--motion-index) * var(--motion-stagger-end));
+    }
+
+    /* Segunda columna de una comparativa: entra un paso después. */
+    .motion-compare > :nth-child(2) {
+      animation-range: cover calc(var(--motion-range-start) + var(--motion-stagger-start))
+        cover calc(var(--motion-range-end) + var(--motion-stagger-end));
+    }
+
+    .motion-mask {
+      overflow: clip;
+      overflow-clip-margin: 0.2em;
+    }
+
+    .motion-mask > .motion-mask-inner {
+      animation: motion-mask-up linear both;
+      animation-timing-function: var(--motion-ease-scroll);
+      animation-timeline: view();
+      animation-range: cover var(--motion-range-start) cover var(--motion-range-end);
+    }
+
+    /* El número del paso aparece un poco antes que su texto. */
+    .motion-steps > ol > li::before {
+      animation: motion-pop linear both;
+      animation-timing-function: var(--motion-ease-scroll);
+      animation-timeline: view();
+      animation-range: cover 0svh cover calc(var(--motion-range-end) * 0.8);
+    }
+
+    /* La línea se dibuja mientras se leen los pasos (rango largo, lineal: sigue al dedo). */
+    .motion-steps > .motion-steps-line {
+      animation: motion-draw-y linear both;
+      animation-timeline: view();
+      animation-range: cover var(--motion-range-start) cover 60%;
+    }
+
+    /* ---- encabezado-seccion: todo sobre la línea de tiempo del encabezado (regla 2.9) ---- */
+    .motion-heading {
+      view-timeline: --motion-heading block;
+    }
+
+    .motion-heading .motion-kicker-index {
+      --motion-rise: var(--motion-rise-small);
+      animation: motion-rise linear both;
+      animation-timing-function: var(--motion-ease-scroll);
+      animation-timeline: --motion-heading;
+      animation-range: cover 0svh cover calc(var(--motion-range-end) * 0.6);
+    }
+
+    /* Las líneas que se dibujan con el scroll van con curva lineal (acompañan al dedo); la curva
+       de entrada es para textos y bloques. Con expo.out, un trazo de 32 px se lee como un parpadeo. */
+    .motion-heading .motion-kicker-line {
+      animation: motion-draw-x linear both;
+      animation-timing-function: linear;
+      animation-timeline: --motion-heading;
+      animation-range: cover 0svh cover calc(var(--motion-range-end) * 0.72);
+    }
+
+    /* La etiqueta aparece cuando la línea va por la mitad: la línea «escribe» hacia ella. */
+    .motion-heading .motion-kicker-label {
+      animation: motion-fade linear both;
+      animation-timing-function: var(--motion-ease-scroll);
+      animation-timeline: --motion-heading;
+      animation-range: cover calc(var(--motion-range-end) * 0.24) cover calc(var(--motion-range-end) * 0.88);
+    }
+
+    .motion-heading > .motion-mask > .motion-mask-inner {
+      animation-timeline: --motion-heading;
+      animation-range: cover var(--motion-range-start) cover var(--motion-range-end);
+    }
+
+    .motion-heading > .motion-heading-desc {
+      animation: motion-rise linear both;
+      animation-timing-function: var(--motion-ease-scroll);
+      animation-timeline: --motion-heading;
+      animation-range: cover calc(var(--motion-range-start) + var(--motion-stagger-start))
+        cover calc(var(--motion-range-end) + var(--motion-stagger-end));
+    }
+
+    /* ---- bento: escalonado por columna (--motion-col). La variante grid no anima la celda,
+       solo su cuerpo, para que no se vea el color del separador antes de que entren ---- */
+    .motion-bento:not([data-variant="grid"]) > ul > li,
+    .motion-bento[data-variant="grid"] .motion-bento-body {
+      animation: motion-rise linear both;
+      animation-timing-function: var(--motion-ease-scroll);
+      animation-timeline: view();
+      animation-range: cover calc(var(--motion-range-start) + var(--motion-col) * var(--motion-stagger-start))
+        cover calc(var(--motion-range-end) + var(--motion-col) * var(--motion-stagger-end));
+      --motion-scale-from: var(--motion-scale-block);
+    }
+
+    /* ---- cifras: cada cifra tiene su línea de tiempo (el valor solo mide ~60 px, regla 2.9);
+       el filete se dibuja, el valor sube por máscara y la explicación detrás, escalonado por columna ---- */
+    .motion-figures > dl > div {
+      view-timeline: --motion-figure block;
+    }
+
+    .motion-figure-value {
+      overflow: clip;
+      overflow-clip-margin: 0.1em;
+    }
+
+    .motion-figure-value > .motion-mask-inner {
+      animation: motion-mask-up linear both;
+      animation-timing-function: var(--motion-ease-scroll);
+      animation-timeline: --motion-figure;
+      animation-range: cover calc(var(--motion-range-start) + var(--motion-col) * var(--motion-stagger-start))
+        cover calc(var(--motion-range-end) + var(--motion-col) * var(--motion-stagger-end));
+    }
+
+    .motion-figures > dl > div::before {
+      animation: motion-draw-x linear both;
+      animation-timing-function: linear;
+      animation-timeline: --motion-figure;
+      animation-range: cover calc(var(--motion-col) * var(--motion-stagger-start))
+        cover calc(var(--motion-range-end) * 0.72 + var(--motion-col) * var(--motion-stagger-end));
+    }
+
+    .motion-figures dt,
+    .motion-figure-note {
+      --motion-rise: var(--motion-rise-small);
+      animation: motion-rise linear both;
+      animation-timing-function: var(--motion-ease-scroll);
+      animation-timeline: --motion-figure;
+      animation-range: cover calc(var(--motion-range-start) + (var(--motion-col) + 1) * var(--motion-stagger-start))
+        cover calc(var(--motion-range-end) + (var(--motion-col) + 1) * var(--motion-stagger-end));
+    }
+
+    /* ---- esquema: todo sobre la línea de tiempo de la figura. El conector de cada nodo empieza
+       0,6 pasos antes que él y el nodo aparece cuando la línea lleva unos dos tercios: la línea
+       «lleva» al nodo. Los conectores cortados y discontinuos entran los últimos, con un fundido.
+       Rangos en % de `cover`: el esquema es alto (hasta una pantalla) y se dibuja mientras cruza
+       la zona central; no usa las variables de rango de las entradas simples ---- */
+    .motion-diagram {
+      view-timeline: --motion-diagram block;
+    }
+
+    .motion-diagram-perimeter {
+      animation: motion-ring-in linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: --motion-diagram;
+      animation-range: cover 8% cover 22%;
+    }
+
+    .motion-diagram-node {
+      animation: motion-pop linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: --motion-diagram;
+      animation-range: cover calc(23% + var(--motion-step) * 3.25%) cover calc(29% + var(--motion-step) * 3.25%);
+    }
+
+    .motion-diagram-edges line[data-kind="wire"],
+    .motion-diagram-row > li + li::before {
+      animation: motion-grow linear both;
+      animation-timing-function: linear;
+      animation-timeline: --motion-diagram;
+      animation-range: cover calc(20% + var(--motion-step) * 3.25%) cover calc(27.5% + var(--motion-step) * 3.25%);
+    }
+
+    /* En la fila, el conector de un nodo es suyo (::before) y lleva su propio paso (--motion-edge-step). */
+    .motion-diagram-row > li + li::before {
+      animation-name: motion-draw-x;
+      animation-range: cover calc(20% + var(--motion-edge-step) * 3.25%) cover calc(27.5% + var(--motion-edge-step) * 3.25%);
+    }
+
+    .motion-diagram-edges line:not([data-kind="wire"]),
+    .motion-diagram-cut {
+      animation: motion-fade linear both;
+      animation-timing-function: var(--motion-ease-brand);
+      animation-timeline: --motion-diagram;
+      animation-range: cover calc(20% + var(--motion-step) * 3.25%) cover calc(28% + var(--motion-step) * 3.25%);
+    }
+
+    @media (max-width: 47.99rem) {
+      .motion-diagram-row > li + li::before {
+        animation-name: motion-draw-y;
+      }
+    }
+
+    /* Flujo del esquema (excepción acotada de la regla 1.4): aparece con el scroll cuando el esquema
+       ya está dibujado y, desde ahí, puntos por cada cable hacia el nodo principal, escalonados, y una
+       petición que sale por la conexión cortada y se apaga en la marca de corte. Sutil y barato:
+       solo transform y opacity. Con movimiento reducido o sin soporte, no existe (display: none). */
+    .motion-diagram-flow {
+      display: block;
+      animation: motion-fade linear both;
+      animation-timeline: --motion-diagram;
+      animation-range: cover calc(28% + var(--motion-step) * 3.25%) cover calc(34% + var(--motion-step) * 3.25%);
+    }
+
+    .motion-diagram-flow-track {
+      animation: motion-flow-wire 3.2s cubic-bezier(0.45, 0, 0.55, 1) infinite both;
+      animation-delay: calc(var(--motion-flow-i) * 0.8s);
+    }
+
+    .motion-diagram-flow-track[data-kind="request"] {
+      animation-name: motion-flow-request;
+      animation-duration: 4s;
+      animation-delay: 1.2s;
+    }
+
+    /* ---- orbita: todo sobre la línea de tiempo del escenario. Los anillos, el halo, el núcleo y los
+       nodos entran una vez (rangos de entrada de :root, de dentro a fuera); los nodos avanzan su tramo
+       mientras la sección cruza la pantalla (cover 0–100 %), ligados al scroll y sin bucle (regla 1.4).
+       spin y counter: misma línea, rango y curva ---- */
+    .motion-orbit-stage {
+      view-timeline: --motion-orbit block;
+    }
+
+    .motion-orbit-rings ellipse {
+      animation: motion-ring-in linear both;
+      animation-timing-function: var(--motion-ease-scroll);
+      animation-timeline: --motion-orbit;
+      animation-range: cover calc(var(--motion-range-start) + var(--motion-ring) * var(--motion-stagger-start))
+        cover calc(var(--motion-range-end) + var(--motion-ring) * var(--motion-stagger-end));
+    }
+
+    .motion-orbit-halo {
+      animation: motion-fade linear both;
+      animation-timing-function: var(--motion-ease-scroll);
+      animation-timeline: --motion-orbit;
+      animation-range: cover calc(var(--motion-range-start) + var(--motion-stagger-start))
+        cover calc(var(--motion-range-end) + var(--motion-stagger-end));
+    }
+
+    .motion-orbit-core {
+      animation: motion-pop linear both;
+      animation-timing-function: var(--motion-ease-scroll);
+      animation-timeline: --motion-orbit;
+      animation-range: cover calc(var(--motion-range-start) + var(--motion-stagger-start))
+        cover var(--motion-range-end);
+    }
+
+    .motion-orbit-spin {
+      animation: motion-orbit-spin linear both;
+      animation-timing-function: linear;
+      animation-timeline: --motion-orbit;
+      animation-range: cover 0% cover 100%;
+    }
+
+    .motion-orbit-node {
+      animation: motion-orbit-counter linear both;
+      animation-timing-function: linear;
+      animation-timeline: --motion-orbit;
+      animation-range: cover 0% cover 100%;
+    }
+
+    .motion-orbit-chip {
+      animation: motion-fade linear both;
+      animation-timing-function: var(--motion-ease-scroll);
+      animation-timeline: --motion-orbit;
+      animation-range: cover calc(var(--motion-range-start) + var(--motion-stagger-start))
+        cover calc(var(--motion-range-end) * 0.9);
+    }
+
+    /* ---- filas: cada fila sube con su propia view(); el separador usa la línea de tiempo de su
+       fila y va un poco por delante. Las filas son anchas: escalan menos (0,98) ---- */
+    .motion-rows > dl > div {
+      --motion-scale-from: 0.98;
+      view-timeline: --motion-row block;
+      animation: motion-rise linear both;
+      animation-timing-function: var(--motion-ease-scroll);
+      animation-timeline: view();
+      animation-range: cover var(--motion-range-start) cover var(--motion-range-end);
+    }
+
+    .motion-rows > dl > div + div::before {
+      animation: motion-draw-x linear both;
+      animation-timing-function: linear;
+      animation-timeline: --motion-row;
+      animation-range: cover 0svh cover calc(var(--motion-range-end) * 0.72);
+    }
+  }
+}

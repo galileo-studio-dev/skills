@@ -1,0 +1,8 @@
+node_modules/
+.next/
+next-env.d.ts
+# Copias generadas por install_kit.py (la fuente es el kit del plugin)
+src/components/motion/
+src/lib/motion.ts
+src/lib/remark-motion.ts
+src/app/motion.css

@@ -30,6 +30,8 @@ fixture to exercise the delivery hooks.
 | `sweeping-open-work/run.sh` | Sweep mode in dry run over six scenarios (no person, another sweep running, stale lock, one item of each kind, ineligible item, develop red) | Stop, the touched items in order, and each report section match `expect.json` | ~1 min per scenario, one agent |
 | `reviewing-in-a-routine/run.sh` | `reviewing-pull-requests` «In a routine» in dry run over ten scenarios (a person's draft, an executor draft, a protected path, documentation only, `AGENTS.md`, a bot author, a re-review of the same and of a new commit, another label, no `### Review`) | Action, reason, semgrep and subagent model match `expect.json` | ~1 min per scenario, one agent |
 
+`sau/motion/run.sh [--nivel 1|2|3|todo]` is the deterministic bench for the `motion-director` kit of the `sau` plugin (static rules, remark and installer, Playwright). It costs no tokens; run it before adding a piece to the motion catalog or touching `kit/`. See `sau/motion/LEEME.md`.
+
 Each `run.sh` accepts a work directory as its first argument and leaves the
 fixture, the JSON stream, and the report there for inspection. The
 `check.sh` scripts can be rerun on a saved work directory. They end with the

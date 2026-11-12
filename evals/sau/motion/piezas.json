@@ -1,0 +1,225 @@
+{
+  "_ayuda": "Registro de piezas del banco. Una entrada por caso de prueba. Ver LEEME.md. `pieza` = nombre en motion-catalog.md; `id` = <section data-pieza=id> del muestrario; `animados` = selectores (dentro de la sección) de los elementos que se animan y se comprueban en estado inicial y final; `textos` = frases que deben estar en el HTML sin JavaScript; `markdown` = fixture de fixtures/markdown/ (o null si la pieza no tiene sintaxis Markdown).",
+  "piezas": [
+    {
+      "id": "reveal-rise",
+      "pieza": "reveal",
+      "textos": [
+        "Este párrafo sube y aparece al entrar en pantalla"
+      ],
+      "animados": [
+        ".motion-reveal"
+      ],
+      "markdown": null
+    },
+    {
+      "id": "reveal-mask",
+      "pieza": "reveal",
+      "textos": [
+        "Título de sección con máscara"
+      ],
+      "animados": [
+        ".motion-mask-inner"
+      ],
+      "markdown": null
+    },
+    {
+      "id": "reveal-grupo",
+      "pieza": "reveal",
+      "textos": [
+        "Tarjeta uno del grupo escalonado",
+        "Tarjeta dos del grupo escalonado",
+        "Tarjeta tres del grupo escalonado"
+      ],
+      "animados": [
+        ".motion-reveal"
+      ],
+      "markdown": null
+    },
+    {
+      "id": "pasos",
+      "pieza": "pasos",
+      "textos": [
+        "Diagnóstico.",
+        "Revisamos procesos y datos.",
+        "Prototipo.",
+        "Despliegue.",
+        "Lo integramos en tu equipo."
+      ],
+      "animados": [
+        ".motion-steps > ol > li"
+      ],
+      "markdown": "pasos.md"
+    },
+    {
+      "id": "comparativa",
+      "pieza": "comparativa",
+      "textos": [
+        "Software genérico",
+        "No conoce tus documentos.",
+        "Solución a medida",
+        "Datos bajo tu control."
+      ],
+      "animados": [
+        ".motion-compare > *"
+      ],
+      "markdown": "comparativa.md"
+    },
+    {
+      "id": "cita-destacada",
+      "pieza": "cita-destacada",
+      "textos": [
+        "Una buena solución empieza en tus propios datos."
+      ],
+      "animados": [
+        ".motion-pull-quote"
+      ],
+      "markdown": "cita-destacada.md"
+    },
+    {
+      "id": "encabezado-seccion",
+      "pieza": "encabezado-seccion",
+      "textos": [
+        "02",
+        "Por qué",
+        "Por qué una pyme española debería considerar IA on-premise",
+        "Los cuatro motivos más habituales para instalar la IA en casa"
+      ],
+      "animados": [
+        ".motion-kicker-line",
+        ".motion-mask-inner",
+        ".motion-heading-desc"
+      ],
+      "markdown": null
+    },
+    {
+      "id": "filas",
+      "pieza": "filas",
+      "textos": [
+        "RGPD",
+        "Se aplica a cualquier empresa que trate datos personales",
+        "AI Act",
+        "Reglamento (UE) 2024/1689",
+        "AEPD · AESIA",
+        "la AESIA es la agencia estatal creada para supervisar la inteligencia artificial"
+      ],
+      "animados": [
+        ".motion-rows > dl > div"
+      ],
+      "markdown": "filas.md"
+    },
+    {
+      "id": "bento-rejilla",
+      "pieza": "bento",
+      "textos": [
+        "Protección de datos de negocio",
+        "RGPD y AI Act: control demostrable",
+        "Coste predecible a largo plazo",
+        "Personalización: una IA que conoce tu empresa",
+        "Con RAG trabaja sobre tu documentación interna"
+      ],
+      "animados": [
+        ".motion-bento-body"
+      ],
+      "markdown": null
+    },
+    {
+      "id": "bento-tarjetas",
+      "pieza": "bento",
+      "textos": [
+        "Infraestructura",
+        "Implantación",
+        "Operación",
+        "Frente a la nube",
+        "Se paga una vez por caso de uso."
+      ],
+      "animados": [
+        ".motion-bento > ul > li"
+      ],
+      "markdown": null
+    },
+    {
+      "id": "bento-blog",
+      "pieza": "bento",
+      "textos": [
+        "Datos en casa",
+        "Nada sale de tu red.",
+        "Cumplimiento",
+        "Coste previsible",
+        "Sin pago por uso."
+      ],
+      "animados": [
+        ".motion-bento > ul > li"
+      ],
+      "markdown": "bento.md"
+    },
+    {
+      "id": "cifras",
+      "pieza": "cifras",
+      "textos": [
+        "capas, todas dentro de tu infraestructura.",
+        "16–24 GB",
+        "4 %",
+        "de memoria de GPU suelen bastar para un primer caso de uso",
+        "multa máxima del RGPD"
+      ],
+      "animados": [
+        ".motion-figure-value > .motion-mask-inner",
+        ".motion-figures dt"
+      ],
+      "markdown": "cifras.md"
+    },
+    {
+      "id": "esquema-radial",
+      "pieza": "esquema",
+      "textos": [
+        "Tu servidor es el centro: documentos, sistemas, accesos y auditoría se quedan dentro de tu red",
+        "Tu servidor",
+        "Documentos",
+        "Sistemas",
+        "Accesos",
+        "Auditoría",
+        "API pública",
+        "Tu red"
+      ],
+      "animados": [
+        ".motion-diagram-node"
+      ],
+      "markdown": null
+    },
+    {
+      "id": "esquema-capas",
+      "pieza": "esquema",
+      "textos": [
+        "Cuatro capas, todas dentro de tu infraestructura",
+        "Interfaz",
+        "Open WebUI",
+        "Orquestación y RAG",
+        "Motor de inferencia",
+        "vLLM · Ollama",
+        "Tus datos"
+      ],
+      "animados": [
+        ".motion-diagram-node"
+      ],
+      "markdown": null
+    },
+    {
+      "id": "orbita",
+      "pieza": "orbita",
+      "textos": [
+        "Tu modelo funciona en tu servidor; tus documentos, tus datos y tu equipo giran a su alrededor sin salir de tu red.",
+        "Tu servidor",
+        "Modelo propio",
+        "Documentos",
+        "Datos",
+        "Equipo"
+      ],
+      "animados": [
+        ".motion-orbit-core",
+        ".motion-orbit-halo"
+      ],
+      "markdown": null
+    }
+  ]
+}
