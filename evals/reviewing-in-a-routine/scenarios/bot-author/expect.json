@@ -1,1 +1,1 @@
-{"action": "skip", "reason": "bot author", "semgrep": false, "subagent_model": null}
+{"action": "skip", "reason": "bot author", "react": false, "semgrep": false, "subagent_model": null}
