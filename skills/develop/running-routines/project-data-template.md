@@ -28,6 +28,7 @@ Read by the routine skills (`running-routines` §1). Values only: process lives 
 - Commands: <AGENTS.md § Verification and § Cloud sessions>
 - Base branch CI: workflow <CI Backend> (`.github/workflows/ci.yml`), required check <ci-ok>
 - Gate command (the develop gate's confirmation, minutes not hours): <bun run typecheck && bun run lint>
+- Known failures (optional): <test names that fail on the base branch in a cloud session, with the issue that tracks them>. The review routine compares failures against this list instead of running the suite again on the base
 
 ## Protected paths
 
