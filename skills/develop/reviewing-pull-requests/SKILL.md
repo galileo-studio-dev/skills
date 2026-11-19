@@ -136,6 +136,7 @@ A routine fired by a pull request event runs this skill with nobody present. The
 3. A review of the head SHA exists: a review whose `commit_id` is the head SHA, or whose header names it: `already reviewed`.
 4. Every changed file is documentation (`*.md` or under `docs/`) and none matches a protected path: `documentation only`.
 5. The event does not call for a review:
+   - `pull_request.synchronize` (a push to the pull request): `push`. The routine reviews on opened, ready and labeled events only; a person who wants a review of new commits adds the re-review label. This guards against a trigger that also fires on pushes.
    - `pull_request.opened` on a draft: `draft`. Events on a draft pull request do not fire a routine (checked 2026-11-04), so every draft, executor drafts included, is reviewed when it is marked ready (`ready_for_review`). This check only guards against that behaviour changing.
    - `pull_request.labeled` while the pull request's labels lack the re-review label from `### Review`: `not the re-review label`. The trigger context does not name the label that was added, so read the current labels.
 
@@ -165,6 +166,11 @@ When the routine has several repositories, the pull request's head is not checke
 - Run the fast command from `AGENTS.md` § Verification for each area the diff touches, plus Step 2's secrets and dependency checks.
 - Take the slow suites from the pull request's CI on the head SHA (`gh api repos/<o>/<r>/commits/<sha>/check-runs`). Wait up to 15 minutes for the required check named in `## Verification`, in the background, because a foreground command stops at 10 minutes.
 - In *Verificación*, a CI row reads `CI: <run url>` with its conclusion, or `CI pendiente`. Never list a CI result as a command you ran.
+- Run each suite once, on the head SHA. When tests fail, never run the suite again on the base to find out whether the failures are new: a second full run doubles the routine's time. Instead:
+  1. Compare with the known failures that `## Verification` lists, if any.
+  2. Otherwise, compare with the base branch's CI on its newest commit (`gh api repos/<o>/<r>/commits/<base>/check-runs`).
+  3. Otherwise, list the failing tests in *Verificación* as "no confirmado si son nuevos", and add one line under *Riesgos restantes*.
+  A failure that a changed file causes, or that a changed test asserts, is a finding whatever the base does.
 
 **R3. Subagents (Step 3).** Run both reviewers with the model that the review-subagents line of `## Execution` gives. That is opus when the diff touches a protected path or exceeds the line threshold, and sonnet otherwise.
 
@@ -196,7 +202,7 @@ gh api -X POST repos/<o>/<r>/pulls/<n>/reviews -f event=COMMENT -F body=@review.
 
 | File | Shape |
 | --- | --- |
-| `trigger.json` | `{"event": "pull_request.opened"\|"pull_request.ready_for_review"\|"pull_request.labeled", "repo", "number", "head_sha"}` |
+| `trigger.json` | `{"event": "pull_request.opened"\|"pull_request.ready_for_review"\|"pull_request.labeled"\|"pull_request.synchronize", "repo", "number", "head_sha"}` |
 | `pull.json` | `{"draft": true\|false, "head": "<branch>", "base": "<branch>", "author_type": "User"\|"Bot", "labels": ["<name>"], "changed_lines": <int>}` |
 | `files.json` | `["<path>"]`: the changed files |
 | `reviews.json` | `[{"commit_id", "header": "<first line of the body>"}]`: earlier reviews |
@@ -223,6 +229,7 @@ Output:
 | "No findings, LGTM" | State the residual risk, or the review is incomplete. |
 | "Approve to unblock the team" | Not yours to give. Report readiness; a person approves. |
 | "The 👀 shows it ran, so I'll react on a skip too" | A skip writes nothing (R0). The reaction means a review is coming |
+| "Tests fail; I'll run the suite on the base to see if they are new" | One run per suite. Compare with the known failures or the base's CI (R2) |
 | "A routine found a Critical, so it should request changes" | A routine only comments (R6). The verdict line already blocks; the person decides |
 
 ## Credits
