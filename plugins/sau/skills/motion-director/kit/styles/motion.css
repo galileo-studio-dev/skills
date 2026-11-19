@@ -1571,6 +1571,14 @@
       animation-delay: 1.2s;
     }
 
+    /* El bucle se pausa mientras se hace scroll y con el esquema fuera de pantalla (diagram-flow.tsx):
+       un bucle con reloj durante el scroll obliga a actualizar en el hilo principal todas las piezas
+       ligadas al scroll de la página. Al parar el scroll (200 ms) sigue donde estaba. */
+    .motion-diagram-flow[data-scrolling] .motion-diagram-flow-track,
+    .motion-diagram-flow[data-offscreen] .motion-diagram-flow-track {
+      animation-play-state: paused;
+    }
+
     /* ---- orbita: todo sobre la línea de tiempo del escenario. Los anillos, el halo, el núcleo y los
        nodos entran una vez (rangos de entrada de :root, de dentro a fuera); los nodos avanzan su tramo
        mientras la sección cruza la pantalla (cover 0–100 %), ligados al scroll y sin bucle (regla 1.4).

@@ -212,6 +212,12 @@ def sin_comentarios_js(src: str) -> str:
     return re.sub(r"(?m)^\s*//.*$", "", src)
 
 
+# Excepción acotada (regla 1.4): la capa del flujo de `esquema` es un componente de cliente que solo
+# pausa el bucle durante el scroll y fuera de pantalla. Puede usar "use client", useEffect/useRef y
+# window; nunca framer-motion.
+CLIENTE_PERMITIDO = {"diagram-flow.tsx": {'"use client"', "hook de estado/efecto/ref", "acceso a window/document"}}
+
+
 def comprobar_componentes(comp_dir: Path) -> list[Path]:
     archivos = sorted(p for p in comp_dir.iterdir() if p.suffix in (".tsx", ".ts", ".jsx", ".js"))
     if not archivos:
@@ -220,12 +226,14 @@ def comprobar_componentes(comp_dir: Path) -> list[Path]:
     for p in archivos:
         src = sin_comentarios_js(p.read_text(encoding="utf-8"))
         for patron, nombre in PROHIBIDO_TSX:
+            if nombre in CLIENTE_PERMITIDO.get(p.name, set()):
+                continue
             if re.search(patron, src):
                 malos.append(f"{p.name}: {nombre}")
     if malos:
         anotar("FAIL", "componentes: sin JavaScript de navegador", "; ".join(malos))
     else:
-        anotar("ok", f"componentes: {len(archivos)} archivos sin use client, hooks ni framer-motion")
+        anotar("ok", f"componentes: {len(archivos)} archivos sin use client, hooks ni framer-motion (salvo la pausa del flujo de esquema)")
     return archivos
 
 

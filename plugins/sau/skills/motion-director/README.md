@@ -9,7 +9,7 @@ El código de la web (`src/`) recibe copias que instala `kit/install_kit.py`.
 |---|---|
 | `motion-rules.md` | Reglas de marca, de SEO y de dosis. |
 | `motion-catalog.md` | Lista cerrada de piezas y su sintaxis. |
-| `kit/components/` | Componentes React de cada pieza. Sin JavaScript en el navegador. |
+| `kit/components/` | Componentes React de cada pieza. Sin JavaScript en el navegador, salvo `diagram-flow.tsx` (pausa el flujo de `esquema` durante el scroll y fuera de pantalla). |
 | `kit/lib/motion.ts` | Tokens de movimiento (curvas, duraciones, retardos). |
 | `kit/lib/remark-motion.ts` | Lee los bloques `:::` del Markdown del blog. |
 | `kit/styles/motion.css` | Animaciones con CSS de scroll. |
