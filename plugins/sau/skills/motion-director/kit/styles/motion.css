@@ -6,7 +6,8 @@
    - Solo transform y opacity. Cada elemento entra una vez. Sin bucles
      (excepción: el flujo del esquema, sutil, solo con movimiento permitido).
    - CSS de scroll (animation-timeline: view()): sin JavaScript.
-   - Sin soporte o con prefers-reduced-motion: el contenido se ve estático.
+   - Sin soporte, con prefers-reduced-motion o en pantallas muy altas (>= 2400 px, como el render
+     de Googlebot): el contenido se ve estático.
    - Lo que ya está en pantalla al cargar se ve completo (no retrasa el LCP).
    ============================================================ */
 :root {
@@ -1341,9 +1342,13 @@
   }
 }
 
-/* Animación (solo con soporte y sin preferencia de movimiento reducido) */
+/* Animación (solo con soporte, sin preferencia de movimiento reducido y en pantallas de alto normal).
+   Pantallas muy altas (alto >= 2400 px): sin entradas, el contenido se ve estático, igual que con
+   movimiento reducido. Googlebot renderiza con una ventana tan alta como la página y sin hacer
+   scroll: con las entradas ligadas al scroll, la mitad baja le quedaba transparente o recortada.
+   Ninguna pantalla real de uso habitual llega a 2400 px CSS de alto; las páginas del sitio miden más. */
 @supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
+  @media (prefers-reduced-motion: no-preference) and (height < 2400px) {
     /* Todas las entradas usan las variables de :root (--motion-range-*, --motion-stagger-*,
        --motion-rise*, --motion-scale-block, --motion-ease-scroll). Rangos `cover <longitud>`: empiezan
        cuando la pieza asoma por abajo y terminan con su borde superior a media pantalla. */
