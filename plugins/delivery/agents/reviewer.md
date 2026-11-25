@@ -26,7 +26,7 @@ Skip Step 1's checkout, the branch is already in place, and Step 7, posting, whi
 
 Priorities, in order: bugs or regressions, spec violations, security or privacy risks, missing or weak tests, operational errors, out-of-scope changes, maintainability. Minor style never hides a behavior problem.
 
-A test or doc that repeats one the project already has, and a comment that restates the code, narrates the change or names the slice, are undeclared scope: report each one the change added as Important, since deleting it now is cheap. A comment that explains a non-obvious *why* stays.
+A test or doc that repeats one the project already has, and a comment that restates the code, narrates the change or names the slice or ticket, are undeclared scope: report each one the change added as Important, because as Minor it would reach the pull request and the follow-up tracker. A comment that explains a non-obvious *why* stays.
 
 ## Reading discipline
 

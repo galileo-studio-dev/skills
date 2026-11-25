@@ -26,7 +26,7 @@ You need a plan with slices (the `writing-plans` format) or a bounded task, the 
 - the spec contradicts the code;
 - the work touches a schema, authentication, or a public contract.
 
-Skip it for a bounded task with clear criteria. With nobody to answer (a routine, a headless run), don't interview: ask the way the caller's rules say (`working-an-issue` §7).
+Skip it for a bounded task with clear criteria, even one that touches those areas. With nobody to answer (a routine, a headless run), don't interview: ask the way the caller's rules say (`working-an-issue` §7).
 
 Confirm with the person before dispatching anything: the slices, the allowed files per slice, the verification command, the tier, and the branch. This is the plan gate (§3.6). When a slice specifies a formula or a scoring rule, run it by hand on the spec's own edge cases before approving: an inconsistency found here costs one line, found in review it costs a cycle.
 
@@ -80,7 +80,7 @@ Repeat Steps 2 and 3 for each slice. Run Workers in parallel only when the plan 
 1. For more than one slice, dispatch a final `reviewer` over the whole range with the focus on integration between slices.
 2. Run the project's **full** verification yourself, not the fast slice command (`verification-before-completion`). If the project splits them, this is the run that does the slow, whole-tree work: the full suite, migration round-trips, the complete lint and type pass.
 3. Use `finishing-a-development-branch`: present its options; pushing, opening the pull request, merging, or discarding waits for the person's choice. The plugin's gate prompts for those commands in any case.
-4. Once a pull request is open, turn on auto-fix for it without asking: in Claude Code cloud sessions, `subscribe_pr_activity` with the owner, repository and number; elsewhere, the surface's own pull request watcher, and if it has none, say so in the report. Each CI failure or review comment then runs Step 3's fix cycle (a `worker-high`, then the `reviewer` on the delta), and its push meets the gate like any push. Auto-fix never merges and never force-pushes.
+4. Once a pull request is open, turn on auto-fix for it without asking: in Claude Code cloud sessions, `subscribe_pr_activity` with the owner, repository and number; elsewhere, the surface's own pull request watcher, and if it has none, say so in the report. Each CI failure, and each review comment you class as Critical or Important within the allowed files, then runs Step 3's fix cycle (a `worker-high`, then the `reviewer` on the delta), two cycles at most; its push meets the gate like any push. A Minor comment goes to `remaining_risks`; one that asks for new scope or a decision goes to the person. Auto-fix never merges and never force-pushes.
 5. File the deferred set with `filing-followups`: the Reviewers' Minor findings and the `remaining_risks` entries that name a concrete change, capped and deduplicated, into the tracker the repository's contract names. Critical and Important findings are never filed — they were fixed or they stopped the loop. The person approves the batch before anything is created.
 6. Fill the pull request template from the handoffs: *Cambios* from `scope` and `files_changed`, *Verificación* from `tests` and `evidence`, *Riesgos y operación* from `remaining_risks`, and *Trazabilidad* from the plan and spec. Link the follow-ups you filed, and keep anything over the cap as prose.
 
@@ -102,7 +102,7 @@ evidence: [...]
 remaining_risks: [...]
 ```
 
-followed by the branch, the pull request URL if one was opened, whether auto-fix is on for it, and the open questions for the person.
+followed by the branch, the pull request URL if one was opened, whether auto-fix is on for it or why it could not be turned on, and the open questions for the person.
 
 ## Gates
 
@@ -113,7 +113,7 @@ followed by the branch, the pull request URL if one was opened, whether auto-fix
 | Handoff → commit | Verification re-run; files within scope | Handoff hook (`verify.sh` on the Worker's `Agent` result) and you, in Step 2 |
 | Commit → next slice | No Critical or Important findings | Reviewer verdict |
 | Deliver → push, PR, merge | Person chooses | `finishing-a-development-branch` and the Bash gate (`gate.sh`) |
-| Pull request → CI and review fixes | Auto-fix on; each fix through Step 3's cycle; never a merge or force-push | You, in Step 5, and the Bash gate on each push |
+| Pull request → CI and review fixes | Auto-fix on; CI failures and in-scope Critical or Important comments through Step 3's cycle; never a merge or force-push | You, in Step 5, and the Bash gate on each push |
 | Deliver → follow-up issues | Person approves the batch | `filing-followups`, and the Bash gate on `gh issue` writes |
 
 ## Writing the verification command
