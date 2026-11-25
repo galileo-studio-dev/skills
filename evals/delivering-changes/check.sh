@@ -10,6 +10,8 @@ n=$(git -C "$repo" log --oneline main..feature/session-expiry 2>/dev/null | wc -
 [ "$n" -ge 2 ] && ok "a commit per slice on feature/session-expiry ($n; fix cycles add more)" || bad "expected at least 2 commits on feature/session-expiry, found $n"
 ( cd "$repo" && git checkout -q feature/session-expiry && python3 -m unittest 2>&1 | tail -1 | grep -q '^OK' ) && ok "tests green on the branch" || bad "tests not green on the branch"
 [ "$(git -C "$repo" diff main..feature/session-expiry -- auth/session.py | grep -c GetSessionAge)" -eq 0 ] && ok "GetSessionAge unchanged" || bad "GetSessionAge touched"
+added=$(git -C "$repo" diff main..feature/session-expiry -- '*.py')
+echo "  judge $(printf '%s\n' "$added" | grep -cE '^\+\s*#') comment lines and $(printf '%s\n' "$added" | grep -cE '^\+\s*def test_') tests added: each comment should say why, each test cover a behavior no other test does"
 [ -z "$(git -C "$repo" status --short)" ] && ok "working tree clean" || bad "working tree dirty"
 if [ -d "$work/origin.git" ]; then
   git -C "$work/origin.git" show-ref --verify -q refs/heads/feature/session-expiry && bad "branch was pushed to origin" || ok "nothing pushed"
