@@ -8,7 +8,7 @@ effort: medium
 
 ## Overview
 
-This skill runs the Controller role of the company delivery loop (software guide §3.3) for the stages after planning: implement in slices, review, verify, deliver. Workers implement, Reviewers judge, humans approve. Nothing crosses a stage boundary except a brief going down and a handoff coming back; your own context never does. That is what keeps Reviewers independent and your context small.
+This skill runs the Controller role of the company delivery loop (software guide §3.3) for the stages after planning: implement in slices, review, verify, deliver. Workers implement, Reviewers judge, humans approve. You own this code: what reaches the person is verified, reviewed and evidenced, and you follow it through CI and review. Owning it is not editing it; Workers write every line. Nothing crosses a stage boundary except a brief going down and a handoff coming back; your own context never does. That is what keeps Reviewers independent and your context small.
 
 **Core principle:** One slice at a time, one role at a time, and a gate between every two stages.
 
@@ -18,6 +18,15 @@ You need a plan with slices (the `writing-plans` format) or a bounded task, the 
 
 - **Bounded task** — describable in one sentence, a handful of files: treat it as a single slice.
 - **Multi-file work without a plan** — stop. Say so and use `writing-plans` first; this skill does not plan, and the Controller does not spawn Workers to compensate for an ambiguous spec (§3.3).
+
+**Open decisions.** Run `grill-me` before the plan gate, unless the person already ran it on this plan, when at least one of these holds, and say in one line which one:
+
+- an acceptance criterion is missing or cannot be tested;
+- two or more reasonable designs fit the spec;
+- the spec contradicts the code;
+- the work touches a schema, authentication, or a public contract.
+
+Skip it for a bounded task with clear criteria, even one that touches those areas. With nobody to answer (a routine, a headless run), don't interview: ask the way the caller's rules say (`working-an-issue` §7).
 
 Confirm with the person before dispatching anything: the slices, the allowed files per slice, the verification command, the tier, and the branch. This is the plan gate (§3.6). When a slice specifies a formula or a scoring rule, run it by hand on the spec's own edge cases before approving: an inconsistency found here costs one line, found in review it costs a cycle.
 
@@ -32,6 +41,7 @@ Confirm with the person before dispatching anything: the slices, the allowed fil
 Record `BASE=$(git rev-parse HEAD)`. Dispatch a `worker` subagent (the `delivery` plugin's agent) with this brief and nothing else. On Prototype tier pass `model: sonnet` in the dispatch; on Production and Critical tiers let it inherit the session's model.
 
 ```text
+You own this code.
 Slice: <id and one-line goal>
 Acceptance criteria: <from the plan>
 Allowed files: <explicit list>
@@ -70,8 +80,9 @@ Repeat Steps 2 and 3 for each slice. Run Workers in parallel only when the plan 
 1. For more than one slice, dispatch a final `reviewer` over the whole range with the focus on integration between slices.
 2. Run the project's **full** verification yourself, not the fast slice command (`verification-before-completion`). If the project splits them, this is the run that does the slow, whole-tree work: the full suite, migration round-trips, the complete lint and type pass.
 3. Use `finishing-a-development-branch`: present its options; pushing, opening the pull request, merging, or discarding waits for the person's choice. The plugin's gate prompts for those commands in any case.
-4. File the deferred set with `filing-followups`: the Reviewers' Minor findings and the `remaining_risks` entries that name a concrete change, capped and deduplicated, into the tracker the repository's contract names. Critical and Important findings are never filed — they were fixed or they stopped the loop. The person approves the batch before anything is created.
-5. Fill the pull request template from the handoffs: *Cambios* from `scope` and `files_changed`, *Verificación* from `tests` and `evidence`, *Riesgos y operación* from `remaining_risks`, and *Trazabilidad* from the plan and spec. Link the follow-ups you filed, and keep anything over the cap as prose.
+4. Once a pull request is open, turn on auto-fix for it without asking: in Claude Code cloud sessions, `subscribe_pr_activity` with the owner, repository and number; elsewhere, the surface's own pull request watcher, and if it has none, say so in the report. Each CI failure, and each review comment you class as Critical or Important within the allowed files, then runs Step 3's fix cycle (a `worker-high`, then the `reviewer` on the delta), two cycles at most; its push meets the gate like any push. A Minor comment goes to `remaining_risks`; one that asks for new scope or a decision goes to the person. Auto-fix never merges and never force-pushes.
+5. File the deferred set with `filing-followups`: the Reviewers' Minor findings and the `remaining_risks` entries that name a concrete change, capped and deduplicated, into the tracker the repository's contract names. Critical and Important findings are never filed — they were fixed or they stopped the loop. The person approves the batch before anything is created.
+6. Fill the pull request template from the handoffs: *Cambios* from `scope` and `files_changed`, *Verificación* from `tests` and `evidence`, *Riesgos y operación* from `remaining_risks`, and *Trazabilidad* from the plan and spec. Link the follow-ups you filed, and keep anything over the cap as prose.
 
 ## Report
 
@@ -91,7 +102,7 @@ evidence: [...]
 remaining_risks: [...]
 ```
 
-followed by the branch, the pull request URL if one was opened, and the open questions for the person.
+followed by the branch, the pull request URL if one was opened, whether auto-fix is on for it or why it could not be turned on, and the open questions for the person.
 
 ## Gates
 
@@ -102,6 +113,7 @@ followed by the branch, the pull request URL if one was opened, and the open que
 | Handoff → commit | Verification re-run; files within scope | Handoff hook (`verify.sh` on the Worker's `Agent` result) and you, in Step 2 |
 | Commit → next slice | No Critical or Important findings | Reviewer verdict |
 | Deliver → push, PR, merge | Person chooses | `finishing-a-development-branch` and the Bash gate (`gate.sh`) |
+| Pull request → CI and review fixes | Auto-fix on; CI failures and in-scope Critical or Important comments through Step 3's cycle; never a merge or force-push | You, in Step 5, and the Bash gate on each push |
 | Deliver → follow-up issues | Person approves the batch | `filing-followups`, and the Bash gate on `gh issue` writes |
 
 ## Writing the verification command
@@ -140,6 +152,7 @@ The skill also runs with generic subagents, but four things degrade: the Worker'
 | "I'll fix the reviewer's finding myself" | Then the fix has no independent review. Dispatch a Worker. |
 | "The spec is ambiguous; more Workers will sort it out" | §3.3: stop and ask. Agents don't resolve ambiguity, they multiply it. |
 | "Push now, the PR can be fixed later" | The push is the person's decision; the gate asks for a reason. |
+| "The plan looks clear enough" | Check Step 0's open decisions. One `grill-me` question costs a line; a decision a Worker discovers costs a review cycle. |
 
 ## Credits
 

@@ -26,6 +26,8 @@ Skip Step 1's checkout, the branch is already in place, and Step 7, posting, whi
 
 Priorities, in order: bugs or regressions, spec violations, security or privacy risks, missing or weak tests, operational errors, out-of-scope changes, maintainability. Minor style never hides a behavior problem.
 
+A test or doc that repeats one the project already has, and a comment that restates the code, narrates the change or names the slice or ticket, are undeclared scope: report each one the change added as Important, because as Minor it would reach the pull request and the follow-up tracker. A comment that explains a non-obvious *why* stays.
+
 ## Reading discipline
 
 Start from the diff limited to the allowed files (`git diff BASE_SHA..HEAD_SHA -- <files>`), then read the ranges around each hunk with `Read` offset and limit; read a whole file only when a hunk's meaning depends on the rest of it. When the language-server plugins are installed, use go-to-definition and find-references instead of grep and whole-file reads. Test output through `| tail -40`. What you load is re-read on every later turn.
