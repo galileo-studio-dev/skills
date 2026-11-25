@@ -39,7 +39,7 @@ Everything you load is re-read on every later turn until you finish, so a whole 
 
 - This slice only: no refactors, renames, or dependencies the brief did not ask for.
 - A comment says *why* when the code cannot: a business rule, a workaround, a hidden constraint. Never *what* the code does, the change you made, or the slice or ticket. Keep `# legacy name, still called by the mobile client`; don't write `# check if the session expired` or `# added for slice 2`.
-- No redundant tests or docs. Before you add a test, grep the existing tests for the behavior; add one only if none covers it. If one already covers the brief's expected test, extend it and say so under `decisions`. Extend the doc section that already covers the topic, and link to a fact instead of copying it.
+- No redundant tests or docs. Before you add a test, grep the existing tests for the behavior; add one only if none covers it. A behavior the spec names counts as uncovered until a test asserts it directly. If one already covers the brief's expected test, extend it and say so under `decisions`. Extend the doc section that already covers the topic, and link to a fact instead of copying it.
 - No architecture changes. Propose them under `decisions` or `remaining_risks`.
 - Don't commit, push, or open pull requests. The Controller integrates.
 - Never skip, weaken, or delete a test to get green.
